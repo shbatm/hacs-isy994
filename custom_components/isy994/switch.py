@@ -19,16 +19,11 @@ from .const import ISY994_NODES, ISY994_PROGRAMS, ISY994_VARIABLES
 _LOGGER = logging.getLogger(__name__)
 
 
-<<<<<<< dev
-def setup_platform(
-    hass, config: ConfigType, add_entities: Callable[[list], None], discovery_info=None
-=======
 async def async_setup_platform(
     hass,
     config: ConfigType,
     async_add_entities: Callable[[list], None],
     discovery_info=None,
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
 ):
     """Set up the ISY994 switch platform."""
     devices = []
@@ -55,11 +50,7 @@ class ISYSwitchDevice(ISYDevice, SwitchDevice):
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch."""
         if not self._node.off():
-<<<<<<< dev
-            _LOGGER.debug("Unable to turn on switch.")
-=======
             _LOGGER.debug("Unable to turn off switch.")
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn oon command to the ISY994 switch."""
@@ -90,8 +81,6 @@ class ISYSwitchProgram(ISYSwitchDevice):
         """Send the turn off command to the ISY994 switch program."""
         if not self._actions.runElse():
             _LOGGER.error("Unable to turn off switch")
-<<<<<<< dev
-=======
 
 
 class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
@@ -147,4 +136,3 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
     def turn_on(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch."""
         self._node.setValue(self._on_value)
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File

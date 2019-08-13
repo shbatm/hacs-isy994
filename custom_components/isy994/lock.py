@@ -14,16 +14,11 @@ _LOGGER = logging.getLogger(__name__)
 VALUE_TO_STATE = {0: STATE_UNLOCKED, 100: STATE_LOCKED}
 
 
-<<<<<<< dev
-def setup_platform(
-    hass, config: ConfigType, add_entities: Callable[[list], None], discovery_info=None
-=======
 async def async_setup_platform(
     hass,
     config: ConfigType,
     async_add_entities: Callable[[list], None],
     discovery_info=None,
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
 ):
     """Set up the ISY994 lock platform."""
     devices = []
@@ -53,30 +48,14 @@ class ISYLockDevice(ISYDevice, LockDevice):
 
     def lock(self, **kwargs) -> None:
         """Send the lock command to the ISY994 device."""
-<<<<<<< dev
-        # Hack until PyISY is updated
-        req_url = self._conn.compileURL(["nodes", self.unique_id, "cmd", "SECMD", "1"])
-        response = self._conn.request(req_url)
-
-        if response is None:
-=======
         if not self._node.secure_lock():
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
             _LOGGER.error("Unable to lock device")
 
         self._node.update(0.5)
 
     def unlock(self, **kwargs) -> None:
         """Send the unlock command to the ISY994 device."""
-<<<<<<< dev
-        # Hack until PyISY is updated
-        req_url = self._conn.compileURL(["nodes", self.unique_id, "cmd", "SECMD", "0"])
-        response = self._conn.request(req_url)
-
-        if response is None:
-=======
         if not self._node.secure_unlock():
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
             _LOGGER.error("Unable to lock device")
 
         self._node.update(0.5)

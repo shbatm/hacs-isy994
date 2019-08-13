@@ -11,16 +11,11 @@ from .const import ISY994_NODES
 _LOGGER = logging.getLogger(__name__)
 
 
-<<<<<<< dev
-def setup_platform(
-    hass, config: ConfigType, add_entities: Callable[[list], None], discovery_info=None
-=======
 async def async_setup_platform(
     hass,
     config: ConfigType,
     async_add_entities: Callable[[list], None],
     discovery_info=None,
->>>>>>> ISY Z-Wave Updates, Heartbeat Fix, and Move Constants to Separate File
 ):
     """Set up the ISY994 light platform."""
     devices = []
