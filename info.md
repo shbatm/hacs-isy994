@@ -14,9 +14,6 @@ Change Log:
 - Allow ISY Variables to be used as sensors, binary_sensors, and switches.
 - The `isy994_control` event has been updated to also expose `value`.  This is expected to be a non-breaking change in PyISY; (PyISY's `event` is now a `dict` instead of a `string`, but will represent itself the same as the command string it used to pass).  This change is vital to the `climate` integration, as some values are only made available from the event stream, not the node definition.
 
-## Installation
-
-This repo is meant to be installed with [HACS](https://custom-components.github.io/hacs/)
 
 ## Example entry for `configuration.yaml` (if applicable):
 ```yaml
