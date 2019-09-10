@@ -65,7 +65,7 @@ async def async_setup_platform(
                     "Node %s has a parent node %s, but no device "
                     "was created for the parent. Skipping.",
                     node.nid,
-                    node.parent_nid,
+                    node.parent_node,
                 )
             else:
                 if device_class in ("opening", "moisture"):
