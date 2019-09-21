@@ -478,6 +478,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
     )
 
+    # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
+    _LOGGER.info(repr(isy.clock))
+
     if enable_climate and isy.configuration.get("Weather Information"):
         _categorize_weather(hass, isy.climate)
 
