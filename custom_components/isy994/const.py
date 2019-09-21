@@ -74,8 +74,14 @@ NODE_FILTERS = {
     "binary_sensor": {
         "uom": [],
         "states": [],
-        "node_def_id": ["BinaryAlarm", "OnOffControl_ADV"],
-        "insteon_type": ["7.13.", "16."],  # Does a startswith() match; incl .
+        "node_def_id": [
+            "BinaryAlarm",
+            "OnOffControl",
+            "OnOffControl_ADV",
+            "BinaryControl",
+            "BinaryControl_ADV",
+        ],
+        "insteon_type": ["7.0.", "7.13.", "16."],  # Does a startswith() match; incl .
         "zwave_cat": (["104", "112", "138"] + list(map(str, range(148, 180)))),
     },
     "sensor": {
@@ -127,8 +133,6 @@ NODE_FILTERS = {
             "DimmerLampOnly",
             "BallastRelayLampSwitch",
             "BallastRelayLampSwitch_ADV",
-            "RemoteLinc2",
-            "RemoteLinc2_ADV",
         ],
         "insteon_type": ["1."],
         "zwave_cat": ["109", "119"],
@@ -137,7 +141,6 @@ NODE_FILTERS = {
         "uom": ["2", "78"],
         "states": [STATE_ON, STATE_OFF],
         "node_def_id": [
-            "OnOffControl",
             "RelayLampSwitch",
             "RelayLampSwitch_ADV",
             "RelaySwitchOnlyPlusQuery",
@@ -150,15 +153,15 @@ NODE_FILTERS = {
             "EZRAIN_Output",
             "EZIO2x4_Input",
             "EZIO2x4_Input_ADV",
-            "BinaryControl",
-            "BinaryControl_ADV",
             "AlertModuleSiren",
             "AlertModuleSiren_ADV",
             "AlertModuleArmed",
             "Siren",
             "Siren_ADV",
+            "RemoteLinc2",
+            "RemoteLinc2_ADV",
         ],
-        "insteon_type": ["2.", "9.10.", "9.11."],
+        "insteon_type": ["0.16.", "2.", "9.10.", "9.11."],
         "zwave_cat": ["121", "122", "123", "137", "141", "147"],
     },
     "climate": {

@@ -180,18 +180,23 @@ def _check_for_insteon_type(
             ]
         ):
 
-            # Hacky special-case just for FanLinc, which has a light module
-            # as one of its nodes. Note that this special-case is not necessary
+            # Hacky special-cases for certain devices with different domains
+            # included as subnodes. Note that special-cases are not necessary
             # on ISY 5.x firmware as it uses the superior NodeDefs method
+
+            # FanLinc, which has a light module as one of its nodes.
             if domain == "fan" and int(node.nid[-1]) == 1:
                 hass.data[ISY994_NODES]["light"].append(node)
                 return True
 
-            # Hacky special-case just for Thermostats, which has a "Heat" and
-            # "Cool" sub-node on address 2 and 3
+            # Thermostats, which has a "Heat" and "Cool" sub-node on address 2 and 3
             if domain == "climate" and int(node.nid[-1]) in [2, 3]:
                 hass.data[ISY994_NODES]["binary_sensor"].append(node)
                 return True
+
+            # IOLincs which have a sensor and relay on 2 different nodes
+            if domain == "binary_sensor" and int(node.nid[-1]) == 2:
+                hass.data[ISY994_NODES]["switch"].append(node)
 
             hass.data[ISY994_NODES][domain].append(node)
             return True
