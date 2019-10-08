@@ -3,7 +3,7 @@
   "name": "Isy994",
   "documentation": "https://www.home-assistant.io/components/isy994",
   "requirements": [
-    "PyISY_beta==2.0.0.dev7"
+    "PyISY_beta==2.0.0.dev8"
   ],
   "dependencies": [],
   "codeowners": []
