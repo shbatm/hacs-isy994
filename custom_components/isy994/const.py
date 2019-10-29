@@ -80,6 +80,8 @@ NODE_FILTERS = {
             "OnOffControl_ADV",
             "BinaryControl",
             "BinaryControl_ADV",
+            "EZRAIN_Input",
+            "EZIO2x4_Input",
         ],
         "insteon_type": ["7.0.", "7.13.", "16."],  # Does a startswith() match; incl .
         "zwave_cat": (["104", "112", "138"] + list(map(str, range(148, 180)))),
@@ -97,7 +99,7 @@ NODE_FILTERS = {
             + list(map(str, range(82, 97)))
         ),
         "states": [],
-        "node_def_id": ["IMETER_SOLO"],
+        "node_def_id": ["IMETER_SOLO", "EZIO2x4_Input_ADV"],
         "insteon_type": ["9.0.", "9.7."],
         "zwave_cat": (["118", "143"] + list(map(str, range(180, 185)))),
     },
@@ -149,10 +151,8 @@ NODE_FILTERS = {
             "RelayLampOnly_ADV",
             "KeypadButton",
             "KeypadButton_ADV",
-            "EZRAIN_Input",
             "EZRAIN_Output",
-            "EZIO2x4_Input",
-            "EZIO2x4_Input_ADV",
+            "EZIO2x4_Output",
             "AlertModuleSiren",
             "AlertModuleSiren_ADV",
             "AlertModuleArmed",
@@ -161,7 +161,7 @@ NODE_FILTERS = {
             "RemoteLinc2",
             "RemoteLinc2_ADV",
         ],
-        "insteon_type": ["0.16.", "2.", "9.10.", "9.11."],
+        "insteon_type": ["0.16.", "2.", "7.3.255.", "9.10.", "9.11."],
         "zwave_cat": ["121", "122", "123", "137", "141", "147"],
     },
     "climate": {
