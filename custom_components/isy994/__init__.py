@@ -3,6 +3,8 @@ from collections import namedtuple
 import logging
 from urllib.parse import urlparse
 
+import PyISY
+from PyISY.Nodes import Group
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import (
@@ -325,8 +327,6 @@ def _categorize_nodes(
             # Don't import this node as a device at all
             continue
 
-        from PyISY.Nodes import Group
-
         if isinstance(node, Group):
             hass.data[ISY994_NODES][SCENE_DOMAIN].append(node)
             continue
@@ -336,9 +336,8 @@ def _categorize_nodes(
             # determine if it should be a binary_sensor.
             if _is_sensor_a_binary_sensor(hass, node):
                 continue
-            else:
-                hass.data[ISY994_NODES]["sensor"].append(node)
-                continue
+            hass.data[ISY994_NODES]["sensor"].append(node)
+            continue
 
         # We have a bunch of different methods for determining the device type,
         # each of which works with different ISY firmware versions or device
@@ -359,7 +358,7 @@ def _categorize_programs(hass: HomeAssistant, programs: dict) -> None:
     """Categorize the ISY994 programs."""
     for domain in SUPPORTED_PROGRAM_DOMAINS:
         try:
-            folder = programs[KEY_MY_PROGRAMS]["HA.{}".format(domain)]
+            folder = programs[KEY_MY_PROGRAMS][f"HA.{domain}"]
         except KeyError:
             pass
         else:
@@ -419,10 +418,10 @@ def _categorize_weather(hass: HomeAssistant, climate) -> None:
         WeatherNode(
             getattr(climate, attr),
             attr.replace("_", " "),
-            getattr(climate, "{}_units".format(attr)),
+            getattr(climate, f"{attr}_units"),
         )
         for attr in climate_attrs
-        if "{}_units".format(attr) in climate_attrs
+        if f"{attr}_units" in climate_attrs
     ]
     hass.data[ISY994_WEATHER].extend(weather_nodes)
 
@@ -463,8 +462,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     else:
         _LOGGER.error("isy994 host value in configuration is invalid")
         return False
-
-    import PyISY
 
     # Connect to ISY controller.
     isy = PyISY.ISY(
@@ -558,7 +555,7 @@ def _process_values(
 class ISYDevice(Entity):
     """Representation of an ISY994 device."""
 
-    _name = None  # type: str
+    _name: str = None
 
     def __init__(self, node) -> None:
         """Initialize the insteon device."""
