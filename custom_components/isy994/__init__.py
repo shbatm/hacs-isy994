@@ -206,7 +206,7 @@ def _check_for_insteon_type(
                 and device_type.startswith("7.3.255.")
                 and str(node.nid[-1]) in ["9", "A", "B", "C"]
             ):
-                hass.data[ISY994_NODES]["sensor"].append(node)
+                hass.data[ISY994_NODES]["binary_sensor"].append(node)
 
             hass.data[ISY994_NODES][domain].append(node)
             return True

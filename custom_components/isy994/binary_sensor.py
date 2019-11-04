@@ -57,7 +57,22 @@ async def async_setup_platform(
     # Handle some special child node cases for Insteon Devices
     for (node, device_class, device_type) in child_nodes:
         subnode_id = int(node.nid[-1], 16)
-        if device_class != "climate":
+        # Handle Insteon Thermostats
+        if device_type.startswith("5."):
+            if subnode_id == 2:
+                # Subnode 2 is the "Cool Control" sensor
+                # It never reports its state until first use is
+                # detected after an ISY Restart, so we assume it's off.
+                # As soon as the ISY Event Stream connects if it has a
+                # valid state, it will be set.
+                device = ISYBinarySensorDevice(node, "cold", False)
+                devices.append(device)
+            elif subnode_id == 3:
+                # Subnode 3 is the "Heat Control" sensor
+                device = ISYBinarySensorDevice(node, "heat", False)
+                devices.append(device)
+            continue
+        if device_class in ("opening", "moisture", "motion"):
             try:
                 parent_device = devices_by_nid[node.parent_node.nid]
             except KeyError:
@@ -80,6 +95,7 @@ async def async_setup_platform(
                         device = ISYBinarySensorHeartbeat(node, parent_device)
                         parent_device.add_heartbeat_device(device)
                         devices.append(device)
+                    continue
                 elif (
                     device_class == "motion"
                     and device_type is not None
@@ -105,24 +121,12 @@ async def async_setup_platform(
                         # Motion Disabled Sub-node for MS II.
                         device = ISYBinarySensorDevice(node, "None")
                         devices.append(device)
-                else:
-                    # We don't yet have any special logic for other sensor
-                    # types, so add the nodes as individual devices
-                    device = ISYBinarySensorDevice(node, device_class)
-                    devices.append(device)
-        else:  # Climate Devices
-            if subnode_id == 2:
-                # Subnode 2 is the "Cool Control" sensor
-                # It never reports its state until first use is
-                # detected after an ISY Restart, so we assume it's off.
-                # As soon as the ISY Event Stream connects if it has a
-                # valid state, it will be set.
-                device = ISYBinarySensorDevice(node, "cold", False)
-                devices.append(device)
-            elif subnode_id == 3:
-                # Subnode 3 is the "Heat Control" sensor
-                device = ISYBinarySensorDevice(node, "heat", False)
-                devices.append(device)
+                    continue
+                continue
+        # We don't yet have any special logic for other sensor
+        # types, so add the nodes as individual devices
+        device = ISYBinarySensorDevice(node, device_class)
+        devices.append(device)
 
     for name, status, _ in hass.data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYBinarySensorProgram(name, status))
