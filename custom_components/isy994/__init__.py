@@ -187,17 +187,17 @@ def _check_for_insteon_type(
             # on ISY 5.x firmware as it uses the superior NodeDefs method
 
             # FanLinc, which has a light module as one of its nodes.
-            if domain == "fan" and int(node.nid[-1]) == 1:
+            if domain == "fan" and str(node.nid[-1]) in ["1"]:
                 hass.data[ISY994_NODES]["light"].append(node)
                 return True
 
             # Thermostats, which has a "Heat" and "Cool" sub-node on address 2 and 3
-            if domain == "climate" and int(node.nid[-1]) in [2, 3]:
+            if domain == "climate" and str(node.nid[-1]) in ["2", "3"]:
                 hass.data[ISY994_NODES]["binary_sensor"].append(node)
                 return True
 
             # IOLincs which have a sensor and relay on 2 different nodes
-            if domain == "binary_sensor" and int(node.nid[-1]) == 2:
+            if domain == "binary_sensor" and str(node.nid[-1]) in ["2"]:
                 hass.data[ISY994_NODES]["switch"].append(node)
 
             # Smartenit EZIO2X4
