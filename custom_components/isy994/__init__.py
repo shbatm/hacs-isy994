@@ -197,7 +197,7 @@ def _check_for_insteon_type(
                 return True
 
             # IOLincs which have a sensor and relay on 2 different nodes
-            if domain == "binary_sensor" and int(node.nid[-1]) == 2:
+            if domain == "binary_sensor" and str(node.nid[-1]) == "2":
                 hass.data[ISY994_NODES]["switch"].append(node)
 
             # Smartenit EZIO2X4
