@@ -562,11 +562,15 @@ class ISYDevice(Entity):
         self._node = node
         self._attrs = {}
         self._change_handler = None
+        self._group_change_handler = None
         self._control_handler = None
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to the node change events."""
         self._change_handler = self._node.status.subscribe("changed", self.on_update)
+
+        if hasattr(self._node, "group_all_on"):
+            self._group_change_handler = self._node.group_all_on.subscribe("changed", self.on_update)
 
         if hasattr(self._node, "controlEvents"):
             self._control_handler = self._node.controlEvents.subscribe(self.on_control)
@@ -583,16 +587,12 @@ class ISYDevice(Entity):
             "value": event.nval,
         }
 
-        # Some attributes are only given by the ISY in the event stream
-        # or in a direct query of a node. These are not picked up in PyISY.
-        # Translate some common ones here:
+        # Translate some common attributes:
         if event.nval is None or event.event not in ISY994_EVENT_IGNORE:
-            attr_name = ISY994_EVENT_FRIENDLY_NAME.get(event.event, event.event)
             friendly_value = _process_values(
                 self.hass, event.nval, event.uom, event.prec, self._node.type
             )
             event_data["friendly_value"] = friendly_value
-            self._attrs[attr_name] = friendly_value
             self.schedule_update_ha_state()
 
         self.hass.bus.fire("isy994_control", event_data)
@@ -656,5 +656,11 @@ class ISYDevice(Entity):
                     self._node.type,
                 )
                 attr[attr_name] = friendly_value
+
+        # If a Group/Scene, set a property if the entire scene is on/off
+        if hasattr(self._node, "group_all_on"):
+            # pylint: disable=protected-access
+            attr["group_all_on"] = "on" if self._node.group_all_on._val else "off"
+
         self._attrs.update(attr)
         return self._attrs

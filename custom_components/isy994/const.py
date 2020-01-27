@@ -269,7 +269,11 @@ ISY994_EVENT_FRIENDLY_NAME = {
 }
 
 ISY994_EVENT_IGNORE = [
+    "DON",
     "ST",
+    "DFON",
+    "DOF",
+    "DFOF",
     "BEEP",
     "RESET",
     "X10",
