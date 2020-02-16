@@ -1,5 +1,22 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.0.11-beta1] - Add support for multiple controllers
+
+- This update add support for multiple ISY994 controllers. Simply update your config to include a list element for each controller:
+```yaml
+isy994:
+  - host: http://my_first_isy_ip:80
+    username: !secret isy1_username
+    password: !secret isy1_password
+    ignore_string: "[i]"
+    sensor_string: "[s]"
+  - host: http://my_second_isy_ip:80
+    username: !secret isy2_username
+    password: !secret isy2_password
+    ignore_string: "[i]"
+    sensor_string: "[s]"
+```
+
 ### [1.0.11] - Jan 2020 Update
 
 - Moved recording of extra attributes in the event stream from the Home Assistant integration into the PyISY module.
