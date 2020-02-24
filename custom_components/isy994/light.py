@@ -38,7 +38,7 @@ class ISYLightDevice(ISYDevice, Light):
     @property
     def brightness(self) -> float:
         """Get the brightness of the ISY994 light."""
-        return None if self.is_unknown() else self.value
+        return None if self.is_unknown() else int(self.value)
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 light device."""
