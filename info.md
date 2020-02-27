@@ -13,6 +13,9 @@ Change Log:
 - Add logic for Motion Sensor subnodes, update framework for Z-Wave IDs
 - Allow ISY Variables to be used as sensors, binary_sensors, and switches.
 - The `isy994_control` event has been updated to also expose `value`.  This is expected to be a non-breaking change in PyISY; (PyISY's `event` is now a `dict` instead of a `string`, but will represent itself the same as the command string it used to pass).  This change is vital to the `climate` integration, as some values are only made available from the event stream, not the node definition.
+- Updated Device Domain assignments and improved Z-Wave status functions.
+- Added "Group All On" attribute to scenes (groups) to determine if all devices are on in a scene or if only some are.
+- Fixed issues with "On Levels" not being used by Home Assistant (jumping to 100% then back to On Level when controlling in Lovelace, 100% brightness only goes to On Level)
 
 
 ## Example entry for `configuration.yaml` (if applicable):
