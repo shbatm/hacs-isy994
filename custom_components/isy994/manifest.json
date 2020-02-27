@@ -4,5 +4,6 @@
   "documentation": "https://www.home-assistant.io/integrations/isy994",
   "requirements": ["PyISY_beta==2.0.0.dev85"],
   "dependencies": [],
-  "codeowners": []
+  "codeowners": [],
+  "homeassistant": "0.102.0"
 }
