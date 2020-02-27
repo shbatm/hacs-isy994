@@ -2,7 +2,6 @@
 
 ### [1.0.13] - Rollup Source Changes, PyISY_Beta Function Name Changes
 
-- Include changes from home-assistant/home-assistant#32122 (496bd3dd) for more unit constants
 - Include changes from home-assistant/home-assistant#30500 (52164773) for Home Assistant spelling consistency
 - Include changes from home-assistant/home-assistant#30532 (345cc244) for name corrections in manifests
 - Accomodate changes in PyISY Beta function renaming
