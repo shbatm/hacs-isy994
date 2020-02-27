@@ -19,6 +19,7 @@ from homeassistant.components.climate.const import (
     PRESET_BOOST,
 )
 from homeassistant.const import (
+    CONCENTRATION_PARTS_PER_MILLION,
     ENERGY_KILO_WATT_HOUR,
     LENGTH_CENTIMETERS,
     LENGTH_FEET,
@@ -30,6 +31,9 @@ from homeassistant.const import (
     PRESSURE_INHG,
     SERVICE_LOCK,
     SERVICE_UNLOCK,
+    SPEED_KILOMETERS_PER_HOUR,
+    SPEED_METERS_PER_SECOND,
+    SPEED_MILES_PER_HOUR,
     STATE_CLOSED,
     STATE_CLOSING,
     STATE_LOCKED,
@@ -66,8 +70,8 @@ KEY_FOLDER = "folder"
 KEY_MY_PROGRAMS = "My Programs"
 KEY_STATUS = "status"
 
-# Do not use the Hass consts for the states here - we're matching exact API
-# responses, not using them for Hass states
+# Do not use the Home Assistant consts for the states here - we're matching exact API
+# responses, not using them for Home Assistant states
 # Z-Wave Categories: https://www.universal-devices.com/developers/
 #                      wsdk/5.0.4/4_fam.xml
 NODE_FILTERS = {
@@ -186,7 +190,7 @@ SUPPORTED_DOMAINS = [
 SUPPORTED_PROGRAM_DOMAINS = ["binary_sensor", "lock", "fan", "cover", "switch"]
 SUPPORTED_VARIABLE_DOMAINS = ["binary_sensor", "sensor", "switch"]
 
-# ISY Scenes are more like Switches than Hass Scenes
+# ISY Scenes are more like Switches than Home Assistant Scenes
 # (they can turn off, and report their state)
 SCENE_DOMAIN = "switch"
 
@@ -313,7 +317,7 @@ UOM_FRIENDLY_NAME = {
     "29": "kV",
     "30": "kW",
     "31": "kPa",
-    "32": "KPH",
+    "32": SPEED_KILOMETERS_PER_HOUR,
     "33": ENERGY_KILO_WATT_HOUR,
     "34": "liedu",
     "35": VOLUME_LITERS,
@@ -321,7 +325,7 @@ UOM_FRIENDLY_NAME = {
     "37": "mercalli",
     "38": LENGTH_METERS,
     "39": "m³/hr",
-    "40": "m/s",
+    "40": SPEED_METERS_PER_SECOND,
     "41": "mA",
     "42": "ms",
     "43": "mV",
@@ -329,13 +333,13 @@ UOM_FRIENDLY_NAME = {
     "45": "min",
     "46": "mm/hr",
     "47": "month",
-    "48": "MPH",
-    "49": "m/s",
+    "48": SPEED_MILES_PER_HOUR,
+    "49": SPEED_METERS_PER_SECOND,
     "50": "Ω",
     "51": "%",
     "52": MASS_POUNDS,
     "53": "pf",
-    "54": "ppm",
+    "54": CONCENTRATION_PARTS_PER_MILLION,
     "55": "pulse count",
     "57": "s",
     "58": "s",

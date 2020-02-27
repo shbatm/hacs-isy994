@@ -131,8 +131,8 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch."""
-        self._node.setValue(self._off_value)
+        self._node.set_value(self._off_value)
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch."""
-        self._node.setValue(self._on_value)
+        self._node.set_value(self._on_value)

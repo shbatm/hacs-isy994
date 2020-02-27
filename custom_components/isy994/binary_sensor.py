@@ -1,6 +1,6 @@
 """Support for ISY994 binary sensors."""
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from typing import Callable, Optional
 
 from homeassistant.components.binary_sensor import DOMAIN, BinarySensorDevice
@@ -40,15 +40,15 @@ async def async_setup_platform(
 ):
     """Set up the ISY994 binary sensor platform."""
     devices = []
-    devices_by_nid = {}
+    devices_by_address = {}
     child_nodes = []
 
     for node in hass.data[ISY994_NODES][DOMAIN]:
         device_class, device_type = _detect_device_type(node)
-        if node.parent_node is None or node.nid[0] in ["Z", "n"]:
+        if node.parent_node is None or node.protocol != "insteon":
             device = ISYBinarySensorDevice(node, device_class)
             devices.append(device)
-            devices_by_nid[node.nid] = device
+            devices_by_address[node.address] = device
         else:
             # We'll process the Insteon child nodes last, to ensure all parent
             # nodes have been processed
@@ -56,7 +56,7 @@ async def async_setup_platform(
 
     # Handle some special child node cases for Insteon Devices
     for (node, device_class, device_type) in child_nodes:
-        subnode_id = int(node.nid[-1], 16)
+        subnode_id = int(node.address[-1], 16)
         # Handle Insteon Thermostats
         if device_type.startswith("5."):
             if subnode_id == 2:
@@ -74,12 +74,12 @@ async def async_setup_platform(
             continue
         if device_class in ("opening", "moisture", "motion"):
             try:
-                parent_device = devices_by_nid[node.parent_node.nid]
+                parent_device = devices_by_address[node.parent_node.address]
             except KeyError:
                 _LOGGER.error(
                     "Node %s has a parent node %s, but no device "
                     "was created for the parent. Skipping.",
-                    node.nid,
+                    node.address,
                     node.parent_node,
                 )
             else:
@@ -145,7 +145,7 @@ def _detect_device_type(node) -> (str, str):
         return (None, None)
 
     # Z-Wave Devices:
-    if device_type[0] == "4":
+    if node.protocol == "z-wave":
         device_type = "Z{}".format(node.devtype_cat)
         for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
             if node.devtype_cat in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
@@ -173,7 +173,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
 
     Often times, a single device is represented by multiple nodes in the ISY,
     allowing for different nuances in how those devices report their on and
-    off events. This class turns those multiple nodes in to a single Hass
+    off events. This class turns those multiple nodes in to a single Home Assistant
     entity and handles both ways that ISY binary sensors can work.
     """
 
@@ -195,10 +195,10 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """Subscribe to the node and subnode event emitters."""
         await super().async_added_to_hass()
 
-        self._node.controlEvents.subscribe(self._positive_node_control_handler)
+        self._node.control_events.subscribe(self._positive_node_control_handler)
 
         if self._negative_node is not None:
-            self._negative_node.controlEvents.subscribe(
+            self._negative_node.control_events.subscribe(
                 self._negative_node_control_handler
             )
 
@@ -350,7 +350,7 @@ class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
         """Subscribe to the node and subnode event emitters."""
         await super().async_added_to_hass()
 
-        self._node.controlEvents.subscribe(self._heartbeat_node_control_handler)
+        self._node.control_events.subscribe(self._heartbeat_node_control_handler)
 
         # Start the timer on bootup, so we can change from UNKNOWN to OFF
         self._restart_timer()

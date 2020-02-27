@@ -92,7 +92,7 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
         if hvac_mode:
             self._hvac_mode = UOM_TO_STATES["98"].get(str(hvac_mode.get("value")))
 
-        self._node.controlEvents.subscribe(self._node_control_handler)
+        self._node.control_events.subscribe(self._node_control_handler)
         await super().async_added_to_hass()
 
     def _node_control_handler(self, event: object) -> None:

@@ -1,11 +1,11 @@
 """Support the ISY-994 controllers."""
-from collections import namedtuple
 import logging
+from collections import namedtuple
 from urllib.parse import urlparse
 
 import PyISY
-from PyISY.Nodes import Group
 import voluptuous as vol
+from PyISY.Nodes import Group
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
@@ -31,7 +31,8 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv, discovery
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import discovery
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, Dict
 
@@ -168,6 +169,8 @@ def _check_for_insteon_type(
     works for Insteon device. "Node Server" (v5+) and Z-Wave and others will
     not have a type.
     """
+    if not hasattr(node, "protocol") or node.protocol != "insteon":
+        return False
     if not hasattr(node, "type") or node.type is None:
         # Node doesn't have a type (non-Insteon device most likely)
         return False
@@ -187,24 +190,28 @@ def _check_for_insteon_type(
             # on ISY 5.x firmware as it uses the superior NodeDefs method
 
             # FanLinc, which has a light module as one of its nodes.
-            if domain == "fan" and str(node.nid[-1]) in ["1"]:
+            if domain == "fan" and str(node.address[-1]) in ["1"]:
                 hass.data[ISY994_NODES]["light"].append(node)
                 return True
 
             # Thermostats, which has a "Heat" and "Cool" sub-node on address 2 and 3
-            if domain == "climate" and str(node.nid[-1]) in ["2", "3"]:
+            if domain == "climate" and str(node.address[-1]) in ["2", "3"]:
                 hass.data[ISY994_NODES]["binary_sensor"].append(node)
                 return True
 
             # IOLincs which have a sensor and relay on 2 different nodes
-            if domain == "binary_sensor" and str(node.nid[-1]) in ["2"]:
+            if (
+                domain == "binary_sensor"
+                and device_type.startswith("7.")
+                and str(node.address[-1]) in ["2"]
+            ):
                 hass.data[ISY994_NODES]["switch"].append(node)
 
             # Smartenit EZIO2X4
             if (
                 domain == "switch"
                 and device_type.startswith("7.3.255.")
-                and str(node.nid[-1]) in ["9", "A", "B", "C"]
+                and str(node.address[-1]) in ["9", "A", "B", "C"]
             ):
                 hass.data[ISY994_NODES]["binary_sensor"].append(node)
 
@@ -220,6 +227,9 @@ def _check_for_zwave_cat(hass: HomeAssistant, node, single_domain: str = None) -
     This is for (presumably) every version of the ISY firmware, but only
     works for Z-Wave Devices with the devtype.cat property.
     """
+    if not hasattr(node, "protocol") or node.protocol != "z-wave":
+        return False
+
     if not hasattr(node, "devtype_cat") or node.devtype_cat is None:
         # Node doesn't have a device type category (non-Z-Wave device)
         return False
@@ -570,10 +580,12 @@ class ISYDevice(Entity):
         self._change_handler = self._node.status.subscribe("changed", self.on_update)
 
         if hasattr(self._node, "group_all_on"):
-            self._group_change_handler = self._node.group_all_on.subscribe("changed", self.on_update)
+            self._group_change_handler = self._node.group_all_on.subscribe(
+                "changed", self.on_update
+            )
 
-        if hasattr(self._node, "controlEvents"):
-            self._control_handler = self._node.controlEvents.subscribe(self.on_control)
+        if hasattr(self._node, "control_events"):
+            self._control_handler = self._node.control_events.subscribe(self.on_control)
 
     def on_update(self, event: object) -> None:
         """Handle the update event from the ISY994 Node."""
@@ -600,10 +612,8 @@ class ISYDevice(Entity):
     @property
     def unique_id(self) -> str:
         """Get the unique identifier of the device."""
-        # pylint: disable=protected-access
-        if hasattr(self._node, "_id"):
-            return self._node._id
-
+        if hasattr(self._node, "address"):
+            return self._node.address
         return None
 
     @property
@@ -656,6 +666,14 @@ class ISYDevice(Entity):
                     self._node.type,
                 )
                 attr[attr_name] = friendly_value
+
+        # Add the ISY Address as a attribute.
+        if hasattr(self._node, "address"):
+            attr["isy994_address"] = self._node.address
+
+        # Add the device protocol as an attribute
+        if hasattr(self._node, "protocol"):
+            attr["isy994_protocol"] = self._node.protocol
 
         # If a Group/Scene, set a property if the entire scene is on/off
         if hasattr(self._node, "group_all_on"):
