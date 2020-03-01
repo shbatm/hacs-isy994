@@ -453,6 +453,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass.data[ISY994_VARIABLES][domain] = []
 
     any_connected = False
+    controllers = []
     isy_config_full = config.get(DOMAIN)
 
     if isinstance(isy_config_full, dict):
@@ -492,6 +493,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             _LOGGER.warning("Could not connect to ISY at %s", host.hostname)
             continue
         any_connected = True
+        controllers.append(isy)
 
         _categorize_nodes(hass, isy.nodes, ignore_identifier, sensor_identifier)
         _categorize_programs(hass, isy.programs)
@@ -511,21 +513,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if enable_climate and isy.configuration.get("Weather Information"):
             _categorize_weather(hass, isy.climate)
 
-        async def start(event: object) -> None:
-            """Start ISY auto updates."""
-            _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
+    async def start(event: object) -> None:
+        """Start ISY auto updates."""
+        _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
+        for isy in controllers:
             isy.auto_update = True
 
-        async def stop(event: object) -> None:
-            """Stop ISY auto updates."""
+    async def stop(event: object) -> None:
+        """Stop ISY auto updates."""
+        for isy in controllers:
             isy.auto_update = False
 
-        # only start fetching data after HA boots to prevent delaying the boot
-        # process
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, start)
+    # only start fetching data after HA boots to prevent delaying the boot
+    # process
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, start)
 
-        # Listen for HA stop to disconnect.
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop)
+    # Listen for HA stop to disconnect.
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop)
 
     if not any_connected:
         return False
