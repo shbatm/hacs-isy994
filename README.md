@@ -17,6 +17,7 @@ Change Log:
 - Added "Group All On" attribute to scenes (groups) to determine if all devices are on in a scene or if only some are.
 - Fixed issues with "On Levels" not being used by Home Assistant (jumping to 100% then back to On Level when controlling in Lovelace, 100% brightness only goes to On Level)
 - More detailed `isy994_control` events for better automations.
+- Add support for multiple ISY994 controllers.
 
 ## Installation
 
@@ -40,4 +41,19 @@ isy994:
     switches:
       - id: 5
         type: 2
+```
+
+### Example entry for `configuration.yaml` for multiple controllers:
+```yaml
+isy994:
+  - host: http://my_first_isy_ip:80
+    username: !secret isy1_username
+    password: !secret isy1_password
+    ignore_string: "[i]"
+    sensor_string: "[s]"
+  - host: http://my_second_isy_ip:80
+    username: !secret isy2_username
+    password: !secret isy2_password
+    ignore_string: "[i]"
+    sensor_string: "[s]"
 ```
