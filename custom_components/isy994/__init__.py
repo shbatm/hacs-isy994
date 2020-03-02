@@ -35,6 +35,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import discovery
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.util import slugify
 
 from .const import (
     CONF_ENABLE_CLIMATE,
@@ -626,9 +627,12 @@ class ISYDevice(Entity):
     @property
     def unique_id(self) -> str:
         """Get the unique identifier of the device."""
+        uid = None
         if hasattr(self._node, "address"):
-            return self._node.address
-        return None
+            uid = self._node.address
+        if uid and self.isy_uuid:
+            uid = f"{self.isy_uuid}_{slugify(uid)}"
+        return uid
 
     @property
     def name(self) -> str:
@@ -639,6 +643,16 @@ class ISYDevice(Entity):
     def should_poll(self) -> bool:
         """No polling required since we're using the subscription."""
         return False
+
+    @property
+    def isy_uuid(self):
+        """Return the UUID from the ISY this node is attached to."""
+        if (
+            "uuid" in self._node.isy.configuration
+            and self._node.isy.configuration["uuid"] is not None
+        ):
+            return slugify(self._node.isy.configuration["uuid"])
+        return None
 
     @property
     def value(self) -> int:
