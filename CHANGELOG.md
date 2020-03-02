@@ -1,6 +1,6 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
-### [1.0.14-beta1] - Add support for multiple controllers
+### [1.0.14-beta3] - Add support for multiple controllers
 
 - This update add support for multiple ISY994 controllers. Simply update your config to include a list element for each controller:
 ```yaml
@@ -16,6 +16,10 @@ isy994:
     ignore_string: "[i]"
     sensor_string: "[s]"
 ```
+
+#### BREAKING CHANGE:
+
+This update prepends the UUID from the ISY controller onto each entity's unique_id. This will create duplicate entities the first time it runs. It's strongly suggested you remove any ISY994 entities from the Entity Register before restarting Home Assistant (or remove them manually from the `config/.storage/core.entity_registry` and `config/.storage/core.restore_states` while Home Assistant is not running).
 
 ### [1.0.14] - Rollup Source Changes, PyISY_Beta Function Name Changes
 
