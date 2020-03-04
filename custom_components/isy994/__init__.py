@@ -6,6 +6,11 @@ from urllib.parse import urlparse
 import PyISY
 import voluptuous as vol
 from PyISY.Nodes import Group
+from PyISY.constants import (
+    COMMAND_FRIENDLY_NAME,
+    COMMAND_PROP_IGNORE,
+    INSTEON_RAMP_RATES,
+)
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
@@ -47,9 +52,6 @@ from .const import (
     DEFAULT_ON_VALUE,
     DEFAULT_SENSOR_STRING,
     DOMAIN,
-    INSTEON_RAMP_RATES,
-    ISY994_EVENT_FRIENDLY_NAME,
-    ISY994_EVENT_IGNORE,
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
@@ -600,7 +602,7 @@ class ISYDevice(Entity):
         }
 
         # Translate some common attributes:
-        if event.nval is None or event.event not in ISY994_EVENT_IGNORE:
+        if event.nval is None or event.event not in COMMAND_PROP_IGNORE:
             friendly_value = _process_values(
                 self.hass, event.nval, event.uom, event.prec, self._node.type
             )
@@ -657,7 +659,7 @@ class ISYDevice(Entity):
         attr = {}
         if hasattr(self._node, "aux_properties"):
             for name, val in self._node.aux_properties.items():
-                attr_name = ISY994_EVENT_FRIENDLY_NAME.get(name, name)
+                attr_name = COMMAND_FRIENDLY_NAME.get(name, name)
                 friendly_value = _process_values(
                     self.hass,
                     val.get("value"),
