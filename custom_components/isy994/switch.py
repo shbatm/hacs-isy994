@@ -53,12 +53,12 @@ class ISYSwitchDevice(ISYDevice, SwitchDevice):
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch."""
-        if not self._node.off():
+        if not self._node.turn_off():
             _LOGGER.debug("Unable to turn off switch.")
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn oon command to the ISY994 switch."""
-        if not self._node.on():
+        if not self._node.turn_on():
             _LOGGER.debug("Unable to turn on switch.")
 
 
