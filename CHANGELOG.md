@@ -1,5 +1,15 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.1.0] - Changes to Conform to PyISY-beta changes
+
+- Use more constants from underlying package instead of redefining.
+- Update function names to match new changes in PyISY-beta
+- PyISY-beta has been updated to track changes merged into the PyISY V2 branch.
+
+### [1.0.15] - Bump PyISY-beta to 2.0.0.dev90 to fix #11
+
+- PyISY-beta==2.0.0.dev89 fixes the unhandled errors thrown by not having any Variables defined.
+
 ### [1.0.13] - Rollup Source Changes, PyISY_Beta Function Name Changes
 
 - Include changes from home-assistant/home-assistant#30500 (52164773) for Home Assistant spelling consistency

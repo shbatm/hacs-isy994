@@ -107,7 +107,7 @@ NODE_FILTERS = {
         "uom": ["11"],
         "states": ["locked", "unlocked"],
         "node_def_id": ["DoorLock"],
-        "insteon_type": ["15."],
+        "insteon_type": ["15.", "4.64."],
         "zwave_cat": ["111"],
     },
     "fan": {
@@ -168,7 +168,7 @@ NODE_FILTERS = {
         "uom": ["2"],
         "states": ["heating", "cooling", "idle", "fan_only", STATE_OFF],
         "node_def_id": ["TempLinc", "Thermostat"],
-        "insteon_type": ["5."],
+        "insteon_type": ["4.8", "5."],
         "zwave_cat": ["140"],
     },
 }
@@ -194,15 +194,6 @@ ISY994_NODES = "isy994_nodes"
 ISY994_WEATHER = "isy994_weather"
 ISY994_PROGRAMS = "isy994_programs"
 ISY994_VARIABLES = "isy994_variables"
-
-ISY_CURRENT_TEMPERATURE = "ST"
-ISY_CURRENT_HUMIDITY = "CLIHUM"
-ISY_TARGET_TEMP_HIGH = "CLISPC"
-ISY_TARGET_TEMP_LOW = "CLISPH"
-ISY_HVAC_MODE = "CLIMD"
-ISY_HVAC_STATE = "CLIHCS"
-ISY_FAN_MODE = "CLIFS"
-ISY_UOM = "UOM"
 
 ISY_HVAC_MODES = [
     HVAC_MODE_OFF,
@@ -470,15 +461,15 @@ UOM_TO_STATES = {
 }
 
 HA_HVAC_TO_ISY = {
-    HVAC_MODE_OFF: "0",
-    HVAC_MODE_HEAT: "1",
-    HVAC_MODE_COOL: "2",
-    HVAC_MODE_HEAT_COOL: "3",
-    HVAC_MODE_FAN_ONLY: "4",
-    HVAC_MODE_AUTO: "5",
+    HVAC_MODE_OFF: "off",
+    HVAC_MODE_HEAT: "heat",
+    HVAC_MODE_COOL: "cool",
+    HVAC_MODE_HEAT_COOL: "auto",
+    HVAC_MODE_FAN_ONLY: "fan_only",
+    HVAC_MODE_AUTO: "program_auto",
 }
 
-HA_FAN_TO_ISY = {FAN_ON: "7", FAN_AUTO: "8"}
+HA_FAN_TO_ISY = {FAN_ON: "on", FAN_AUTO: "auto"}
 
 SUPPORTED_BIN_SENS_CLASSES = ["moisture", "opening", "motion", "climate"]
 

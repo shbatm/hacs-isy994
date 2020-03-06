@@ -10,8 +10,10 @@ from homeassistant.const import (
     CONF_PAYLOAD_OFF,
     CONF_PAYLOAD_ON,
     CONF_TYPE,
+    STATE_UNKNOWN,
 )
 from homeassistant.helpers.typing import ConfigType, Dict
+from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import ISY994_NODES, ISY994_PROGRAMS, ISY994_VARIABLES
@@ -45,6 +47,8 @@ class ISYSwitchDevice(ISYDevice, SwitchDevice):
     @property
     def is_on(self) -> bool:
         """Get whether the ISY994 device is in the on state."""
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         return bool(self.value)
 
     def turn_off(self, **kwargs) -> None:
@@ -74,12 +78,12 @@ class ISYSwitchProgram(ISYSwitchDevice):
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch program."""
-        if not self._actions.runThen():
+        if not self._actions.run_then():
             _LOGGER.error("Unable to turn on switch")
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch program."""
-        if not self._actions.runElse():
+        if not self._actions.run_else():
             _LOGGER.error("Unable to turn off switch")
 
 
@@ -118,6 +122,8 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         if self.value == self._on_value:
             return True
         if self.value == self._off_value:

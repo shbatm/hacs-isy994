@@ -10,10 +10,12 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_TYPE,
     CONF_UNIT_OF_MEASUREMENT,
+    STATE_UNKNOWN,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
 from homeassistant.helpers.typing import ConfigType, Dict
+from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import (
@@ -67,19 +69,19 @@ class ISYSensorDevice(ISYDevice):
     @property
     def state(self) -> str:
         """Get the state of the ISY994 sensor device."""
-        if self.is_unknown():
-            return None
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
 
         uom = self._node.uom
         if isinstance(uom, list):
             uom = uom[0]
         if not uom:
-            return None
+            return STATE_UNKNOWN
 
         states = UOM_TO_STATES.get(uom)
         if states and states.get(self.value):
             return states.get(self.value)
-        if self._node.prec and self._node.prec != 0:
+        if self._node.prec and int(self._node.prec) != 0:
             str_val = str(self.value)
             int_prec = int(self._node.prec)
             decimal_part = str_val[-int_prec:]
@@ -121,8 +123,8 @@ class ISYSensorVariableDevice(ISYDevice):
     @property
     def state(self) -> str:
         """Get the state of the ISY994 variable sensor device."""
-        if self.is_unknown():
-            return None
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         return self.value
 
     @property

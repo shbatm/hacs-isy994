@@ -3,14 +3,7 @@ import logging
 from collections import namedtuple
 from urllib.parse import urlparse
 
-import PyISY
 import voluptuous as vol
-from PyISY.Nodes import Group
-from PyISY.constants import (
-    COMMAND_FRIENDLY_NAME,
-    COMMAND_PROP_IGNORE,
-    INSTEON_RAMP_RATES,
-)
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
@@ -40,6 +33,17 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import discovery
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, Dict
+from pyisy import ISY
+from pyisy.constants import (
+    COMMAND_FRIENDLY_NAME,
+    EVENT_PROPS_IGNORED,
+    INSTEON_RAMP_RATES,
+    ISY_VALUE_UNKNOWN,
+    PROTO_INSTEON,
+    PROTO_ZWAVE,
+)
+from pyisy.helpers import NodeProperty
+from pyisy.nodes import Group
 
 from .const import (
     CONF_ENABLE_CLIMATE,
@@ -171,7 +175,7 @@ def _check_for_insteon_type(
     works for Insteon device. "Node Server" (v5+) and Z-Wave and others will
     not have a type.
     """
-    if not hasattr(node, "protocol") or node.protocol != "insteon":
+    if not hasattr(node, "protocol") or node.protocol != PROTO_INSTEON:
         return False
     if not hasattr(node, "type") or node.type is None:
         # Node doesn't have a type (non-Insteon device most likely)
@@ -229,7 +233,7 @@ def _check_for_zwave_cat(hass: HomeAssistant, node, single_domain: str = None) -
     This is for (presumably) every version of the ISY firmware, but only
     works for Z-Wave Devices with the devtype.cat property.
     """
-    if not hasattr(node, "protocol") or node.protocol != "z-wave":
+    if not hasattr(node, "protocol") or node.protocol != PROTO_ZWAVE:
         return False
 
     if not hasattr(node, "devtype_cat") or node.devtype_cat is None:
@@ -476,7 +480,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return False
 
     # Connect to ISY controller.
-    isy = PyISY.ISY(
+    isy = ISY(
         host.hostname,
         port,
         username=user,
@@ -529,41 +533,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-def _process_values(
-    hass: HomeAssistant, value: str, uom: str, prec: str, ntype: str
-) -> str:
-    """Process event values to get the correct value and unit of measure."""
-    if uom is None:
-        return int(value)
-    if isinstance(uom, list):
-        uom = uom[0]  # Handle UOMs from ISYv4 firmwares
-    if float(value) == -1 * float("inf"):
-        return STATE_UNKNOWN
-    if uom == "2":
-        value = bool(int(value))
-        uom = None
-    elif uom == "100":
-        value = int(float(value) / 255.0 * 100.0)
-        uom = "%"
-    elif uom == "101":
-        value = round(float(value) / 2.0, 1)
-        uom = hass.config.units.temperature_unit
-    elif uom == "25" and ntype is not None and ntype[0] in ["1", "2"]:
-        # One off case for Insteon Ramp Rates
-        value = INSTEON_RAMP_RATES.get(str(value), int(value))
-        uom = None
-    elif UOM_TO_STATES.get(uom) is not None:
-        value = UOM_TO_STATES[uom].get(str(value), int(value))
-        uom = None
-    else:
-        uom = UOM_FRIENDLY_NAME.get(uom, None)
-        if prec is not None and prec != "0":
-            value = round(float(value) * pow(10, -int(prec)), int(prec))
-        else:
-            value = int(value)
-    return "{} {}".format(value, uom) if uom is not None else value
-
-
 class ISYDevice(Entity):
     """Representation of an ISY994 device."""
 
@@ -593,20 +562,19 @@ class ISYDevice(Entity):
         """Handle the update event from the ISY994 Node."""
         self.schedule_update_ha_state()
 
-    def on_control(self, event: object) -> None:
+    def on_control(self, event: NodeProperty) -> None:
         """Handle a control event from the ISY994 Node."""
         event_data = {
             "entity_id": self.entity_id,
-            "control": event.event,
-            "value": event.nval,
+            "control": event.control,
+            "value": event.value,
+            "formatted": event.formatted,
+            "uom": event.uom,
+            "precision": event.prec,
         }
 
-        # Translate some common attributes:
-        if event.nval is None or event.event not in COMMAND_PROP_IGNORE:
-            friendly_value = _process_values(
-                self.hass, event.nval, event.uom, event.prec, self._node.type
-            )
-            event_data["friendly_value"] = friendly_value
+        if event.value is None or event.control not in EVENT_PROPS_IGNORED:
+            # New state attributes may be available, update the state.
             self.schedule_update_ha_state()
 
         self.hass.bus.fire("isy994_control", event_data)
@@ -634,40 +602,27 @@ class ISYDevice(Entity):
         # pylint: disable=protected-access
         return self._node.status._val
 
-    def is_unknown(self) -> bool:
-        """Get whether or not the value of this Entity's node is unknown.
-
-        PyISY reports unknown values as -inf
-        """
-        return self.value == -1 * float("inf")
-
     @property
     def state(self):
         """Return the state of the ISY device."""
-        if self.is_unknown():
-            return None
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         return super().state
 
     @property
     def device_state_attributes(self) -> Dict:
         """Get the state attributes for the device.
 
-        The 'aux_properties' in the PyISY Node class are combined with the
+        The 'aux_properties' in the pyisy Node class are combined with the
         other attributes which have been picked up from the event stream and
         the combined result are returned as the device state attributes.
         """
         attr = {}
         if hasattr(self._node, "aux_properties"):
-            for name, val in self._node.aux_properties.items():
+            # Cast as list due to RuntimeError if a new property is added while running.
+            for name, value in list(self._node.aux_properties.items()):
                 attr_name = COMMAND_FRIENDLY_NAME.get(name, name)
-                friendly_value = _process_values(
-                    self.hass,
-                    val.get("value"),
-                    val.get("uom", None),
-                    val.get("prec"),
-                    self._node.type,
-                )
-                attr[attr_name] = friendly_value
+                attr[attr_name] = str(value.formatted).lower()
 
         # Add the ISY Address as a attribute.
         if hasattr(self._node, "address"):

@@ -5,6 +5,7 @@ from typing import Callable
 from homeassistant.components.lock import DOMAIN, LockDevice
 from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
 from homeassistant.helpers.typing import ConfigType
+from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import ISY994_NODES, ISY994_PROGRAMS
@@ -42,8 +43,8 @@ class ISYLockDevice(ISYDevice, LockDevice):
     @property
     def state(self) -> str:
         """Get the state of the lock."""
-        if self.is_unknown():
-            return None
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         return VALUE_TO_STATE.get(self.value, STATE_UNKNOWN)
 
     def lock(self, **kwargs) -> None:
@@ -82,10 +83,10 @@ class ISYLockProgram(ISYLockDevice):
 
     def lock(self, **kwargs) -> None:
         """Lock the device."""
-        if not self._actions.runThen():
+        if not self._actions.run_then():
             _LOGGER.error("Unable to lock device")
 
     def unlock(self, **kwargs) -> None:
         """Unlock the device."""
-        if not self._actions.runElse():
+        if not self._actions.run_else():
             _LOGGER.error("Unable to unlock device")

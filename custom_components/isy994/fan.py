@@ -65,7 +65,7 @@ class ISYFanDevice(ISYDevice, FanEntity):
 
     def set_speed(self, speed: str) -> None:
         """Send the set speed command to the ISY994 fan device."""
-        self._node.on(val=STATE_TO_VALUE.get(speed, 255))
+        self._node.turn_on(val=STATE_TO_VALUE.get(speed, 255))
 
     def turn_on(self, speed: str = None, **kwargs) -> None:
         """Send the turn on command to the ISY994 fan device."""
@@ -73,7 +73,7 @@ class ISYFanDevice(ISYDevice, FanEntity):
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 fan device."""
-        self._node.off()
+        self._node.turn_off()
 
     @property
     def speed_list(self) -> list:
@@ -97,12 +97,12 @@ class ISYFanProgram(ISYFanDevice):
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn on command to ISY994 fan program."""
-        if not self._actions.runThen():
+        if not self._actions.run_then():
             _LOGGER.error("Unable to turn off the fan")
 
     def turn_on(self, speed: str = None, **kwargs) -> None:
         """Send the turn off command to ISY994 fan program."""
-        if not self._actions.runElse():
+        if not self._actions.run_else():
             _LOGGER.error("Unable to turn on the fan")
 
     @property

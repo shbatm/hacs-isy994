@@ -3,8 +3,9 @@ import logging
 from typing import Callable
 
 from homeassistant.components.cover import DOMAIN, CoverDevice
-from homeassistant.const import STATE_CLOSED, STATE_OPEN
+from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import ConfigType
+from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import ISY994_NODES, ISY994_PROGRAMS, UOM_TO_STATES
@@ -35,8 +36,8 @@ class ISYCoverDevice(ISYDevice, CoverDevice):
     @property
     def current_cover_position(self) -> int:
         """Return the current cover position."""
-        if self.is_unknown() or self.value is None:
-            return None
+        if self.value in [None, ISY_VALUE_UNKNOWN]:
+            return STATE_UNKNOWN
         return sorted((0, self.value, 100))[1]
 
     @property
@@ -47,18 +48,18 @@ class ISYCoverDevice(ISYDevice, CoverDevice):
     @property
     def state(self) -> str:
         """Get the state of the ISY994 cover device."""
-        if self.is_unknown():
-            return None
+        if self.value == ISY_VALUE_UNKNOWN:
+            return STATE_UNKNOWN
         return UOM_TO_STATES["97"].get(str(self.value), STATE_OPEN)
 
     def open_cover(self, **kwargs) -> None:
         """Send the open cover command to the ISY994 cover device."""
-        if not self._node.on(val=100):
+        if not self._node.turn_on(val=100):
             _LOGGER.error("Unable to open the cover")
 
     def close_cover(self, **kwargs) -> None:
         """Send the close cover command to the ISY994 cover device."""
-        if not self._node.off():
+        if not self._node.turn_off():
             _LOGGER.error("Unable to close the cover")
 
 
@@ -78,10 +79,10 @@ class ISYCoverProgram(ISYCoverDevice):
 
     def open_cover(self, **kwargs) -> None:
         """Send the open cover command to the ISY994 cover program."""
-        if not self._actions.runThen():
+        if not self._actions.run_then():
             _LOGGER.error("Unable to open the cover")
 
     def close_cover(self, **kwargs) -> None:
         """Send the close cover command to the ISY994 cover program."""
-        if not self._actions.runElse():
+        if not self._actions.run_else():
             _LOGGER.error("Unable to close the cover")

@@ -14,11 +14,13 @@ from homeassistant.const import (
     CONF_TYPE,
     STATE_OFF,
     STATE_ON,
+    STATE_UNKNOWN,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import ConfigType, Dict
 from homeassistant.util import dt as dt_util
+from pyisy.constants import PROTO_INSTEON, PROTO_ZWAVE, ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import (
@@ -45,7 +47,7 @@ async def async_setup_platform(
 
     for node in hass.data[ISY994_NODES][DOMAIN]:
         device_class, device_type = _detect_device_type(node)
-        if node.parent_node is None or node.protocol != "insteon":
+        if node.parent_node is None or node.protocol != PROTO_INSTEON:
             device = ISYBinarySensorDevice(node, device_class)
             devices.append(device)
             devices_by_address[node.address] = device
@@ -96,7 +98,7 @@ async def async_setup_platform(
                         parent_device.add_heartbeat_device(device)
                         devices.append(device)
                     continue
-                elif (
+                if (
                     device_class == "motion"
                     and device_type is not None
                     and (
@@ -114,7 +116,9 @@ async def async_setup_platform(
                         # Node never reports status until battery is low so
                         # the intial state is forced "OFF"/"NORMAL" if the
                         # parent device has a valid state.
-                        inital_state = None if parent_device.is_unknown() else False
+                        inital_state = (
+                            None if parent_device.state == STATE_UNKNOWN else False
+                        )
                         device = ISYBinarySensorDevice(node, "battery", inital_state)
                         devices.append(device)
                     elif subnode_id == 13:
@@ -145,7 +149,7 @@ def _detect_device_type(node) -> (str, str):
         return (None, None)
 
     # Z-Wave Devices:
-    if node.protocol == "z-wave":
+    if node.protocol == PROTO_ZWAVE:
         device_type = "Z{}".format(node.devtype_cat)
         for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
             if node.devtype_cat in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
@@ -184,7 +188,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         self._heartbeat_device = None
         self._device_class_from_type = force_device_class
         # pylint: disable=protected-access
-        if _is_val_unknown(self._node.status._val):
+        if self._node.status._val == ISY_VALUE_UNKNOWN:
             self._computed_state = unknown_state
             self._status_was_unknown = True
         else:
@@ -237,7 +241,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
 
     def _negative_node_control_handler(self, event: object) -> None:
         """Handle an "On" control event from the "negative" node."""
-        if event.event == "DON":
+        if event.control == "DON":
             _LOGGER.debug(
                 "Sensor %s turning Off via the Negative node " "sending a DON command",
                 self.name,
@@ -253,7 +257,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         will come to this node, with the negative node representing Off
         events
         """
-        if event.event == "DON":
+        if event.control == "DON":
             _LOGGER.debug(
                 "Sensor %s turning On via the Primary node " "sending a DON command",
                 self.name,
@@ -261,7 +265,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
             self._computed_state = True
             self.schedule_update_ha_state()
             self._heartbeat()
-        if event.event == "DOF":
+        if event.control == "DOF":
             _LOGGER.debug(
                 "Sensor %s turning Off via the Primary node " "sending a DOF command",
                 self.name,
@@ -343,7 +347,7 @@ class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
         self._parent_device = parent_device
         self._heartbeat_timer = None
         self._computed_state = None
-        if not self.is_unknown():
+        if self.state != STATE_UNKNOWN:
             self._computed_state = False
 
     async def async_added_to_hass(self) -> None:
@@ -360,7 +364,7 @@ class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
 
         The ISY uses both DON and DOF commands (alternating) for a heartbeat.
         """
-        if event.event in ["DON", "DOF"]:
+        if event.control in ["DON", "DOF"]:
             self.heartbeat()
 
     def heartbeat(self):
