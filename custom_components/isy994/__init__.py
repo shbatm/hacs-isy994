@@ -33,6 +33,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import discovery
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.util import slugify
 from pyisy import ISY
 from pyisy.constants import (
     COMMAND_FRIENDLY_NAME,
@@ -120,23 +121,23 @@ ISY_VARIABLES_SCHEMA = vol.Schema(
     }
 )
 
+ISY_CONTROLLER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HOST): cv.url,
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_TLS_VER): vol.Coerce(float),
+        vol.Optional(CONF_IGNORE_STRING, default=DEFAULT_IGNORE_STRING): cv.string,
+        vol.Optional(CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING): cv.string,
+        vol.Optional(CONF_ENABLE_CLIMATE, default=True): cv.boolean,
+        vol.Optional(CONF_ISY_VARIABLES, default={}): ISY_VARIABLES_SCHEMA,
+    }
+)
+
 CONFIG_SCHEMA = vol.Schema(
     {
-        DOMAIN: vol.Schema(
-            {
-                vol.Required(CONF_HOST): cv.url,
-                vol.Required(CONF_USERNAME): cv.string,
-                vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_TLS_VER): vol.Coerce(float),
-                vol.Optional(
-                    CONF_IGNORE_STRING, default=DEFAULT_IGNORE_STRING
-                ): cv.string,
-                vol.Optional(
-                    CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING
-                ): cv.string,
-                vol.Optional(CONF_ENABLE_CLIMATE, default=True): cv.boolean,
-                vol.Optional(CONF_ISY_VARIABLES, default={}): ISY_VARIABLES_SCHEMA,
-            }
+        DOMAIN: vol.Any(
+            ISY_CONTROLLER_SCHEMA, vol.All(cv.ensure_list, [ISY_CONTROLLER_SCHEMA])
         )
     },
     extra=vol.ALLOW_EXTRA,
@@ -458,66 +459,77 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     for domain in SUPPORTED_VARIABLE_DOMAINS:
         hass.data[ISY994_VARIABLES][domain] = []
 
-    isy_config = config.get(DOMAIN)
+    any_connected = False
+    controllers = []
+    isy_config_full = config.get(DOMAIN)
 
-    user = isy_config.get(CONF_USERNAME)
-    password = isy_config.get(CONF_PASSWORD)
-    tls_version = isy_config.get(CONF_TLS_VER)
-    host = urlparse(isy_config.get(CONF_HOST))
-    ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
-    sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
-    enable_climate = isy_config.get(CONF_ENABLE_CLIMATE)
-    isy_variables = isy_config.get(CONF_ISY_VARIABLES)
+    if isinstance(isy_config_full, dict):
+        isy_config_full = [isy_config_full]
 
-    if host.scheme == "http":
-        https = False
-        port = host.port or 80
-    elif host.scheme == "https":
-        https = True
-        port = host.port or 443
-    else:
-        _LOGGER.error("isy994 host value in configuration is invalid")
-        return False
+    for isy_config in isy_config_full:
+        user = isy_config.get(CONF_USERNAME)
+        password = isy_config.get(CONF_PASSWORD)
+        tls_version = isy_config.get(CONF_TLS_VER)
+        host = urlparse(isy_config.get(CONF_HOST))
+        ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
+        sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
+        enable_climate = isy_config.get(CONF_ENABLE_CLIMATE)
+        isy_variables = isy_config.get(CONF_ISY_VARIABLES)
 
-    # Connect to ISY controller.
-    isy = ISY(
-        host.hostname,
-        port,
-        username=user,
-        password=password,
-        use_https=https,
-        tls_ver=tls_version,
-        log=_LOGGER,
-    )
-    if not isy.connected:
-        return False
+        if host.scheme == "http":
+            https = False
+            port = host.port or 80
+        elif host.scheme == "https":
+            https = True
+            port = host.port or 443
+        else:
+            _LOGGER.error("isy994 host value in configuration is invalid")
+            return False
 
-    _categorize_nodes(hass, isy.nodes, ignore_identifier, sensor_identifier)
-    _categorize_programs(hass, isy.programs)
-    _categorize_variables(
-        hass, isy.variables, isy_variables.get(CONF_SENSORS), "sensor"
-    )
-    _categorize_variables(
-        hass, isy.variables, isy_variables.get(CONF_BINARY_SENSORS), "binary_sensor"
-    )
-    _categorize_variables(
-        hass, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
-    )
+        # Connect to ISY controller.
+        isy = ISY(
+            host.hostname,
+            port,
+            username=user,
+            password=password,
+            use_https=https,
+            tls_ver=tls_version,
+            log=_LOGGER,
+        )
+        if not isy.connected:
+            _LOGGER.warning("Could not connect to ISY at %s", host.hostname)
+            continue
+        any_connected = True
+        controllers.append(isy)
 
-    # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
-    _LOGGER.info(repr(isy.clock))
+        _categorize_nodes(hass, isy.nodes, ignore_identifier, sensor_identifier)
+        _categorize_programs(hass, isy.programs)
+        _categorize_variables(
+            hass, isy.variables, isy_variables.get(CONF_SENSORS), "sensor"
+        )
+        _categorize_variables(
+            hass, isy.variables, isy_variables.get(CONF_BINARY_SENSORS), "binary_sensor"
+        )
+        _categorize_variables(
+            hass, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
+        )
 
-    if enable_climate and isy.configuration.get("Weather Information"):
-        _categorize_weather(hass, isy.climate)
+        # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
+        _LOGGER.info(repr(isy.clock))
+
+        if enable_climate and isy.configuration.get("Weather Information"):
+            _categorize_weather(hass, isy.climate)
 
     async def start(event: object) -> None:
         """Start ISY auto updates."""
         _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
-        isy.auto_update = True
+        for isy in controllers:
+            isy.auto_update = True
 
     async def stop(event: object) -> None:
         """Stop ISY auto updates."""
-        isy.auto_update = False
+        for isy in controllers:
+            isy.auto_update = False
 
     # only start fetching data after HA boots to prevent delaying the boot
     # process
@@ -525,6 +537,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Listen for HA stop to disconnect.
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop)
+
+    if not any_connected:
+        return False
 
     # Load platforms for the devices in the ISY controller that we support.
     for component in SUPPORTED_DOMAINS:
@@ -582,9 +597,12 @@ class ISYDevice(Entity):
     @property
     def unique_id(self) -> str:
         """Get the unique identifier of the device."""
+        uid = None
         if hasattr(self._node, "address"):
-            return self._node.address
-        return None
+            uid = self._node.address
+        if uid and self.isy_uuid:
+            uid = f"{self.isy_uuid}_{slugify(uid)}"
+        return uid
 
     @property
     def name(self) -> str:
@@ -595,6 +613,16 @@ class ISYDevice(Entity):
     def should_poll(self) -> bool:
         """No polling required since we're using the subscription."""
         return False
+
+    @property
+    def isy_uuid(self):
+        """Return the UUID from the ISY this node is attached to."""
+        if (
+            "uuid" in self._node.isy.configuration
+            and self._node.isy.configuration["uuid"] is not None
+        ):
+            return slugify(self._node.isy.configuration["uuid"])
+        return None
 
     @property
     def value(self) -> int:
