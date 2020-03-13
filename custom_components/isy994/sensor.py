@@ -1,6 +1,6 @@
 """Support for ISY994 sensors."""
 import logging
-from typing import Callable, Optional
+from typing import Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
@@ -16,10 +16,11 @@ from homeassistant.const import (
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
-from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.helpers.typing import Dict
 
 from . import ISYDevice
 from .const import (
+    DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_VARIABLES,
     ISY994_WEATHER,
@@ -30,23 +31,19 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
-    async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the ISY994 sensor platform."""
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
 
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorDevice(node))
 
-    for node in hass.data[ISY994_WEATHER]:
+    for node in hass_isy_data[ISY994_WEATHER]:
         devices.append(ISYWeatherDevice(node))
 
-    for vcfg, vname, vobj in hass.data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYSensorVariableDevice(vcfg, vname, vobj))
 
     async_add_entities(devices)

@@ -35,6 +35,7 @@ from homeassistant.const import (
 
 from . import ISYDevice
 from .const import (
+    DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
     ISY994_NODES,
@@ -49,11 +50,12 @@ ISY_SUPPORTED_FEATURES = (
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the ISY994 thermostat platform."""
     devices = []
 
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         _LOGGER.debug("Adding ISY node %s to Climate platform", node)
         devices.append(ISYThermostatDevice(node))
 

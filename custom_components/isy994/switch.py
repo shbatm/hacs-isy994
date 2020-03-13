@@ -1,6 +1,5 @@
 """Support for ISY994 switches."""
 import logging
-from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
@@ -14,29 +13,30 @@ from homeassistant.const import (
     CONF_TYPE,
     STATE_UNKNOWN,
 )
-from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.helpers.typing import Dict
 
 from . import ISYDevice
-from .const import ISY994_NODES, ISY994_PROGRAMS, ISY994_VARIABLES
+from .const import (
+    DOMAIN as ISY994_DOMAIN,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+    ISY994_VARIABLES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
-    async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the ISY994 switch platform."""
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         devices.append(ISYSwitchDevice(node))
 
-    for name, status, actions in hass.data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYSwitchProgram(name, status, actions))
 
-    for vcfg, vname, vobj in hass.data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYSwitchVariableDevice(vcfg, vname, vobj))
 
     async_add_entities(devices)
