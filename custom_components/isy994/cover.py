@@ -2,10 +2,11 @@
 import logging
 from typing import Callable
 
+from pyisy.constants import ISY_VALUE_UNKNOWN
+
 from homeassistant.components.cover import DOMAIN, CoverDevice
 from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import ConfigType
-from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import ISY994_NODES, ISY994_PROGRAMS, UOM_TO_STATES

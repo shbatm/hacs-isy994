@@ -1,8 +1,18 @@
 """Support the ISY-994 controllers."""
-import logging
 from collections import namedtuple
+import logging
 from urllib.parse import urlparse
 
+from pyisy import ISY
+from pyisy.constants import (
+    COMMAND_FRIENDLY_NAME,
+    EVENT_PROPS_IGNORED,
+    ISY_VALUE_UNKNOWN,
+    PROTO_INSTEON,
+    PROTO_ZWAVE,
+)
+from pyisy.helpers import NodeProperty
+from pyisy.nodes import Group
 import voluptuous as vol
 
 from homeassistant.components.binary_sensor import (
@@ -29,21 +39,9 @@ from homeassistant.const import (
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import discovery
+from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, Dict
-from pyisy import ISY
-from pyisy.constants import (
-    COMMAND_FRIENDLY_NAME,
-    EVENT_PROPS_IGNORED,
-    INSTEON_RAMP_RATES,
-    ISY_VALUE_UNKNOWN,
-    PROTO_INSTEON,
-    PROTO_ZWAVE,
-)
-from pyisy.helpers import NodeProperty
-from pyisy.nodes import Group
 
 from .const import (
     CONF_ENABLE_CLIMATE,
@@ -69,8 +67,6 @@ from .const import (
     SUPPORTED_DOMAINS,
     SUPPORTED_PROGRAM_DOMAINS,
     SUPPORTED_VARIABLE_DOMAINS,
-    UOM_FRIENDLY_NAME,
-    UOM_TO_STATES,
 )
 
 _LOGGER = logging.getLogger(__name__)
