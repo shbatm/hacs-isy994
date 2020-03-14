@@ -1,4 +1,5 @@
 """Config flow for Universal Devices ISY994 integration."""
+from functools import partial
 import logging
 from urllib.parse import urlparse
 
@@ -54,23 +55,26 @@ async def validate_input(hass: core.HomeAssistant, data):
         port = host.port or 443
     else:
         _LOGGER.error("isy994 host value in configuration is invalid")
-        return False
+        raise InvalidHost
 
     # Connect to ISY controller.
-    isy = ISY(
-        host.hostname,
-        port,
-        username=user,
-        password=password,
-        use_https=https,
-        tls_ver=tls_version,
-        log=_LOGGER,
+    isy = await hass.async_add_executor_job(
+        partial(
+            ISY,
+            host.hostname,
+            port,
+            username=user,
+            password=password,
+            use_https=https,
+            tls_ver=tls_version,
+            log=_LOGGER,
+        )
     )
     if not isy.connected:
         raise InvalidAuth
 
     # Return info that you want to store in the config entry.
-    return {"title": host.hostname}
+    return {"title": host.hostname, "uuid": isy.configuration["uuid"]}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -82,17 +86,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
+        info = None
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
-                return self.async_create_entry(title=info["title"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
+            except InvalidHost:
+                errors["base"] = "invalid_host"
             except InvalidAuth:
                 errors["base"] = "invalid_auth"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
+
+            if "base" not in errors:
+                await self.async_set_unique_id(info["uuid"])
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(title=info["title"], data=user_input)
 
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
@@ -100,10 +111,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, user_input):
         """Handle import."""
-        await self.async_set_unique_id(user_input[CONF_HOST])
-        self._abort_if_unique_id_configured()
-
         return await self.async_step_user(user_input)
+
+
+class InvalidHost(exceptions.HomeAssistantError):
+    """Error to indicate the host value is invalid."""
 
 
 class CannotConnect(exceptions.HomeAssistantError):

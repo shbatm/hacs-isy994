@@ -1,6 +1,7 @@
 """Support the ISY-994 controllers."""
 import asyncio
 from collections import namedtuple
+from functools import partial
 import logging
 from urllib.parse import urlparse
 
@@ -504,14 +505,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
 
     # Connect to ISY controller.
-    isy = ISY(
-        host.hostname,
-        port,
-        username=user,
-        password=password,
-        use_https=https,
-        tls_ver=tls_version,
-        log=_LOGGER,
+    isy = await hass.async_add_executor_job(
+        partial(
+            ISY,
+            host.hostname,
+            port,
+            username=user,
+            password=password,
+            use_https=https,
+            tls_ver=tls_version,
+            log=_LOGGER,
+        )
     )
     if not isy.connected:
         return False
