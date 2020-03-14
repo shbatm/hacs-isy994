@@ -43,6 +43,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import Dict
 
@@ -65,6 +66,7 @@ from .const import (
     KEY_FOLDER,
     KEY_MY_PROGRAMS,
     KEY_STATUS,
+    MANUFACTURER,
     NODE_FILTERS,
     SCENE_DOMAIN,
     SUPPORTED_DOMAINS,
@@ -551,6 +553,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Listen for HA stop to disconnect.
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop)
 
+    await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
+
     # Load platforms for the devices in the ISY controller that we support.
     for component in SUPPORTED_DOMAINS:
         hass.async_create_task(
@@ -558,6 +562,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     return True
+
+
+async def _async_get_or_create_isy_device_in_registry(
+    hass: HomeAssistant, entry: ConfigEntry, isy
+) -> None:
+    device_registry = await dr.async_get_registry(hass)
+
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        connections={(dr.CONNECTION_NETWORK_MAC, isy.configuration["uuid"])},
+        identifiers={(DOMAIN, isy.configuration["uuid"])},
+        manufacturer=MANUFACTURER,
+        name="ISY994",  # Not expired in PyISY-beta at this time
+        model=isy.configuration["model"],  # Exposed in PyISY-beta v2.0.0.dev135
+        sw_version=isy.configuration["firmware"],
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

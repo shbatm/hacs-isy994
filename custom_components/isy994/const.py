@@ -49,6 +49,8 @@ from homeassistant.const import (
 
 DOMAIN = "isy994"
 
+MANUFACTURER = "Universal Devices, Inc"
+
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
 CONF_ENABLE_CLIMATE = "enable_climate"
