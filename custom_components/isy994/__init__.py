@@ -441,7 +441,7 @@ def _categorize_weather(hass_isy_data: dict) -> None:
     hass_isy_data[ISY994_WEATHER].extend(weather_nodes)
 
 
-async def async_setup(hass: HomeAssistant, config: dict):
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the isy994 component from YAML."""
 
     conf = config.get(DOMAIN)
@@ -458,7 +458,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the ISY 994 platform."""
 
     hass.data[DOMAIN][entry.entry_id] = {}
@@ -560,7 +560,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = all(
         await asyncio.gather(
