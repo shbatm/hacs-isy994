@@ -144,9 +144,7 @@ CONFIG_SCHEMA = vol.Schema(
 WeatherNode = namedtuple("WeatherNode", ("status", "name", "uom"))
 
 
-def _check_for_node_def(
-    hass: HomeAssistant, entry: ConfigEntry, node, single_domain: str = None
-) -> bool:
+def _check_for_node_def(hass_isy_data: dict, node, single_domain: str = None) -> bool:
     """Check if the node matches the node_def_id for any domains.
 
     This is only present on the 5.0 ISY firmware, and is the most reliable
@@ -157,7 +155,6 @@ def _check_for_node_def(
         return False
 
     node_def_id = node.node_def_id
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
     for domain in domains:
@@ -169,7 +166,7 @@ def _check_for_node_def(
 
 
 def _check_for_insteon_type(
-    hass: HomeAssistant, entry: ConfigEntry, node, single_domain: str = None
+    hass_isy_data: dict, node, single_domain: str = None
 ) -> bool:
     """Check if the node matches the Insteon type for any domains.
 
@@ -185,7 +182,6 @@ def _check_for_insteon_type(
 
     device_type = node.type
     domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     for domain in domains:
         if any(
             [
@@ -230,9 +226,7 @@ def _check_for_insteon_type(
     return False
 
 
-def _check_for_zwave_cat(
-    hass: HomeAssistant, entry: ConfigEntry, node, single_domain: str = None
-) -> bool:
+def _check_for_zwave_cat(hass_isy_data: dict, node, single_domain: str = None) -> bool:
     """Check if the node matches the ISY Z-Wave Category for any domains.
 
     This is for (presumably) every version of the ISY firmware, but only
@@ -247,7 +241,6 @@ def _check_for_zwave_cat(
 
     device_type = node.devtype_cat
     domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     for domain in domains:
         if any(
             [device_type.startswith(t) for t in set(NODE_FILTERS[domain]["zwave_cat"])]
@@ -260,11 +253,7 @@ def _check_for_zwave_cat(
 
 
 def _check_for_uom_id(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    node,
-    single_domain: str = None,
-    uom_list: list = None,
+    hass_isy_data: dict, node, single_domain: str = None, uom_list: list = None,
 ) -> bool:
     """Check if a node's uom matches any of the domains uom filter.
 
@@ -276,7 +265,6 @@ def _check_for_uom_id(
         return False
 
     node_uom = set(map(str.lower, node.uom))
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     if uom_list:
         if node_uom.intersection(uom_list):
@@ -293,11 +281,7 @@ def _check_for_uom_id(
 
 
 def _check_for_states_in_uom(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    node,
-    single_domain: str = None,
-    states_list: list = None,
+    hass_isy_data: dict, node, single_domain: str = None, states_list: list = None,
 ) -> bool:
     """Check if a list of uoms matches two possible filters.
 
@@ -310,7 +294,6 @@ def _check_for_states_in_uom(
         return False
 
     node_uom = set(map(str.lower, node.uom))
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     if states_list:
         if node_uom == set(states_list):
@@ -326,11 +309,11 @@ def _check_for_states_in_uom(
     return False
 
 
-def _is_sensor_a_binary_sensor(hass: HomeAssistant, entry: ConfigEntry, node) -> bool:
+def _is_sensor_a_binary_sensor(hass_isy_data: dict) -> bool:
     """Determine if the given sensor node should be a binary_sensor."""
-    if _check_for_node_def(hass, entry, node, single_domain="binary_sensor"):
+    if _check_for_node_def(hass_isy_data, node, single_domain="binary_sensor"):
         return True
-    if _check_for_insteon_type(hass, entry, node, single_domain="binary_sensor"):
+    if _check_for_insteon_type(hass_isy_data, node, single_domain="binary_sensor"):
         return True
 
     # For the next two checks, we're providing our own set of uoms that
@@ -338,11 +321,11 @@ def _is_sensor_a_binary_sensor(hass: HomeAssistant, entry: ConfigEntry, node) ->
     # checks in the context of already knowing that this is definitely a
     # sensor device.
     if _check_for_uom_id(
-        hass, entry, node, single_domain="binary_sensor", uom_list=["2", "78"]
+        hass_isy_data, node, single_domain="binary_sensor", uom_list=["2", "78"]
     ):
         return True
     if _check_for_states_in_uom(
-        hass, entry, node, single_domain="binary_sensor", states_list=["on", "off"]
+        hass_isy_data, node, single_domain="binary_sensor", states_list=["on", "off"]
     ):
         return True
 
@@ -350,14 +333,9 @@ def _is_sensor_a_binary_sensor(hass: HomeAssistant, entry: ConfigEntry, node) ->
 
 
 def _categorize_nodes(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    nodes,
-    ignore_identifier: str,
-    sensor_identifier: str,
+    hass_isy_data: dict, nodes, ignore_identifier: str, sensor_identifier: str,
 ) -> None:
     """Sort the nodes to their proper domains."""
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     for (path, node) in nodes:
         ignored = ignore_identifier in path or ignore_identifier in node.name
         if ignored:
@@ -371,7 +349,7 @@ def _categorize_nodes(
         if sensor_identifier in path or sensor_identifier in node.name:
             # User has specified to treat this as a sensor. First we need to
             # determine if it should be a binary_sensor.
-            if _is_sensor_a_binary_sensor(hass, entry, node):
+            if _is_sensor_a_binary_sensor(hass_isy_data, node):
                 continue
             hass_isy_data[ISY994_NODES]["sensor"].append(node)
             continue
@@ -379,23 +357,20 @@ def _categorize_nodes(
         # We have a bunch of different methods for determining the device type,
         # each of which works with different ISY firmware versions or device
         # family. The order here is important, from most reliable to least.
-        if _check_for_node_def(hass, entry, node):
+        if _check_for_node_def(hass_isy_data, node):
             continue
-        if _check_for_insteon_type(hass, entry, node):
+        if _check_for_insteon_type(hass_isy_data, node):
             continue
-        if _check_for_zwave_cat(hass, entry, node):
+        if _check_for_zwave_cat(hass_isy_data, node):
             continue
-        if _check_for_uom_id(hass, entry, node):
+        if _check_for_uom_id(hass_isy_data, node):
             continue
-        if _check_for_states_in_uom(hass, entry, node):
+        if _check_for_states_in_uom(hass_isy_data, node):
             continue
 
 
-def _categorize_programs(
-    hass: HomeAssistant, entry: ConfigEntry, programs: dict
-) -> None:
+def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
     """Categorize the ISY994 programs."""
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     for domain in SUPPORTED_PROGRAM_DOMAINS:
         try:
             folder = programs[KEY_MY_PROGRAMS][f"HA.{domain}"]
@@ -427,14 +402,9 @@ def _categorize_programs(
 
 
 def _categorize_variables(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    variables: dict,
-    domain_cfg: dict,
-    domain: str,
+    hass_isy_data: dict, variables: dict, domain_cfg: dict, domain: str,
 ) -> None:
     """Categorize the ISY994 Variables."""
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     if domain_cfg is None:
         return
     for isy_var in domain_cfg:
@@ -456,9 +426,8 @@ def _categorize_variables(
         hass_isy_data[ISY994_VARIABLES][domain].append(variable)
 
 
-def _categorize_weather(hass: HomeAssistant, entry: ConfigEntry, climate) -> None:
+def _categorize_weather(hass_isy_data: dict) -> None:
     """Categorize the ISY994 weather data."""
-    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     climate_attrs = dir(climate)
     weather_nodes = [
         WeatherNode(
@@ -510,10 +479,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     isy_config = entry.data
 
-    user = isy_config.get(CONF_USERNAME)
-    password = isy_config.get(CONF_PASSWORD)
+    # Required
+    user = isy_config[CONF_USERNAME]
+    password = isy_config[CONF_PASSWORD]
+    host = urlparse(isy_config[CONF_HOST])
+
+    # Optional
     tls_version = isy_config.get(CONF_TLS_VER)
-    host = urlparse(isy_config.get(CONF_HOST))
     ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
     sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
     enable_climate = isy_config.get(CONF_ENABLE_CLIMATE)
@@ -542,27 +514,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not isy.connected:
         return False
 
-    _categorize_nodes(hass, entry, isy.nodes, ignore_identifier, sensor_identifier)
-    _categorize_programs(hass, entry, isy.programs)
+    _categorize_nodes(hass_isy_data, isy.nodes, ignore_identifier, sensor_identifier)
+    _categorize_programs(hass_isy_data, isy.programs)
     _categorize_variables(
-        hass, entry, isy.variables, isy_variables.get(CONF_SENSORS), "sensor"
+        hass_isy_data, isy.variables, isy_variables.get(CONF_SENSORS), "sensor"
     )
     _categorize_variables(
-        hass,
-        entry,
+        hass_isy_data,
         isy.variables,
         isy_variables.get(CONF_BINARY_SENSORS),
         "binary_sensor",
     )
     _categorize_variables(
-        hass, entry, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
+        hass_isy_data, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
     )
 
     # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
     _LOGGER.info(repr(isy.clock))
 
     if enable_climate and isy.configuration.get("Weather Information"):
-        _categorize_weather(hass, entry, isy.climate)
+        _categorize_weather(hass_isy_data, isy.climate)
 
     async def start(event: object) -> None:
         """Start ISY auto updates."""
