@@ -311,7 +311,7 @@ def _check_for_states_in_uom(
     return False
 
 
-def _is_sensor_a_binary_sensor(hass_isy_data: dict) -> bool:
+def _is_sensor_a_binary_sensor(hass_isy_data: dict, node) -> bool:
     """Determine if the given sensor node should be a binary_sensor."""
     if _check_for_node_def(hass_isy_data, node, single_domain="binary_sensor"):
         return True
@@ -428,7 +428,7 @@ def _categorize_variables(
         hass_isy_data[ISY994_VARIABLES][domain].append(variable)
 
 
-def _categorize_weather(hass_isy_data: dict) -> None:
+def _categorize_weather(hass_isy_data: dict, climate) -> None:
     """Categorize the ISY994 weather data."""
     climate_attrs = dir(climate)
     weather_nodes = [
@@ -650,14 +650,30 @@ class ISYDevice(Entity):
             return None
 
         device_info = {"name": self.name}
-        if hasattr(self._node, "address"):
-            device_address = self._node.address[:-2]  # remove trailing .[0-9AF]
-            device_info["identifiers"] = {(DOMAIN, device_address)}
+        if hasattr(self._node, "primary_node"):
+            device_info["identifiers"] = {(DOMAIN, self._node.primary_node)}
         if hasattr(self._node, "protocol"):
-            device_info["model"] = self._node.protocol
-        # PyISY does not expose the software version
-        # if this is added we can add the sw_version
+            device_info["manufacturer"] = self._node.protocol
+        # ISYv5 Device Types
+        if hasattr(self._node, "node_def_id") and self._node.node_def_id is not None:
+            device_info["model"] = self._node.node_def_id
+            # Numerical Device Type
+            if hasattr(self._node, "type") and self._node.type is not None:
+                device_info["model"] += f" {self._node.type}"
+            # Z-Wave Device Type Category
+            if (
+                hasattr(self._node, "devtype_cat")
+                and self._node.devtype_cat is not None
+            ):
+                device_info["model"] += f" {self._node.devtype_cat}"
+        device_info["via_device"] = (DOMAIN, self._node.isy.configuration["uuid"])
+        # PyISY does not expose the software version of the device
+        # if this is added we can add the sw_version. Not sure if this
+        # is available via the api but I do see it in the admin console
+        # as it may be the admin console mapping the node to a
+        # friendly name/version
         _LOGGER.debug("device info: %s %s", self._node, device_info)
+
         return device_info
 
     @property

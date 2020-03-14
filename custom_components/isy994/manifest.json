@@ -3,7 +3,7 @@
   "name": "Universal Devices ISY994",
   "documentation": "https://www.home-assistant.io/integrations/isy994",
   "requirements": [
-    "PyISY_beta==2.0.0.dev127"
+    "PyISY_beta==2.0.0.dev135"
   ],
   "dependencies": [],
   "codeowners": [],
