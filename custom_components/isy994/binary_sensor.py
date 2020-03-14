@@ -1,7 +1,9 @@
 """Support for ISY994 binary sensors."""
-import logging
 from datetime import timedelta
+import logging
 from typing import Callable, Optional
+
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
 
 from homeassistant.components.binary_sensor import DOMAIN, BinarySensorDevice
 from homeassistant.const import (
@@ -20,7 +22,6 @@ from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import ConfigType, Dict
 from homeassistant.util import dt as dt_util
-from pyisy.constants import PROTO_INSTEON, PROTO_ZWAVE, ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import (
@@ -114,7 +115,7 @@ async def async_setup_platform(
                     elif subnode_id == 3:
                         # Subnode 3 is the low battery node
                         # Node never reports status until battery is low so
-                        # the intial state is forced "OFF"/"NORMAL" if the
+                        # the initial state is forced "OFF"/"NORMAL" if the
                         # parent device has a valid state.
                         inital_state = (
                             None if parent_device.state == STATE_UNKNOWN else False

@@ -14,7 +14,7 @@
 
 - Include changes from home-assistant/home-assistant#30500 (52164773) for Home Assistant spelling consistency
 - Include changes from home-assistant/home-assistant#30532 (345cc244) for name corrections in manifests
-- Accomodate changes in PyISY Beta function renaming
+- Accommodate changes in PyISY Beta function renaming
 - Add ISY Address and new protocol property as entity attributes
 - Fix issue where leak sensor "WET" nodes were being added as switches.
 

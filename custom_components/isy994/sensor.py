@@ -2,6 +2,8 @@
 import logging
 from typing import Callable, Optional
 
+from pyisy.constants import ISY_VALUE_UNKNOWN
+
 from homeassistant.components.sensor import DOMAIN
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
@@ -15,7 +17,6 @@ from homeassistant.const import (
     TEMP_FAHRENHEIT,
 )
 from homeassistant.helpers.typing import ConfigType, Dict
-from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from . import ISYDevice
 from .const import (
