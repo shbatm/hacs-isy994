@@ -1,7 +1,7 @@
 """Support for ISY994 switches."""
 import logging
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
 from homeassistant.components.switch import DOMAIN, SwitchDevice
 from homeassistant.const import (
@@ -62,6 +62,13 @@ class ISYSwitchDevice(ISYDevice, SwitchDevice):
         if not self._node.turn_on():
             _LOGGER.debug("Unable to turn on switch.")
 
+    @property
+    def icon(self) -> str:
+        """Get the icon for groups."""
+        if hasattr(self._node, "protocol") and self._node.protocol == PROTO_GROUP:
+            return "mdi:google-circles-communities"  # Matches isy scene icon
+        return super().icon
+
 
 class ISYSwitchProgram(ISYSwitchDevice):
     """A representation of an ISY994 program switch."""
@@ -76,6 +83,11 @@ class ISYSwitchProgram(ISYSwitchDevice):
     def is_on(self) -> bool:
         """Get whether the ISY994 switch program is on."""
         return bool(self.value)
+
+    @property
+    def icon(self) -> str:
+        """Get the icon for programs."""
+        return "mdi:script-text-outline"  # Matches isy program icon
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch program."""
