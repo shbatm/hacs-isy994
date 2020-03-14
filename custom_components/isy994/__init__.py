@@ -38,8 +38,6 @@ from homeassistant.const import (
     CONF_TYPE,
     CONF_UNIT_OF_MEASUREMENT,
     CONF_USERNAME,
-    EVENT_HOMEASSISTANT_START,
-    EVENT_HOMEASSISTANT_STOP,
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant
@@ -59,6 +57,7 @@ from .const import (
     DEFAULT_ON_VALUE,
     DEFAULT_SENSOR_STRING,
     DOMAIN,
+    ISY994_ISY,
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
@@ -541,22 +540,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if enable_climate and isy.configuration.get("Weather Information"):
         _categorize_weather(hass_isy_data, isy.climate)
 
-    async def start(event: object) -> None:
-        """Start ISY auto updates."""
-        _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
-        isy.auto_update = True
-
-    async def stop(event: object) -> None:
-        """Stop ISY auto updates."""
-        isy.auto_update = False
-
-    # only start fetching data after HA boots to prevent delaying the boot
-    # process
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, start)
-
-    # Listen for HA stop to disconnect.
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop)
-
+    hass_isy_data[ISY994_ISY] = isy
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
 
     # Load platforms for the devices in the ISY controller that we support.
@@ -564,6 +548,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
+
+    def _start_auto_update() -> None:
+        """Start isy auto update."""
+        _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
+        isy.auto_update = True
+
+    await hass.async_add_executor_job(_start_auto_update)
 
     return True
 
@@ -594,6 +585,16 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ]
         )
     )
+
+    isy = hass.data[DOMAIN][entry.entry_id][ISY994_ISY]
+
+    def _stop_auto_update() -> None:
+        """Start isy auto update."""
+        _LOGGER.debug("ISY Stopping Event Stream and automatic updates.")
+        isy.auto_update = False
+
+    await hass.async_add_executor_job(_stop_auto_update)
+
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 

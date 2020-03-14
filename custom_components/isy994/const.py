@@ -192,6 +192,7 @@ SUPPORTED_VARIABLE_DOMAINS = ["binary_sensor", "sensor", "switch"]
 # (they can turn off, and report their state)
 SCENE_DOMAIN = "switch"
 
+ISY994_ISY = "isy"
 ISY994_NODES = "isy994_nodes"
 ISY994_WEATHER = "isy994_weather"
 ISY994_PROGRAMS = "isy994_programs"
