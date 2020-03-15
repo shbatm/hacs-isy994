@@ -35,7 +35,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import (
     DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
@@ -65,6 +65,7 @@ async def async_setup_entry(
         _LOGGER.debug("Adding ISY node %s to Climate platform", node)
         devices.append(ISYThermostatDevice(node))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

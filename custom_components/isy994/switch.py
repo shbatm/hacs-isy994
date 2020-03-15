@@ -17,7 +17,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.typing import Dict, HomeAssistantType
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import (
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
@@ -45,6 +45,7 @@ async def async_setup_entry(
     for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYSwitchVariableDevice(vcfg, vname, vobj))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

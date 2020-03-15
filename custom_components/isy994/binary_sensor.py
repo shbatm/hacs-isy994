@@ -24,7 +24,7 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import Dict, HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import (
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
@@ -141,6 +141,7 @@ async def async_setup_entry(
     for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYBinarySensorVariableDevice(vcfg, vname, vobj))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

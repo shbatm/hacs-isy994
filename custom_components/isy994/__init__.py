@@ -44,6 +44,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.typing import Dict
 
 from .const import (
@@ -599,6 +600,24 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
+async def migrate_old_unique_ids(hass, platform, devices):
+    """Migrate to new controller-specific unique ids."""
+    registry = await async_get_registry(hass)
+
+    for device in devices:
+        old_entity_id = registry.async_get_entity_id(
+            platform, DOMAIN, device.old_unique_id
+        )
+        _LOGGER.debug("Checking %s: %s", device.old_unique_id, old_entity_id)
+        if old_entity_id is not None:
+            _LOGGER.debug(
+                "Migrating unique_id from [%s] to [%s]",
+                device.old_unique_id,
+                device.unique_id,
+            )
+            registry.async_update_entity(old_entity_id, new_unique_id=device.unique_id)
+
+
 class ISYDevice(Entity):
     """Representation of an ISY994 device."""
 
@@ -686,6 +705,13 @@ class ISYDevice(Entity):
         uuid = self._node.isy.configuration["uuid"].replace(":", "").replace("_", "")
         if hasattr(self._node, "address"):
             return f"{uuid}_{self._node.address}"
+        return None
+
+    @property
+    def old_unique_id(self) -> str:
+        """Get the old unique identifier of the device."""
+        if hasattr(self._node, "address"):
+            return self._node.address
         return None
 
     @property

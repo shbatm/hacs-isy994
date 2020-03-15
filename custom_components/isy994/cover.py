@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS, UOM_TO_STATES
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ async def async_setup_entry(
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYCoverProgram(name, status, actions))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 
