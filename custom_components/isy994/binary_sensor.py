@@ -59,7 +59,7 @@ async def async_setup_platform(
 
     # Handle some special child node cases for Insteon Devices
     for (node, device_class, device_type) in child_nodes:
-        subnode_id = int(node.address[-1], 16)
+        subnode_id = int(node.address.split(" ")[-1], 16)
         # Handle Insteon Thermostats
         if device_type.startswith("5."):
             if subnode_id == 2:
@@ -122,8 +122,12 @@ async def async_setup_platform(
                         )
                         device = ISYBinarySensorDevice(node, "battery", inital_state)
                         devices.append(device)
-                    elif subnode_id == 13:
-                        # Motion Disabled Sub-node for MS II.
+                    elif subnode_id in (10, 16):
+                        # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
+                        # reported as "10", which translate from Hex to 10 and 16 resp.
+                        device = ISYBinarySensorDevice(node, "problem")
+                    elif subnode_id == (13, 19):
+                        # Motion Disabled Sub-node for MS II ("D" or "13")
                         device = ISYBinarySensorDevice(node, "None")
                         devices.append(device)
                     continue
