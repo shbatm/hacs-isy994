@@ -8,6 +8,14 @@
 - Migrate unique_ids to be specific to the ISY Controller to avoid conflicts with multiple ISYs.
 - Update to PyISY-beta==2.0.0.dev141
 
+### [1.1.2] - Mop-up Changes from Home Assistant Core
+
+- Pick up changes from home-assistant/home-assistant#30360
+- Pick up changes from home-assistant/home-assistant#28864
+- Bugfix for shbatm/hacs-isy994#22 - Malformed Formatted Values from ISY
+
+### [1.1.1] - Bugfix for #12
+
 ### [1.1.0] - Changes to Conform to PyISY-beta changes
 
 - Use more constants from underlying package instead of redefining.

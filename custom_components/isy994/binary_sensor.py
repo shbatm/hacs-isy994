@@ -61,7 +61,7 @@ async def async_setup_entry(
 
     # Handle some special child node cases for Insteon Devices
     for (node, device_class, device_type) in child_nodes:
-        subnode_id = int(node.address[-1], 16)
+        subnode_id = int(node.address.split(" ")[-1], 16)
         # Handle Insteon Thermostats
         if device_type.startswith("5."):
             if subnode_id == 2:
@@ -124,8 +124,12 @@ async def async_setup_entry(
                         )
                         device = ISYBinarySensorDevice(node, "battery", inital_state)
                         devices.append(device)
-                    elif subnode_id == 13:
-                        # Motion Disabled Sub-node for MS II.
+                    elif subnode_id in (10, 16):
+                        # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
+                        # reported as "10", which translate from Hex to 10 and 16 resp.
+                        device = ISYBinarySensorDevice(node, "problem")
+                    elif subnode_id == (13, 19):
+                        # Motion Disabled Sub-node for MS II ("D" or "13")
                         device = ISYBinarySensorDevice(node, "None")
                         devices.append(device)
                     continue
@@ -154,9 +158,9 @@ def _detect_device_type(node) -> (str, str):
 
     # Z-Wave Devices:
     if node.protocol == PROTO_ZWAVE:
-        device_type = "Z{}".format(node.devtype_cat)
+        device_type = "Z{}".format(node.zwave_props.category)
         for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
-            if node.devtype_cat in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
+            if node.zwave_props.category in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
                 return device_class, device_type
     else:  # Other devices (incl Insteon.)
         for device_class in [*ISY_BIN_SENS_DEVICE_TYPES]:
@@ -191,7 +195,6 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         self._negative_node = None
         self._heartbeat_device = None
         self._device_class_from_type = force_device_class
-        # pylint: disable=protected-access
         if self._node.status._val == ISY_VALUE_UNKNOWN:
             self._computed_state = unknown_state
             self._status_was_unknown = True
@@ -247,7 +250,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """Handle an "On" control event from the "negative" node."""
         if event.control == "DON":
             _LOGGER.debug(
-                "Sensor %s turning Off via the Negative node " "sending a DON command",
+                "Sensor %s turning Off via the Negative node sending a DON command",
                 self.name,
             )
             self._computed_state = False
@@ -263,7 +266,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """
         if event.control == "DON":
             _LOGGER.debug(
-                "Sensor %s turning On via the Primary node " "sending a DON command",
+                "Sensor %s turning On via the Primary node sending a DON command",
                 self.name,
             )
             self._computed_state = True
@@ -271,7 +274,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
             self._heartbeat()
         if event.control == "DOF":
             _LOGGER.debug(
-                "Sensor %s turning Off via the Primary node " "sending a DOF command",
+                "Sensor %s turning Off via the Primary node sending a DOF command",
                 self.name,
             )
             self._computed_state = False
