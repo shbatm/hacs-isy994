@@ -192,7 +192,6 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         self._negative_node = None
         self._heartbeat_device = None
         self._device_class_from_type = force_device_class
-        # pylint: disable=protected-access
         if self._node.status._val == ISY_VALUE_UNKNOWN:
             self._computed_state = unknown_state
             self._status_was_unknown = True
@@ -248,7 +247,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """Handle an "On" control event from the "negative" node."""
         if event.control == "DON":
             _LOGGER.debug(
-                "Sensor %s turning Off via the Negative node " "sending a DON command",
+                "Sensor %s turning Off via the Negative node sending a DON command",
                 self.name,
             )
             self._computed_state = False
@@ -264,7 +263,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """
         if event.control == "DON":
             _LOGGER.debug(
-                "Sensor %s turning On via the Primary node " "sending a DON command",
+                "Sensor %s turning On via the Primary node sending a DON command",
                 self.name,
             )
             self._computed_state = True
@@ -272,7 +271,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
             self._heartbeat()
         if event.control == "DOF":
             _LOGGER.debug(
-                "Sensor %s turning Off via the Primary node " "sending a DOF command",
+                "Sensor %s turning Off via the Primary node sending a DOF command",
                 self.name,
             )
             self._computed_state = False

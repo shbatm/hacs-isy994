@@ -1,5 +1,12 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.1.2] - Mop-up Changes from Home Assistant Core
+
+- Pick up changes from home-assistant/home-assistant#30360
+- Pick up changes from home-assistant/home-assistant#28864
+
+### [1.1.1] - Bugfix for #12
+
 ### [1.1.0] - Changes to Conform to PyISY-beta changes
 
 - Use more constants from underlying package instead of redefining.
