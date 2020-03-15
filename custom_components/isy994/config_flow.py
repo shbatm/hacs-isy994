@@ -74,7 +74,10 @@ async def validate_input(hass: core.HomeAssistant, data):
         raise InvalidAuth
 
     # Return info that you want to store in the config entry.
-    return {"title": host.hostname, "uuid": isy.configuration["uuid"]}
+    return {
+        "title": f"{isy.configuration['name']} ({host.hostname})",
+        "uuid": isy.configuration["uuid"],
+    }
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

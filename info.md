@@ -16,7 +16,9 @@ Change Log:
 - Updated Device Domain assignments and improved Z-Wave status functions.
 - Added "Group All On" attribute to scenes (groups) to determine if all devices are on in a scene or if only some are.
 - Fixed issues with "On Levels" not being used by Home Assistant (jumping to 100% then back to On Level when controlling in Lovelace, 100% brightness only goes to On Level)
-
+- Implement config flow
+- Device registry data is now provided
+- Fix I/O in the event loop causing slow startup
 
 ## Example entry for `configuration.yaml` (if applicable):
 ```yaml

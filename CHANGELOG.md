@@ -1,5 +1,12 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.2.0] - Add a config flow and device registry entries.
+
+- Implement config flow
+- Device registry data is now provided
+- Fix I/O in the event loop causing slow startup
+- Update to PyISY-beta==2.0.0.dev136
+
 ### [1.1.0] - Changes to Conform to PyISY-beta changes
 
 - Use more constants from underlying package instead of redefining.

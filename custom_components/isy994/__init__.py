@@ -569,7 +569,7 @@ async def _async_get_or_create_isy_device_in_registry(
         connections={(dr.CONNECTION_NETWORK_MAC, isy.configuration["uuid"])},
         identifiers={(DOMAIN, isy.configuration["uuid"])},
         manufacturer=MANUFACTURER,
-        name="ISY994",  # Not expired in PyISY-beta at this time
+        name=isy.configuration["name"],  # Exposed in PyISY-beta v2.0.0.dev136
         model=isy.configuration["model"],  # Exposed in PyISY-beta v2.0.0.dev135
         sw_version=isy.configuration["firmware"],
     )
