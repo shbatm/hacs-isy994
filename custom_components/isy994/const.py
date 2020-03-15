@@ -334,12 +334,12 @@ UOM_TO_STATES = {
         "4": CURRENT_HVAC_HEAT,  # Pending Heat
         "5": CURRENT_HVAC_COOL,  # Pending Cool
         # >6 defined in ISY but not implemented, leaving for future expanision.
-        "6": "vent",
-        "7": "aux heat",
-        "8": "2nd stage heating",
-        "9": "2nd stage cooling",
-        "10": "2nd stage aux heat",
-        "11": "3rd stage aux heat",
+        "6": CURRENT_HVAC_IDLE,
+        "7": CURRENT_HVAC_HEAT,
+        "8": CURRENT_HVAC_HEAT,
+        "9": CURRENT_HVAC_COOL,
+        "10": CURRENT_HVAC_HEAT,
+        "11": CURRENT_HVAC_HEAT,
     },
     "67": {  # Thermostat Mode
         "0": HVAC_MODE_OFF,
@@ -356,6 +356,9 @@ UOM_TO_STATES = {
         "11": "energy save heat",
         "12": "energy save cool",
         "13": PRESET_AWAY,
+        "14": HVAC_MODE_AUTO,
+        "15": HVAC_MODE_AUTO,
+        "16": HVAC_MODE_AUTO,
     },
     "68": {  # Thermostat Fan Mode
         "0": FAN_AUTO,

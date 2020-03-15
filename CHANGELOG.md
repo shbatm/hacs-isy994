@@ -4,6 +4,7 @@
 
 - Pick up changes from home-assistant/home-assistant#30360
 - Pick up changes from home-assistant/home-assistant#28864
+- Bugfix for shbatm/hacs-isy994#22 - Malformed Formatted Values from ISY
 
 ### [1.1.1] - Bugfix for #12
 

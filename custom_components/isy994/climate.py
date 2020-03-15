@@ -60,6 +60,21 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async_add_entities(devices)
 
 
+def fix_temp(temp, uom, prec) -> float:
+    """Fix Insteon Thermostats' Reported Temperature.
+
+    Insteon Thermostats report temperature in 0.5-deg precision as an int
+    by sending a value of 2 times the Temp. Correct by dividing by 2 here.
+    """
+    if temp is None or temp == ISY_VALUE_UNKNOWN:
+        return None
+    if uom in ["101", "degrees"]:
+        return round(int(temp) / 2.0, 1)
+    if prec is not None and prec != "0":
+        return round(float(temp) * pow(10, -int(prec)), int(prec))
+    return int(temp)
+
+
 class ISYThermostatDevice(ISYDevice, ClimateDevice):
     """Representation of an ISY994 thermostat device."""
 
@@ -109,7 +124,9 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     def hvac_mode(self) -> str:
         """Return hvac operation ie. heat, cool mode."""
         if self._node.aux_properties.get(CMD_CLIMATE_MODE):
-            return UOM_TO_STATES["98"].get(
+            # Get the state values from UOM "98" or "67" depending on
+            # if this is an Insteon or Z-Wave T-Stat
+            return UOM_TO_STATES[self._node.aux_properties[CMD_CLIMATE_MODE].uom].get(
                 self._node.aux_properties[CMD_CLIMATE_MODE].value
             )
         return None
@@ -134,7 +151,7 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
 
         Required to override the default ISYDevice method.
         """
-        return self.fix_temp(self._node.status)
+        return fix_temp(self._node.status, self._uom, self._node.prec)
 
     @property
     def current_temperature(self):
@@ -158,19 +175,17 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     @property
     def target_temperature_high(self):
         """Return the highbound target temperature we try to reach."""
-        if self._node.aux_properties.get(PROP_SETPOINT_COOL):
-            return float(
-                self._node.aux_properties[PROP_SETPOINT_COOL].formatted.replace("°", "")
-            )
+        target = self._node.aux_properties.get(PROP_SETPOINT_COOL)
+        if target:
+            return fix_temp(target.value, target.uom, target.prec)
         return None
 
     @property
     def target_temperature_low(self):
         """Return the lowbound target temperature we try to reach."""
-        if self._node.aux_properties.get(PROP_SETPOINT_HEAT):
-            return float(
-                self._node.aux_properties[PROP_SETPOINT_HEAT].formatted.replace("°", "")
-            )
+        target = self._node.aux_properties.get(PROP_SETPOINT_HEAT)
+        if target:
+            return fix_temp(target.value, target.uom, target.prec)
         return None
 
     @property
@@ -222,19 +237,3 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
         # Presumptive setting--event stream will correct if cmd fails:
         self._hvac_mode = hvac_mode
         self.schedule_update_ha_state()
-
-    def fix_temp(self, temp) -> float:
-        """Fix Insteon Thermostats' Reported Temperature.
-
-        Insteon Thermostats report temperature in 0.5-deg precision as an int
-        by sending a value of 2 times the Temp. Correct by dividing by 2 here.
-        """
-        if temp is None or temp == ISY_VALUE_UNKNOWN:
-            return None
-        if self._uom == "101" or self._uom == "degrees":
-            return round(int(temp) / 2.0, 1)
-        if self._node.prec is not None and self._node.prec != "0":
-            return round(
-                float(temp) * pow(10, -int(self._node.prec)), int(self._node.prec)
-            )
-        return int(temp)
