@@ -146,17 +146,9 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
         return None
 
     @property
-    def value(self):
-        """Get the current value of the device.
-
-        Required to override the default ISYDevice method.
-        """
-        return fix_temp(self._node.status, self._uom, self._node.prec)
-
-    @property
     def current_temperature(self):
         """Return the current temperature."""
-        return self.value
+        return fix_temp(self._node.status, self._uom, self._node.prec)
 
     @property
     def target_temperature_step(self):
