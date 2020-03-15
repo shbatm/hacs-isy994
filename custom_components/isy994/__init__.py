@@ -608,7 +608,6 @@ async def migrate_old_unique_ids(hass, platform, devices):
         old_entity_id = registry.async_get_entity_id(
             platform, DOMAIN, device.old_unique_id
         )
-        _LOGGER.debug("Checking %s: %s", device.old_unique_id, old_entity_id)
         if old_entity_id is not None:
             _LOGGER.debug(
                 "Migrating unique_id from [%s] to [%s]",
@@ -695,7 +694,6 @@ class ISYDevice(Entity):
                 )
         device_info["via_device"] = (DOMAIN, self._node.isy.configuration["uuid"])
         # Note: sw_version is not exposed by the ISY for the individual devices.
-        _LOGGER.debug("device info: %s %s", self._node, device_info)
 
         return device_info
 
