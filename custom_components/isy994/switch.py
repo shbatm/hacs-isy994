@@ -1,9 +1,11 @@
 """Support for ISY994 switches."""
 import logging
+from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
 from homeassistant.components.switch import DOMAIN, SwitchDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ICON,
     CONF_ID,
@@ -13,7 +15,7 @@ from homeassistant.const import (
     CONF_TYPE,
     STATE_UNKNOWN,
 )
-from homeassistant.helpers.typing import Dict
+from homeassistant.helpers.typing import Dict, HomeAssistantType
 
 from . import ISYDevice
 from .const import (
@@ -26,7 +28,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
+    async_add_entities: Callable[[list], None],
+) -> bool:
     """Set up the ISY994 switch platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []

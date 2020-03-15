@@ -1,10 +1,13 @@
 """Support for ISY994 locks."""
 import logging
+from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.lock import DOMAIN, LockDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
+from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice
 from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
@@ -14,7 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 VALUE_TO_STATE = {0: STATE_UNLOCKED, 100: STATE_LOCKED}
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
+    async_add_entities: Callable[[list], None],
+) -> bool:
     """Set up the ISY994 lock platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []

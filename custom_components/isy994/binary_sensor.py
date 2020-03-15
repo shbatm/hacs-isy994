@@ -1,11 +1,12 @@
 """Support for ISY994 binary sensors."""
 from datetime import timedelta
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
 
 from homeassistant.components.binary_sensor import DOMAIN, BinarySensorDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
     CONF_ICON,
@@ -20,7 +21,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.typing import Dict
+from homeassistant.helpers.typing import Dict, HomeAssistantType
 from homeassistant.util import dt as dt_util
 
 from . import ISYDevice
@@ -36,7 +37,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
+    async_add_entities: Callable[[list], None],
+) -> bool:
     """Set up the ISY994 binary sensor platform."""
     devices = []
     devices_by_address = {}

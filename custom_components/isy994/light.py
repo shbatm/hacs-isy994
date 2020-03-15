@@ -1,10 +1,13 @@
 """Support for ISY994 lights."""
 import logging
+from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.light import DOMAIN, SUPPORT_BRIGHTNESS, Light
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
+from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice
 from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES
@@ -12,7 +15,11 @@ from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
+    async_add_entities: Callable[[list], None],
+) -> bool:
     """Set up the ISY994 light platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
