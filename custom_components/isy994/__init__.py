@@ -232,11 +232,11 @@ def _check_for_zwave_cat(hass: HomeAssistant, node, single_domain: str = None) -
     if not hasattr(node, "protocol") or node.protocol != PROTO_ZWAVE:
         return False
 
-    if not hasattr(node, "devtype_cat") or node.devtype_cat is None:
+    if not hasattr(node, "zwave_props") or node.zwave_props is None:
         # Node doesn't have a device type category (non-Z-Wave device)
         return False
 
-    device_type = node.devtype_cat
+    device_type = node.zwave_props.category
     domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
     for domain in domains:
         if any(

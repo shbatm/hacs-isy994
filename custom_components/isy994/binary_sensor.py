@@ -155,9 +155,9 @@ def _detect_device_type(node) -> (str, str):
 
     # Z-Wave Devices:
     if node.protocol == PROTO_ZWAVE:
-        device_type = "Z{}".format(node.devtype_cat)
+        device_type = "Z{}".format(node.zwave_props.category)
         for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
-            if node.devtype_cat in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
+            if node.zwave_props.category in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
                 return device_class, device_type
     else:  # Other devices (incl Insteon.)
         for device_class in [*ISY_BIN_SENS_DEVICE_TYPES]:
