@@ -152,7 +152,9 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
     @property
     def icon(self):
         """Return the icon."""
-        return self._config.get(CONF_ICON)
+        if self._config.get(CONF_ICON):
+            return self._config.get(CONF_ICON)
+        return "mdi:counter"
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch."""

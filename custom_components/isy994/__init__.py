@@ -255,7 +255,7 @@ def _check_for_zwave_cat(hass_isy_data: dict, node, single_domain: str = None) -
 
 
 def _check_for_uom_id(
-    hass_isy_data: dict, node, single_domain: str = None, uom_list: list = None,
+    hass_isy_data: dict, node, single_domain: str = None, uom_list: list = None
 ) -> bool:
     """Check if a node's uom matches any of the domains uom filter.
 
@@ -283,7 +283,7 @@ def _check_for_uom_id(
 
 
 def _check_for_states_in_uom(
-    hass_isy_data: dict, node, single_domain: str = None, states_list: list = None,
+    hass_isy_data: dict, node, single_domain: str = None, states_list: list = None
 ) -> bool:
     """Check if a list of uoms matches two possible filters.
 
@@ -335,7 +335,7 @@ def _is_sensor_a_binary_sensor(hass_isy_data: dict, node) -> bool:
 
 
 def _categorize_nodes(
-    hass_isy_data: dict, nodes, ignore_identifier: str, sensor_identifier: str,
+    hass_isy_data: dict, nodes, ignore_identifier: str, sensor_identifier: str
 ) -> None:
     """Sort the nodes to their proper domains."""
     for (path, node) in nodes:
@@ -404,7 +404,7 @@ def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
 
 
 def _categorize_variables(
-    hass_isy_data: dict, variables: dict, domain_cfg: dict, domain: str,
+    hass_isy_data: dict, variables: dict, domain_cfg: dict, domain: str
 ) -> None:
     """Categorize the ISY994 Variables."""
     if domain_cfg is None:
@@ -445,7 +445,6 @@ def _categorize_weather(hass_isy_data: dict, climate) -> None:
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the isy994 component from YAML."""
-
     conf = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
 
@@ -462,7 +461,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the ISY 994 platform."""
-
     hass.data[DOMAIN][entry.entry_id] = {}
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     hass_isy_data[ISY994_NODES] = {}
@@ -653,30 +651,31 @@ class ISYDevice(Entity):
         if hasattr(self._node, "protocol") and self._node.protocol == PROTO_GROUP:
             # not a device
             return None
-
+        uuid = self._node.isy.configuration["uuid"].replace(":", "").replace("_", "")
         device_info = {"name": self.name}
+        if hasattr(self._node, "address"):
+            device_info["name"] += f" ({self._node.address})"
         if hasattr(self._node, "primary_node"):
-            device_info["identifiers"] = {(DOMAIN, self._node.primary_node)}
-        if hasattr(self._node, "protocol"):
-            device_info["manufacturer"] = self._node.protocol
+            device_info["identifiers"] = {(DOMAIN, f"{uuid}_{self._node.primary_node}")}
         # ISYv5 Device Types
         if hasattr(self._node, "node_def_id") and self._node.node_def_id is not None:
             device_info["model"] = self._node.node_def_id
             # Numerical Device Type
             if hasattr(self._node, "type") and self._node.type is not None:
                 device_info["model"] += f" {self._node.type}"
-            # Z-Wave Device Type Category
-            if (
-                hasattr(self._node, "devtype_cat")
-                and self._node.devtype_cat is not None
-            ):
-                device_info["model"] += f" {self._node.devtype_cat}"
+        if hasattr(self._node, "protocol"):
+            device_info["manufacturer"] = self._node.protocol
+            if self._node.protocol == PROTO_ZWAVE:
+                device_info[
+                    "manufacturer"
+                ] += f" mfr_id:{self._node.zwave_props.mfr_id}"
+                device_info["model"] += (
+                    f" Type:{self._node.zwave_props.mfr_id} "
+                    f"ProductTypeID:{self._node.zwave_props.prod_type_id} "
+                    f"ProductID:{self._node.zwave_props.product_id}"
+                )
         device_info["via_device"] = (DOMAIN, self._node.isy.configuration["uuid"])
-        # PyISY does not expose the software version of the device
-        # if this is added we can add the sw_version. Not sure if this
-        # is available via the api but I do see it in the admin console
-        # as it may be the admin console mapping the node to a
-        # friendly name/version
+        # Note: sw_version is not exposed by the ISY for the individual devices.
         _LOGGER.debug("device info: %s %s", self._node, device_info)
 
         return device_info
@@ -684,8 +683,9 @@ class ISYDevice(Entity):
     @property
     def unique_id(self) -> str:
         """Get the unique identifier of the device."""
+        uuid = self._node.isy.configuration["uuid"].replace(":", "").replace("_", "")
         if hasattr(self._node, "address"):
-            return self._node.address
+            return f"{uuid}_{self._node.address}"
         return None
 
     @property
@@ -725,14 +725,6 @@ class ISYDevice(Entity):
             for name, value in list(self._node.aux_properties.items()):
                 attr_name = COMMAND_FRIENDLY_NAME.get(name, name)
                 attr[attr_name] = str(value.formatted).lower()
-
-        # Add the ISY Address as a attribute.
-        if hasattr(self._node, "address"):
-            attr["isy994_address"] = self._node.address
-
-        # Add the device protocol as an attribute
-        if hasattr(self._node, "protocol"):
-            attr["isy994_protocol"] = self._node.protocol
 
         # If a Group/Scene, set a property if the entire scene is on/off
         if hasattr(self._node, "group_all_on"):

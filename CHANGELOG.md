@@ -2,10 +2,16 @@
 
 ### [1.2.0] - Add a config flow and device registry entries.
 
+#### BREAKING CHANGES:
+
+- Entity unique_ids will change after installing this version. All unique_ids will be prefaced with the ISY's UUID (with no ':' or '_') to eliminate issues with adding multiple ISY controllers. To prevent duplicates/stale entities, there is a migration script included in the root of this repo. Update the first two lines and run once **WITH HOME ASSISTANT STOPPED** to update all of your entities.
+    + `isy_unique_id_migrate.py`
+
+Other changes:
 - Implement config flow
 - Device registry data is now provided
 - Fix I/O in the event loop causing slow startup
-- Update to PyISY-beta==2.0.0.dev136
+- Update to PyISY-beta==2.0.0.dev141
 
 ### [1.1.0] - Changes to Conform to PyISY-beta changes
 
