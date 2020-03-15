@@ -1,6 +1,11 @@
 ## Description:
 This Custom Component is to update the ISY994 component with various bug fixes, better Z-Wave integration, device state attribute support, ISY Variables support, and add Climate support for Insteon and Z-Wave Thermostats that are exposed by the ISY994 Controller hub component.  This will eventually be integrated into Home Assistant after PyISY updates are completed.
 
+#### BREAKING CHANGES:
+
+- Entity unique_ids will change after installing this version. All unique_ids will be prefaced with the ISY's UUID (with no ':' or '_') to eliminate issues with adding multiple ISY controllers. To prevent duplicates/stale entities, there is a migration script included in the root of this repo. Update the first two lines and run once **WITH HOME ASSISTANT STOPPED** to update all of your entities.
+    + `isy_unique_id_migrate.py`
+
 Change Log:
 
 - Move constants to a dedicated `const.py` file.
