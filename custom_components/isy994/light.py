@@ -5,26 +5,28 @@ from typing import Callable
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.light import DOMAIN, SUPPORT_BRIGHTNESS, Light
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice
-from .const import ISY994_NODES
+from . import ISYDevice, migrate_old_unique_ids
+from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
     async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+) -> bool:
     """Set up the ISY994 light platform."""
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         devices.append(ISYLightDevice(node))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

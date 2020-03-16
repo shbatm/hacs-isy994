@@ -6,6 +6,7 @@ from typing import Callable, Optional
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
 
 from homeassistant.components.binary_sensor import DOMAIN, BinarySensorDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
     CONF_ICON,
@@ -20,11 +21,12 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.helpers.typing import Dict, HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
@@ -35,18 +37,18 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
     async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+) -> bool:
     """Set up the ISY994 binary sensor platform."""
     devices = []
     devices_by_address = {}
     child_nodes = []
 
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         device_class, device_type = _detect_device_type(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
             device = ISYBinarySensorDevice(node, device_class)
@@ -137,12 +139,13 @@ async def async_setup_platform(
         device = ISYBinarySensorDevice(node, device_class)
         devices.append(device)
 
-    for name, status, _ in hass.data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, _ in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYBinarySensorProgram(name, status))
 
-    for vcfg, vname, vobj in hass.data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYBinarySensorVariableDevice(vcfg, vname, vobj))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

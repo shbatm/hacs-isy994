@@ -49,6 +49,8 @@ from homeassistant.const import (
 
 DOMAIN = "isy994"
 
+MANUFACTURER = "Universal Devices, Inc"
+
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
 CONF_ENABLE_CLIMATE = "enable_climate"
@@ -190,6 +192,7 @@ SUPPORTED_VARIABLE_DOMAINS = ["binary_sensor", "sensor", "switch"]
 # (they can turn off, and report their state)
 SCENE_DOMAIN = "switch"
 
+ISY994_ISY = "isy"
 ISY994_NODES = "isy994_nodes"
 ISY994_WEATHER = "isy994_weather"
 ISY994_PROGRAMS = "isy994_programs"

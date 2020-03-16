@@ -2,9 +2,10 @@
 import logging
 from typing import Callable
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
 from homeassistant.components.switch import DOMAIN, SwitchDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ICON,
     CONF_ID,
@@ -14,31 +15,37 @@ from homeassistant.const import (
     CONF_TYPE,
     STATE_UNKNOWN,
 )
-from homeassistant.helpers.typing import ConfigType, Dict
+from homeassistant.helpers.typing import Dict, HomeAssistantType
 
-from . import ISYDevice
-from .const import ISY994_NODES, ISY994_PROGRAMS, ISY994_VARIABLES
+from . import ISYDevice, migrate_old_unique_ids
+from .const import (
+    DOMAIN as ISY994_DOMAIN,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+    ISY994_VARIABLES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
     async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+) -> bool:
     """Set up the ISY994 switch platform."""
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         devices.append(ISYSwitchDevice(node))
 
-    for name, status, actions in hass.data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYSwitchProgram(name, status, actions))
 
-    for vcfg, vname, vobj in hass.data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYSwitchVariableDevice(vcfg, vname, vobj))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 
@@ -62,6 +69,13 @@ class ISYSwitchDevice(ISYDevice, SwitchDevice):
         if not self._node.turn_on():
             _LOGGER.debug("Unable to turn on switch.")
 
+    @property
+    def icon(self) -> str:
+        """Get the icon for groups."""
+        if hasattr(self._node, "protocol") and self._node.protocol == PROTO_GROUP:
+            return "mdi:google-circles-communities"  # Matches isy scene icon
+        return super().icon
+
 
 class ISYSwitchProgram(ISYSwitchDevice):
     """A representation of an ISY994 program switch."""
@@ -76,6 +90,11 @@ class ISYSwitchProgram(ISYSwitchDevice):
     def is_on(self) -> bool:
         """Get whether the ISY994 switch program is on."""
         return bool(self.value)
+
+    @property
+    def icon(self) -> str:
+        """Get the icon for programs."""
+        return "mdi:script-text-outline"  # Matches isy program icon
 
     def turn_on(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch program."""
@@ -134,7 +153,9 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
     @property
     def icon(self):
         """Return the icon."""
-        return self._config.get(CONF_ICON)
+        if self._config.get(CONF_ICON):
+            return self._config.get(CONF_ICON)
+        return "mdi:counter"
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch."""

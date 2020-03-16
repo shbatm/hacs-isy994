@@ -5,31 +5,33 @@ from typing import Callable
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.lock import DOMAIN, LockDevice
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice
-from .const import ISY994_NODES, ISY994_PROGRAMS
+from . import ISYDevice, migrate_old_unique_ids
+from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 
 _LOGGER = logging.getLogger(__name__)
 
 VALUE_TO_STATE = {0: STATE_UNLOCKED, 100: STATE_LOCKED}
 
 
-async def async_setup_platform(
-    hass,
-    config: ConfigType,
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
     async_add_entities: Callable[[list], None],
-    discovery_info=None,
-):
+) -> bool:
     """Set up the ISY994 lock platform."""
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         devices.append(ISYLockDevice(node))
 
-    for name, status, actions in hass.data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
         devices.append(ISYLockProgram(name, status, actions))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 

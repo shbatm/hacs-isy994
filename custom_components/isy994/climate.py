@@ -1,6 +1,6 @@
 """Support for Insteon Thermostats via ISY994 Platform."""
 import logging
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from pyisy.constants import (
     CMD_CLIMATE_FAN_SPEED,
@@ -26,15 +26,18 @@ from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE_RANGE,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_TENTHS,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
+from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice
+from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
     ISY994_NODES,
@@ -49,14 +52,20 @@ ISY_SUPPORTED_FEATURES = (
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_entry(
+    hass: HomeAssistantType,
+    entry: ConfigEntry,
+    async_add_entities: Callable[[list], None],
+) -> bool:
     """Set up the ISY994 thermostat platform."""
     devices = []
 
-    for node in hass.data[ISY994_NODES][DOMAIN]:
+    hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
+    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         _LOGGER.debug("Adding ISY node %s to Climate platform", node)
         devices.append(ISYThermostatDevice(node))
 
+    await migrate_old_unique_ids(hass, DOMAIN, devices)
     async_add_entities(devices)
 
 
