@@ -1,9 +1,11 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+
 ## Description:
 This Custom Component is to update the ISY994 component with various bug fixes, better Z-Wave integration, device state attribute support, ISY Variables support, and add Climate support for Insteon and Z-Wave Thermostats that are exposed by the ISY994 Controller hub component.  This will eventually be integrated into Home Assistant after PyISY updates are completed.
 
 ### Now Configurable from the Integrations Page!
 
-![](.images/integrations.png)
+![](https://raw.githubusercontent.com/shbatm/hacs-isy994/master/.images/integrations.png)
 
 Thank you to [@bdraco](https://github.com/bdraco) for the help.
 

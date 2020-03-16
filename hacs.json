@@ -1,0 +1,5 @@
+{
+  "name": "Universal Devices ISY994",
+  "homeassistant": "0.102.0",
+  "render_readme": true
+}
