@@ -46,3 +46,15 @@
 - Fixed "hint" assuming a device would turn on to full brightness - now instead of jumping to full brightness and back to the correct level if a local On Level is set, it will jump to the On Level.
 - Fixed Brightness=255 from assuming device would turn on to full brightness, did not account for local On Levels. Now will actually send Brightness=255 if it is passed.
 
+### [pre-1.0.10] Differences from Home Assistant Core ISY994 Integration
+
+- Move constants to a dedicated `const.py` file.
+- Add support for Climate devices per `climate-1.0` changes.
+- Expand ISY Z-Wave support by properly classifying devices using the `devtype.cat` attribute.
+- Fixes issues with `device_state_attributes` throwing Type errors and getting overwritten on updates from the ISY--now maintains a updatable dict and adds attributes when provided from the ISY EventStream (ISY doesn't always provide all attributes on the initial query).
+- Fixes ISY Heartbeats per #21996
+- Update ISYBinarySensorHeartbeat to report state on startup if available.
+- Revised comments to better clarify the behaviors of the heartbeat node in Home Assistant since it does not report the actual state of the ISY's sub-node (which could be on or off).
+- Add logic for Motion Sensor subnodes, update framework for Z-Wave IDs.
+- Allow ISY Variables to be used as sensors, binary_sensors, and switches.
+- The `isy994_control` event has been updated to also expose `value`.  This is expected to be a non-breaking change in PyISY; (PyISY's `event` is now a `dict` instead of a `string`, but will represent itself the same as the command string it used to pass).  This change is vital to the `climate` integration, as some values are only made available from the event stream, not the node definition.

@@ -3,7 +3,8 @@ from functools import partial
 import logging
 from urllib.parse import urlparse
 
-from pyisy import ISY
+from pyisy.configuration import Configuration
+from pyisy.connection import Connection
 import voluptuous as vol
 
 from homeassistant import config_entries, core, exceptions
@@ -58,26 +59,30 @@ async def validate_input(hass: core.HomeAssistant, data):
         raise InvalidHost
 
     # Connect to ISY controller.
-    isy = await hass.async_add_executor_job(
-        partial(
-            ISY,
-            host.hostname,
-            port,
-            username=user,
-            password=password,
-            use_https=https,
-            tls_ver=tls_version,
-            log=_LOGGER,
+    try:
+        isy_conn = await hass.async_add_executor_job(
+            partial(
+                Connection,
+                host.hostname,
+                port,
+                username=user,
+                password=password,
+                use_https=https,
+                tls_ver=tls_version,
+                log=_LOGGER,
+            )
         )
-    )
-    if not isy.connected:
-        raise InvalidAuth
-
-    # Return info that you want to store in the config entry.
-    return {
-        "title": f"{isy.configuration['name']} ({host.hostname})",
-        "uuid": isy.configuration["uuid"],
-    }
+    except ValueError as err:
+        raise InvalidAuth(err.args[0])
+    else:
+        isy_conf = await hass.async_add_executor_job(
+            partial(Configuration, log=_LOGGER, xml=isy_conn.get_config())
+        )
+        # Return info that you want to store in the config entry.
+        return {
+            "title": f"{isy_conf['name']} ({host.hostname})",
+            "uuid": isy_conf["uuid"],
+        }
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
