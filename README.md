@@ -15,7 +15,7 @@ See the [CHANGELOG](CHANGELOG.md) for the differences and improvements in this v
 
 The long-term goal is that these will be integrated into Home Assistant. Testing and feedback is ecouraged to flush out any bugs now before a merge.
 
-Please report any [issues or feature requests](https://github.com/shbatm/hacs-isy994/issues.
+Please report any [issues or feature requests](https://github.com/shbatm/hacs-isy994/issues).
 If you want to contribute, please review the [Project Plan](https://github.com/shbatm/hacs-isy994/projects/1).
 
 ## Installation
