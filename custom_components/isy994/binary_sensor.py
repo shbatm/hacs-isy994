@@ -128,7 +128,8 @@ async def async_setup_entry(
                         # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
                         # reported as "10", which translate from Hex to 10 and 16 resp.
                         device = ISYBinarySensorDevice(node, "problem")
-                    elif subnode_id == (13, 19):
+                        devices.append(device)
+                    elif subnode_id in (13, 19):
                         # Motion Disabled Sub-node for MS II ("D" or "13")
                         device = ISYBinarySensorDevice(node, "None")
                         devices.append(device)
