@@ -69,7 +69,6 @@ async def validate_input(hass: core.HomeAssistant, data):
                 password=password,
                 use_https=https,
                 tls_ver=tls_version,
-                log=_LOGGER,
             )
         )
     except ValueError as err:
