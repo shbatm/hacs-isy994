@@ -1,5 +1,10 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.2.1] - Fix Bad Fan Mode Command and Missing Tamper Devices
+
+- Fixes #30 - Motion sensor devices are missing in latest update
+- Fixes #33 - Error setting Fan Mode on Climate Devices.
+
 ### [1.2.0] - Add a config flow and device registry entries.
 
 - Implement config flow

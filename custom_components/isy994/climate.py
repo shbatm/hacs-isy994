@@ -3,7 +3,7 @@ import logging
 from typing import Callable, List, Optional
 
 from pyisy.constants import (
-    CMD_CLIMATE_FAN_SPEED,
+    CMD_CLIMATE_FAN_SETTING,
     CMD_CLIMATE_MODE,
     ISY_VALUE_UNKNOWN,
     PROP_HEAT_COOL_STATE,
@@ -197,9 +197,9 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     @property
     def fan_mode(self) -> str:
         """Return the current fan mode ie. auto, on."""
-        if self._node.aux_properties.get(CMD_CLIMATE_FAN_SPEED):
+        if self._node.aux_properties.get(CMD_CLIMATE_FAN_SETTING):
             return UOM_TO_STATES["99"].get(
-                self._node.aux_properties[CMD_CLIMATE_FAN_SPEED].value
+                self._node.aux_properties[CMD_CLIMATE_FAN_SETTING].value
             )
         return None
 
@@ -226,7 +226,7 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     def set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         _LOGGER.debug("Requested fan mode %s", fan_mode)
-        self._node.set_fan_state(HA_FAN_TO_ISY.get(fan_mode))
+        self._node.set_fan_mode(HA_FAN_TO_ISY.get(fan_mode))
         # Presumptive setting--event stream will correct if cmd fails:
         self._fan_mode = fan_mode
         self.schedule_update_ha_state()
