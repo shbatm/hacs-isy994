@@ -1,5 +1,9 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.2.2] - Support ISY Portal Paths in Connections
+
+- You can now connect to an ISY via the ISY Portal Cloud account. For the url, log-in to your [ISY Portal](https://my.isy.io/) account, choose the ISY you want to connect to, and under Tools > Information > ISY Information, copy the `URL to ISY` address. Use this in your configuration for this module.
+
 ### [1.2.1] - Fix Bad Fan Mode Command and Missing Tamper Devices
 
 - Fixes #30 - Motion sensor devices are missing in latest update

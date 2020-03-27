@@ -513,6 +513,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             use_https=https,
             tls_ver=tls_version,
             log=_LOGGER,
+            webroot=host.path,
         )
     )
     if not isy.connected:
