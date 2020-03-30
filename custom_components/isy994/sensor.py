@@ -112,25 +112,6 @@ class ISYSensorVariableDevice(ISYDevice):
         self._name = vcfg.get(CONF_NAME, vname)
         self._vtype = vcfg.get(CONF_TYPE)
         self._vid = vcfg.get(CONF_ID)
-        self._change_handler = None
-        self._init_change_handler = None
-
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to the node change events."""
-        self._change_handler = self._node.val.subscribe("changed", self.on_update)
-        self._init_change_handler = self._node.init.subscribe("changed", self.on_update)
-
-    @property
-    def state(self) -> str:
-        """Get the state of the ISY994 variable sensor device."""
-        if self.value == ISY_VALUE_UNKNOWN:
-            return STATE_UNKNOWN
-        return self.value
-
-    @property
-    def value(self) -> int:
-        """Get the current value of the device."""
-        return int(self._node.val)
 
     @property
     def device_state_attributes(self) -> Dict:

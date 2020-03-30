@@ -119,18 +119,6 @@ class ISYSwitchVariableDevice(ISYDevice, SwitchDevice):
         self._vid = vcfg.get(CONF_ID)
         self._on_value = vcfg.get(CONF_PAYLOAD_ON)
         self._off_value = vcfg.get(CONF_PAYLOAD_OFF)
-        self._change_handler = None
-        self._init_change_handler = None
-
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to the node change events."""
-        self._change_handler = self._node.val.subscribe("changed", self.on_update)
-        self._init_change_handler = self._node.init.subscribe("changed", self.on_update)
-
-    @property
-    def value(self) -> int:
-        """Get the current value of the device."""
-        return int(self._node.val)
 
     @property
     def device_state_attributes(self) -> Dict:

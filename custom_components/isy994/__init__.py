@@ -601,17 +601,11 @@ class ISYDevice(Entity):
         self._node = node
         self._attrs = {}
         self._change_handler = None
-        self._group_change_handler = None
         self._control_handler = None
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to the node change events."""
-        self._change_handler = self._node.status.subscribe("changed", self.on_update)
-
-        if hasattr(self._node, "group_all_on"):
-            self._group_change_handler = self._node.group_all_on.subscribe(
-                "changed", self.on_update
-            )
+        self._change_handler = self._node.status_events.subscribe(self.on_update)
 
         if hasattr(self._node, "control_events"):
             self._control_handler = self._node.control_events.subscribe(self.on_control)
@@ -700,7 +694,7 @@ class ISYDevice(Entity):
     def value(self) -> int:
         """Get the current value of the device."""
         # pylint: disable=protected-access
-        return self._node.status._val
+        return self._node.status
 
     @property
     def state(self):
@@ -727,7 +721,7 @@ class ISYDevice(Entity):
         # If a Group/Scene, set a property if the entire scene is on/off
         if hasattr(self._node, "group_all_on"):
             # pylint: disable=protected-access
-            attr["group_all_on"] = "on" if self._node.group_all_on._val else "off"
+            attr["group_all_on"] = "on" if self._node.group_all_on else "off"
 
         self._attrs.update(attr)
         return self._attrs

@@ -196,11 +196,11 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         self._negative_node = None
         self._heartbeat_device = None
         self._device_class_from_type = force_device_class
-        if self._node.status._val == ISY_VALUE_UNKNOWN:
+        if self._node.status == ISY_VALUE_UNKNOWN:
             self._computed_state = unknown_state
             self._status_was_unknown = True
         else:
-            self._computed_state = bool(self._node.status._val)
+            self._computed_state = bool(self._node.status)
             self._status_was_unknown = False
 
     async def async_added_to_hass(self) -> None:
@@ -237,12 +237,12 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         self._negative_node = child
 
         # pylint: disable=protected-access
-        if not _is_val_unknown(self._negative_node.status._val):
+        if not _is_val_unknown(self._negative_node.status):
             # If the negative node has a value, it means the negative node is
             # in use for this device. Next we need to check to see if the
             # negative and positive nodes disagree on the state (both ON or
             # both OFF).
-            if self._negative_node.status._val == self._node.status._val:
+            if self._negative_node.status == self._node.status:
                 # The states disagree, therefore we cannot determine the state
                 # of the sensor until we receive our first ON event.
                 self._computed_state = None
@@ -484,18 +484,6 @@ class ISYBinarySensorVariableDevice(ISYDevice, BinarySensorDevice):
         self._vid = vcfg.get(CONF_ID)
         self._on_value = vcfg.get(CONF_PAYLOAD_ON)
         self._off_value = vcfg.get(CONF_PAYLOAD_OFF)
-        self._change_handler = None
-        self._init_change_handler = None
-
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to the node change events."""
-        self._change_handler = self._node.val.subscribe("changed", self.on_update)
-        self._init_change_handler = self._node.init.subscribe("changed", self.on_update)
-
-    @property
-    def value(self) -> int:
-        """Get the current value of the device."""
-        return int(self._node.val)
 
     @property
     def device_state_attributes(self) -> Dict:
