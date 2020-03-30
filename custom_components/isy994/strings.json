@@ -7,7 +7,6 @@
                "username" : "Username",
                "host" : "URL",
                "ignore_string" : "Ignore String: Any devices that contain this string in their name will be ignored.",
-               "enable_climate" : "Enable Climate Module",
                "password" : "Password",
                "tls" : "The TLS version of the ISY controller. This value can be either 1.1 or 1.2"
             },

@@ -11,7 +11,6 @@ from homeassistant import config_entries, core, exceptions
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 
 from .const import (
-    CONF_ENABLE_CLIMATE,
     CONF_IGNORE_STRING,
     CONF_SENSOR_STRING,
     CONF_TLS_VER,
@@ -30,8 +29,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_PASSWORD): str,
         vol.Optional(CONF_TLS_VER): vol.Coerce(float),
         vol.Optional(CONF_IGNORE_STRING, default=DEFAULT_IGNORE_STRING): str,
-        vol.Optional(CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING): str,
-        vol.Optional(CONF_ENABLE_CLIMATE, default=True): bool
+        vol.Optional(CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING): str
         # Variables require yaml
     },
     extra=vol.ALLOW_EXTRA,

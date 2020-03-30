@@ -1,5 +1,10 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.3.0] - [BREAKING] Remove Support for Climate Module
+
+- **BREAKING CHANGE**: Update to PyISY-beta to remove support for the ISY Climate Module which has been retired by UDI as of 3/30/2020.
+    + You will need to remove `enable_climate` from your configuration.
+
 ### [1.2.2] - Support ISY Portal Paths in Connections
 
 - You can now connect to an ISY via the ISY Portal Cloud account. For the url, log-in to your [ISY Portal](https://my.isy.io/) account, choose the ISY you want to connect to, and under Tools > Information > ISY Information, copy the `URL to ISY` address. Use this in your configuration for this module.

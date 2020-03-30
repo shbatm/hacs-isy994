@@ -1,6 +1,5 @@
 """Support the ISY-994 controllers."""
 import asyncio
-from collections import namedtuple
 from functools import partial
 import logging
 from urllib.parse import urlparse
@@ -48,7 +47,6 @@ from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.typing import Dict
 
 from .const import (
-    CONF_ENABLE_CLIMATE,
     CONF_IGNORE_STRING,
     CONF_ISY_VARIABLES,
     CONF_SENSOR_STRING,
@@ -62,7 +60,6 @@ from .const import (
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
-    ISY994_WEATHER,
     KEY_ACTIONS,
     KEY_FOLDER,
     KEY_MY_PROGRAMS,
@@ -136,15 +133,12 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING
                 ): cv.string,
-                vol.Optional(CONF_ENABLE_CLIMATE, default=True): cv.boolean,
                 vol.Optional(CONF_ISY_VARIABLES, default={}): ISY_VARIABLES_SCHEMA,
             }
         )
     },
     extra=vol.ALLOW_EXTRA,
 )
-
-WeatherNode = namedtuple("WeatherNode", ("status", "name", "uom"))
 
 
 def _check_for_node_def(hass_isy_data: dict, node, single_domain: str = None) -> bool:
@@ -429,21 +423,6 @@ def _categorize_variables(
         hass_isy_data[ISY994_VARIABLES][domain].append(variable)
 
 
-def _categorize_weather(hass_isy_data: dict, climate) -> None:
-    """Categorize the ISY994 weather data."""
-    climate_attrs = dir(climate)
-    weather_nodes = [
-        WeatherNode(
-            getattr(climate, attr),
-            attr.replace("_", " "),
-            getattr(climate, f"{attr}_units"),
-        )
-        for attr in climate_attrs
-        if f"{attr}_units" in climate_attrs
-    ]
-    hass_isy_data[ISY994_WEATHER].extend(weather_nodes)
-
-
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the isy994 component from YAML."""
     conf = config.get(DOMAIN)
@@ -468,8 +447,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for domain in SUPPORTED_DOMAINS:
         hass_isy_data[ISY994_NODES][domain] = []
 
-    hass_isy_data[ISY994_WEATHER] = []
-
     hass_isy_data[ISY994_PROGRAMS] = {}
     for domain in SUPPORTED_DOMAINS:
         hass_isy_data[ISY994_PROGRAMS][domain] = []
@@ -489,7 +466,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     tls_version = isy_config.get(CONF_TLS_VER)
     ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
     sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
-    enable_climate = isy_config.get(CONF_ENABLE_CLIMATE)
     isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
 
     if host.scheme == "http":
@@ -536,9 +512,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
     _LOGGER.info(repr(isy.clock))
-
-    if enable_climate and isy.configuration.get("Weather Information"):
-        _categorize_weather(hass_isy_data, isy.climate)
 
     hass_isy_data[ISY994_ISY] = isy
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)

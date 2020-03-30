@@ -24,7 +24,6 @@ from .const import (
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_VARIABLES,
-    ISY994_WEATHER,
     UOM_FRIENDLY_NAME,
     UOM_TO_STATES,
 )
@@ -44,9 +43,6 @@ async def async_setup_entry(
     for node in hass_isy_data[ISY994_NODES][DOMAIN]:
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorDevice(node))
-
-    for node in hass_isy_data[ISY994_WEATHER]:
-        devices.append(ISYWeatherDevice(node))
 
     for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
         devices.append(ISYSensorVariableDevice(vcfg, vname, vobj))
@@ -157,33 +153,3 @@ class ISYSensorVariableDevice(ISYDevice):
     def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
         return self._config.get(CONF_UNIT_OF_MEASUREMENT)
-
-
-class ISYWeatherDevice(ISYDevice):
-    """Representation of an ISY994 weather device."""
-
-    @property
-    def raw_units(self) -> str:
-        """Return the raw unit of measurement."""
-        if self._node.uom in ["F", "17"]:
-            return TEMP_FAHRENHEIT
-        if self._node.uom in ["C", "4"]:
-            return TEMP_CELSIUS
-        return self._node.uom
-
-    @property
-    def state(self) -> object:
-        """Return the value of the node."""
-        # pylint: disable=protected-access
-        val = self._node.status._val
-
-        if self.raw_units in [TEMP_CELSIUS, TEMP_FAHRENHEIT]:
-            return self.hass.config.units.temperature(val, self.raw_units)
-        return val
-
-    @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement for the node."""
-        if self.raw_units in [TEMP_CELSIUS, TEMP_FAHRENHEIT]:
-            return self.hass.config.units.temperature_unit
-        return self.raw_units
