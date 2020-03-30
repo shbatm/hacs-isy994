@@ -93,3 +93,18 @@ class ISYLockProgram(ISYLockDevice):
         """Unlock the device."""
         if not self._actions.run_else():
             _LOGGER.error("Unable to unlock device")
+
+    @property
+    def device_state_attributes(self):
+        """Get the state attributes for the device."""
+        attr = {}
+        if self._actions:
+            attr["enabled"] = self._actions.enabled
+            attr["last_finished"] = self._actions.last_finished
+            attr["last_run"] = self._actions.last_run
+            attr["last_update"] = self._actions.last_update
+            attr["ran_else"] = self._actions.ran_else
+            attr["ran_then"] = self._actions.ran_then
+            attr["run_at_startup"] = self._actions.run_at_startup
+            attr["running"] = self._actions.running
+        return attr
