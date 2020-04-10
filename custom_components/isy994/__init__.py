@@ -2,6 +2,7 @@
 import asyncio
 from functools import partial
 import logging
+from typing import Optional
 from urllib.parse import urlparse
 
 from pyisy import ISY
@@ -17,11 +18,11 @@ from pyisy.helpers import NodeProperty
 from pyisy.nodes import Group
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
 )
 from homeassistant.components.sensor import DEVICE_CLASSES_SCHEMA as SENSOR_DCS
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     CONF_BINARY_SENSORS,
     CONF_DEVICE_CLASS,
@@ -44,7 +45,7 @@ from homeassistant.helpers import config_validation as cv
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_registry import async_get_registry
-from homeassistant.helpers.typing import Dict
+from homeassistant.helpers.typing import ConfigType, Dict
 
 from .const import (
     CONF_IGNORE_STRING,
@@ -399,7 +400,7 @@ def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
 
 
 def _categorize_variables(
-    hass_isy_data: dict, variables: dict, domain_cfg: dict, domain: str
+    hass_isy_data: dict, variables, domain_cfg: dict, domain: str
 ) -> None:
     """Categorize the ISY994 Variables."""
     if domain_cfg is None:
@@ -407,40 +408,63 @@ def _categorize_variables(
     for isy_var in domain_cfg:
         vid = isy_var.get(CONF_ID)
         vtype = isy_var.get(CONF_TYPE)
-        _, vname, _ = next(
-            (var for i, var in enumerate(variables[vtype].children) if var[2] == vid),
-            None,
-        )
-        if vname is None:
-            _LOGGER.error(
-                "ISY Variable Not Found in ISY List; "
-                "check your config for Variable %s.%s",
-                vtype,
-                vid,
-            )
+        vname = ""
+        try:
+            vname = variables[vtype][vid].name
+        except KeyError as err:
+            _LOGGER.error("Error adding ISY Variable %s.%s: %s", vtype, vid, err)
             continue
-        variable = (isy_var, vname, variables[vtype][vid])
-        hass_isy_data[ISY994_VARIABLES][domain].append(variable)
+        else:
+            variable = (isy_var, vname, variables[vtype][vid])
+            hass_isy_data[ISY994_VARIABLES][domain].append(variable)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the isy994 component from YAML."""
-    conf = config.get(DOMAIN)
+    isy_config: Optional[ConfigType] = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
 
-    if not conf:
-        return True
+    if not isy_config:
+        # If we have a config entry, setup is done by that config entry.
+        # If there is no config entry, this should fail.
+        return bool(hass.config_entries.async_entries(DOMAIN))
 
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_IMPORT}, data=conf
+    hass.data[DOMAIN] = dict(isy_config)
+
+    # Only import if we haven't before.
+    if not hass.config_entries.async_entries(DOMAIN):
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={"source": config_entries.SOURCE_IMPORT},
+                data=isy_config,
+            )
         )
-    )
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: config_entries.ConfigEntry
+) -> bool:
     """Set up the ISY 994 platform."""
+    isy_config = hass.data.get(DOMAIN)
+
+    # Config entry was created because user had configuration.yaml entry
+    # They removed that, so remove entry.
+    if not isy_config and entry.source == config_entries.SOURCE_IMPORT:
+        hass.async_create_task(hass.config_entries.async_remove(entry.entry_id))
+        return False
+
+    # If user didn't have configuration.yaml config, generate defaults
+    if isy_config is None:
+        isy_config = CONFIG_SCHEMA({DOMAIN: dict(entry.data)})[DOMAIN]
+    elif any(key in isy_config for key in entry.data):
+        _LOGGER.warning(
+            "Data in your configuration entry is going to override your "
+            "configuration.yaml: %s",
+            entry.data,
+        )
+
     hass.data[DOMAIN][entry.entry_id] = {}
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     hass_isy_data[ISY994_NODES] = {}
@@ -455,7 +479,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for domain in SUPPORTED_VARIABLE_DOMAINS:
         hass_isy_data[ISY994_VARIABLES][domain] = []
 
-    isy_config = entry.data
+    # Variables can't be setup in config flow (yet) so make sure we catch any YAML changes:
+    isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
+
+    # Update the YAML config with the Config Entry Data
+    isy_config.update(entry.data)
 
     # Required
     user = isy_config[CONF_USERNAME]
@@ -466,7 +494,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     tls_version = isy_config.get(CONF_TLS_VER)
     ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
     sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
-    isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
 
     if host.scheme == "http":
         https = False
@@ -533,7 +560,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def _async_get_or_create_isy_device_in_registry(
-    hass: HomeAssistant, entry: ConfigEntry, isy
+    hass: HomeAssistant, entry: config_entries.ConfigEntry, isy
 ) -> None:
     device_registry = await dr.async_get_registry(hass)
 
@@ -548,7 +575,9 @@ async def _async_get_or_create_isy_device_in_registry(
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: config_entries.ConfigEntry
+) -> bool:
     """Unload a config entry."""
     unload_ok = all(
         await asyncio.gather(
@@ -693,7 +722,6 @@ class ISYDevice(Entity):
     @property
     def value(self) -> int:
         """Get the current value of the device."""
-        # pylint: disable=protected-access
         return self._node.status
 
     @property

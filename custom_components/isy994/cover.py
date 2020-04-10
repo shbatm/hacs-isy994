@@ -53,7 +53,7 @@ class ISYCoverDevice(ISYDevice, CoverDevice):
         """Get the state of the ISY994 cover device."""
         if self.value == ISY_VALUE_UNKNOWN:
             return STATE_UNKNOWN
-        return UOM_TO_STATES["97"].get(str(self.value), STATE_OPEN)
+        return UOM_TO_STATES["97"].get(self.value, STATE_OPEN)
 
     def open_cover(self, **kwargs) -> None:
         """Send the open cover command to the ISY994 cover device."""

@@ -67,7 +67,7 @@ class ISYSensorDevice(ISYDevice):
         return friendly_name
 
     @property
-    def state(self) -> str:
+    def state(self):
         """Get the state of the ISY994 sensor device."""
         if self.value == ISY_VALUE_UNKNOWN:
             return STATE_UNKNOWN
@@ -86,11 +86,11 @@ class ISYSensorDevice(ISYDevice):
             int_prec = int(self._node.prec)
             decimal_part = str_val[-int_prec:]
             whole_part = str_val[: len(str_val) - int_prec]
-            val = val = float(f"{whole_part}.{decimal_part}")
+            val = float(f"{whole_part}.{decimal_part}")
             raw_units = self.raw_unit_of_measurement
             if raw_units in (TEMP_CELSIUS, TEMP_FAHRENHEIT):
                 val = self.hass.config.units.temperature(val, raw_units)
-            return str(val)
+            return val
         return self.value
 
     @property
@@ -129,6 +129,11 @@ class ISYSensorVariableDevice(ISYDevice):
     def device_class(self) -> Optional[str]:
         """Return the device class of the sensor."""
         return self._config.get(CONF_DEVICE_CLASS)
+
+    @property
+    def state(self):
+        """Return the state of the variable."""
+        return self.value
 
     @property
     def unit_of_measurement(self):

@@ -1,6 +1,17 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
-### [1.3.0] - [BREAKING] Remove Support for Climate Module
+### [1.3.3] - Various Bug Fixes
+
+- Fix #40 - Unknown variable states
+- Fix #39 - Fan Speed Attribute type error
+- Fix #37 - Unable to add new variables when config is imported from YAML to Config Entry.
+- Bump PyISY-Beta to RC2
+
+### [1.3.2] - Bump PyISY-Beta to RC1
+
+- This release replaces V1.3.1; no other changes other than a renumbering of PyISY-Beta dev174 to rc1
+
+### [1.3.1] - [BREAKING] Remove Support for Climate Module
 
 - **BREAKING CHANGE**: Update to PyISY-beta to remove support for the ISY Climate Module which has been retired by UDI as of 3/30/2020.
     + You will need to remove `enable_climate` from your configuration.
