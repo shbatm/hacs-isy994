@@ -40,7 +40,7 @@ from homeassistant.const import (
     CONF_USERNAME,
     STATE_UNKNOWN,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.entity import Entity
@@ -419,52 +419,46 @@ def _categorize_variables(
             hass_isy_data[ISY994_VARIABLES][domain].append(variable)
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the isy994 component from YAML."""
     isy_config: Optional[ConfigType] = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
+    config_entry = _async_find_matching_config_entry(hass)
 
     if not isy_config:
-        # If we have a config entry, setup is done by that config entry.
-        # If there is no config entry, this should fail.
-        return bool(hass.config_entries.async_entries(DOMAIN))
-
-    hass.data[DOMAIN] = dict(isy_config)
+        if config_entry:
+            # Config entry was created because user had configuration.yaml entry
+            # They removed that, so remove entry.
+            await hass.config_entries.async_remove(config_entry.entry_id)
+        return True
 
     # Only import if we haven't before.
-    if not hass.config_entries.async_entries(DOMAIN):
+    if not config_entry:
         hass.async_create_task(
             hass.config_entries.flow.async_init(
                 DOMAIN,
                 context={"source": config_entries.SOURCE_IMPORT},
-                data=isy_config,
+                data=dict(isy_config),
             )
         )
+        return True
+
+    # Update the entry based on the YAML configuration, in case it changed.
+    hass.config_entries.async_update_entry(config_entry, data=dict(isy_config))
     return True
+
+
+@callback
+def _async_find_matching_config_entry(hass):
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.source == config_entries.SOURCE_IMPORT:
+            return entry
 
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
     """Set up the ISY 994 platform."""
-    isy_config = hass.data.get(DOMAIN)
-
-    # Config entry was created because user had configuration.yaml entry
-    # They removed that, so remove entry.
-    if not isy_config and entry.source == config_entries.SOURCE_IMPORT:
-        hass.async_create_task(hass.config_entries.async_remove(entry.entry_id))
-        return False
-
-    # If user didn't have configuration.yaml config, generate defaults
-    if isy_config is None:
-        isy_config = CONFIG_SCHEMA({DOMAIN: dict(entry.data)})[DOMAIN]
-    elif any(key in isy_config for key in entry.data):
-        _LOGGER.warning(
-            "Data in your configuration entry is going to override your "
-            "configuration.yaml: %s",
-            entry.data,
-        )
-
     hass.data[DOMAIN][entry.entry_id] = {}
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
     hass_isy_data[ISY994_NODES] = {}
@@ -479,11 +473,7 @@ async def async_setup_entry(
     for domain in SUPPORTED_VARIABLE_DOMAINS:
         hass_isy_data[ISY994_VARIABLES][domain] = []
 
-    # Variables can't be setup in config flow (yet) so make sure we catch any YAML changes:
-    isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
-
-    # Update the YAML config with the Config Entry Data
-    isy_config.update(entry.data)
+    isy_config = entry.data
 
     # Required
     user = isy_config[CONF_USERNAME]
@@ -494,6 +484,7 @@ async def async_setup_entry(
     tls_version = isy_config.get(CONF_TLS_VER)
     ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
     sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
+    isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
 
     if host.scheme == "http":
         https = False
@@ -666,8 +657,14 @@ class ISYDevice(Entity):
         if hasattr(self._node, "protocol") and self._node.protocol == PROTO_GROUP:
             # not a device
             return None
-        uuid = self._node.isy.configuration["uuid"].replace(":", "").replace("_", "")
-        device_info = {"name": self.name}
+        uuid = self._node.isy.configuration["uuid"]
+        device_info = {
+            "name": self.name,
+            "identifiers": {},
+            "model": "Unknown",
+            "manufacturer": "Unknown",
+            "via_device": (DOMAIN, uuid),
+        }
         if hasattr(self._node, "address"):
             device_info["name"] += f" ({self._node.address})"
         if hasattr(self._node, "primary_node"):
@@ -689,7 +686,6 @@ class ISYDevice(Entity):
                     f"ProductTypeID:{self._node.zwave_props.prod_type_id} "
                     f"ProductID:{self._node.zwave_props.product_id}"
                 )
-        device_info["via_device"] = (DOMAIN, self._node.isy.configuration["uuid"])
         # Note: sw_version is not exposed by the ISY for the individual devices.
 
         return device_info

@@ -1,5 +1,11 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.3.4] - Minor Bug Fixes, Bump PyISY-Beta to RC3
+
+- Fix #41 - Appending Device Model when NodeDefId doesn't exist.
+- Fix #42 - ExpatError not handled for XML Parser getting bad data.
+- Better management of imported configurations with the stored config entry. Thanks @bdraco for pointing out a duplication issue.
+
 ### [1.3.3] - Various Bug Fixes
 
 - Fix #40 - Unknown variable states

@@ -7,6 +7,11 @@ This Custom Component is to update the ISY994 component with various bug fixes, 
 
 ![](https://raw.githubusercontent.com/shbatm/hacs-isy994/master/.images/integrations.png)
 
+Notes: 
+
+1. Variables cannot be configured from the Integrations Page, to use Variables as sensors, binary_sensors, or switches, you must use `configuration.yaml`.
+2. Multiple ISYs are supported if added from the Integrations page, just add one entry for each ISY. Make sure you do not have more than one in the `configuration.yaml` page, this will not work. (Variables can only be used on one ISY).
+
 Thank you to [@bdraco](https://github.com/bdraco) for the help.
 
 ### Differences between this version and Home Assistant Core
