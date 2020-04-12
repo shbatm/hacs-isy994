@@ -1,5 +1,10 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.3.5] - Improvements to multiple ISY Connections
+
+- Should fix #43 and improve connections to multiple ISYs (multiple Config Entries).
+- Provide initial state for tamper nodes that do not have a valid state after ISY Restart.
+
 ### [1.3.4] - Minor Bug Fixes, Bump PyISY-Beta to RC3
 
 - Fix #41 - Appending Device Model when NodeDefId doesn't exist.

@@ -116,9 +116,7 @@ class ISYSensorVariableDevice(ISYDevice):
     @property
     def device_state_attributes(self) -> Dict:
         """Get the state attributes for the device."""
-        attr = {}
-        attr["init_value"] = int(self._node.init)
-        return attr
+        return {"init_value": int(self._node.init)}
 
     @property
     def icon(self):

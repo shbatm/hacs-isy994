@@ -109,25 +109,26 @@ async def async_setup_entry(
                         or device_type.startswith("16.22.")
                     )
                 ):
-                    # Special case for Insteon Motion Sensors I & II:
+                    # Special cases for Insteon Motion Sensors I & II:
+                    # Some subnodes never report status until activated, so
+                    # the initial state is forced "OFF"/"NORMAL" if the
+                    # parent device has a valid state. This is corrected
+                    # upon connection to the ISY event stream if subnode has a valid state.
+                    initial_state = (
+                        None if parent_device.state == STATE_UNKNOWN else False
+                    )
                     if subnode_id == 2:
                         # Subnode 2 is the Dusk/Dawn sensor
                         device = ISYBinarySensorDevice(node, "light")
                         devices.append(device)
                     elif subnode_id == 3:
                         # Subnode 3 is the low battery node
-                        # Node never reports status until battery is low so
-                        # the initial state is forced "OFF"/"NORMAL" if the
-                        # parent device has a valid state.
-                        inital_state = (
-                            None if parent_device.state == STATE_UNKNOWN else False
-                        )
-                        device = ISYBinarySensorDevice(node, "battery", inital_state)
+                        device = ISYBinarySensorDevice(node, "battery", initial_state)
                         devices.append(device)
                     elif subnode_id in (10, 16):
                         # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
                         # reported as "10", which translate from Hex to 10 and 16 resp.
-                        device = ISYBinarySensorDevice(node, "problem")
+                        device = ISYBinarySensorDevice(node, "problem", initial_state)
                         devices.append(device)
                     elif subnode_id in (13, 19):
                         # Motion Disabled Sub-node for MS II ("D" or "13")
@@ -174,11 +175,6 @@ def _detect_device_type(node) -> (str, str):
                 return device_class, device_type
 
     return (None, device_type)
-
-
-def _is_val_unknown(val):
-    """Determine if a number value represents UNKNOWN from PyISY."""
-    return val == -1 * float("inf")
 
 
 class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
@@ -236,8 +232,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         """
         self._negative_node = child
 
-        # pylint: disable=protected-access
-        if not _is_val_unknown(self._negative_node.status):
+        if self._negative_node.status != ISY_VALUE_UNKNOWN:
             # If the negative node has a value, it means the negative node is
             # in use for this device. Next we need to check to see if the
             # negative and positive nodes disagree on the state (both ON or
