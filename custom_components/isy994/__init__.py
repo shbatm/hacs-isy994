@@ -610,6 +610,19 @@ async def migrate_old_unique_ids(hass, platform, devices):
             )
             registry.async_update_entity(old_entity_id, new_unique_id=device.unique_id)
 
+        old_entity_id_2 = registry.async_get_entity_id(
+            platform, DOMAIN, device.unique_id.replace(":", "")
+        )
+        if old_entity_id_2 is not None:
+            _LOGGER.debug(
+                "Migrating unique_id from [%s] to [%s]",
+                device.unique_id.replace(":", ""),
+                device.unique_id,
+            )
+            registry.async_update_entity(
+                device.unique_id.replace(":", ""), new_unique_id=device.unique_id
+            )
+
 
 class ISYDevice(Entity):
     """Representation of an ISY994 device."""
@@ -693,9 +706,8 @@ class ISYDevice(Entity):
     @property
     def unique_id(self) -> str:
         """Get the unique identifier of the device."""
-        uuid = self._node.isy.configuration["uuid"].replace(":", "").replace("_", "")
         if hasattr(self._node, "address"):
-            return f"{uuid}_{self._node.address}"
+            return f"{self._node.isy.configuration['uuid']}_{self._node.address}"
         return None
 
     @property
