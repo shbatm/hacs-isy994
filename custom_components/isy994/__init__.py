@@ -620,7 +620,7 @@ async def migrate_old_unique_ids(hass, platform, devices):
                 device.unique_id,
             )
             registry.async_update_entity(
-                device.unique_id.replace(":", ""), new_unique_id=device.unique_id
+                old_entity_id_2, new_unique_id=device.unique_id
             )
 
 
