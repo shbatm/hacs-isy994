@@ -33,6 +33,11 @@ async def async_setup_entry(
 class ISYLightDevice(ISYDevice, Light):
     """Representation of an ISY994 light device."""
 
+    def __init__(self, node) -> None:
+        """Initialize the ISY994 light device."""
+        super().__init__(node)
+        self._last_brightness = self.brightness
+
     @property
     def is_on(self) -> bool:
         """Get whether the ISY994 light is on."""
@@ -47,12 +52,21 @@ class ISYLightDevice(ISYDevice, Light):
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 light device."""
+        self._last_brightness = self.brightness
         if not self._node.turn_off():
             _LOGGER.debug("Unable to turn off light")
+
+    def on_update(self, event: object) -> None:
+        """Save brightness in the update event from the ISY994 Node."""
+        if self.value not in (0, ISY_VALUE_UNKNOWN):
+            self._last_brightness = self.value
+        super().on_update(event)
 
     # pylint: disable=arguments-differ
     def turn_on(self, brightness=None, **kwargs) -> None:
         """Send the turn on command to the ISY994 light device."""
+        if brightness is None and self._last_brightness is not None:
+            brightness = self._last_brightness
         if not self._node.turn_on(val=brightness):
             _LOGGER.debug("Unable to turn on light")
 
