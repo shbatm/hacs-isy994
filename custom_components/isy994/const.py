@@ -68,13 +68,18 @@ DOMAIN = "isy994"
 
 MANUFACTURER = "Universal Devices, Inc"
 
+ATTR_LAST_BRIGHTNESS = "last_brightness"
+
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
 CONF_ISY_VARIABLES = "isy_variables"
 CONF_TLS_VER = "tls"
+CONF_RESTORE_LIGHT_STATE = "restore_light_state"
 
 DEFAULT_IGNORE_STRING = "{IGNORE ME}"
 DEFAULT_SENSOR_STRING = "sensor"
+DEFAULT_RESTORE_LIGHT_STATE = False
+DEFAULT_TLS_VERSION = 1.1
 
 DEFAULT_ON_VALUE = 1
 DEFAULT_OFF_VALUE = 0
@@ -215,6 +220,8 @@ ISY994_ISY = "isy"
 ISY994_NODES = "isy994_nodes"
 ISY994_PROGRAMS = "isy994_programs"
 ISY994_VARIABLES = "isy994_variables"
+
+UNDO_UPDATE_LISTENER = "undo_update_listener"
 
 ISY_HVAC_MODES = [
     HVAC_MODE_OFF,
