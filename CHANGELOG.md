@@ -1,5 +1,15 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.3.7] - Bug Fixes
+
+- Fix #50 for ISYv4 Firmware UOMs in Climate Module
+
+### [1.3.6] - Correct State Attributes for Binary Sensor Programs
+
+- Exclude "actions" program state attributes for binary sensor programs
+- Update other Program-based entities to show device state attributes for both the status and actions program, in-case the status program is updated by something other than Home Assistant.
+- Finalize new unique_ids in prep for HA Core PR.
+
 ### [1.3.5] - Improvements to multiple ISY Connections
 
 - Should fix #43 and improve connections to multiple ISYs (multiple Config Entries).

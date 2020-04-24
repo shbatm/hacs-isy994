@@ -11,6 +11,7 @@ from pyisy.constants import (
     PROP_SETPOINT_COOL,
     PROP_SETPOINT_HEAT,
     PROP_UOM,
+    PROTO_INSTEON,
 )
 
 from homeassistant.components.climate import ClimateDevice
@@ -132,10 +133,13 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     @property
     def hvac_mode(self) -> str:
         """Return hvac operation ie. heat, cool mode."""
-        if self._node.aux_properties.get(CMD_CLIMATE_MODE):
-            # Get the state values from UOM "98" or "67" depending on
-            # if this is an Insteon or Z-Wave T-Stat
-            return UOM_TO_STATES[self._node.aux_properties[CMD_CLIMATE_MODE].uom].get(
+        if self._node.aux_properties.get(CMD_CLIMATE_MODE) is not None:
+            # Which state values used depends on the mode property's UOM:
+            uom = self._node.aux_properties[CMD_CLIMATE_MODE].uom
+            # Handle special case for ISYv4 Firmware:
+            if uom == "n/a":
+                uom = "98" if self._node.protocol == PROTO_INSTEON else "67"
+            return UOM_TO_STATES[uom].get(
                 self._node.aux_properties[CMD_CLIMATE_MODE].value
             )
         return None
