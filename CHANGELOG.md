@@ -1,8 +1,24 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
-### [1.3.7] - Bug Fixes
+### [1.3.7] - Bug Fixes and Core Catchup to 0.109.0
 
 - Fix #50 for ISYv4 Firmware UOMs in Climate Module
+- Add Insteon Dual Band SwitchLinc model 2477S to ISY994 (home-assistant/core#32813)
+- Rename `.transitions` folder to `transitions` per Core changes to fix #52
+- Add node_def_id for ISY994i wrapped X10 modules (home-assistant/core#31815)
+- Enable pylint unnecessary-pass (home-assistant/core#33650)
+- Remove unused manifest fields (home-assistant/core#33595)
+- Add and use time related constants (home-assistant/core#32065)
+- Add and use more unit constants (home-assistant/core#32122)
+- Add and use percentage constant (home-assistant/core#32094)
+- Add and use UNIT_VOLT constant (home-assistant/core#33994)
+- Use LENGTH_KILOMETERS constant (home-assistant/core#33976)
+- Use POWER_WATT constant (home-assistant/core#33984)
+- Add and use UNIT_DEGREE constant (home-assistant/core#33978)
+- Use MASS_KILOGRAMS constant (home-assistant/core#34052)
+- Use LENGTH_METERS constant (home-assistant/core#34110)
+- Add and use frequency constants (home-assistant/core#34113)
+- Drop UNIT_ prefix for constants (home-assistant/core#34164)
 
 ### [1.3.6] - Correct State Attributes for Binary Sensor Programs
 
