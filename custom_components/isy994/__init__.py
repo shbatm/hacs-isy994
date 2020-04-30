@@ -71,6 +71,7 @@ from .const import (
     SUPPORTED_DOMAINS,
     SUPPORTED_PROGRAM_DOMAINS,
     SUPPORTED_VARIABLE_DOMAINS,
+    UNDO_UPDATE_LISTENER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -459,8 +460,15 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
     """Set up the ISY 994 platform."""
+    # As there currently is no way to import options from yaml
+    # when setting up a config entry, we fallback to adding
+    # the options to the config entry and pull them out here if
+    # they are missing from the options
+    _async_import_options_from_data_if_missing(hass, entry)
+
     hass.data[DOMAIN][entry.entry_id] = {}
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
+
     hass_isy_data[ISY994_NODES] = {}
     for domain in SUPPORTED_DOMAINS:
         hass_isy_data[ISY994_NODES][domain] = []
@@ -474,6 +482,7 @@ async def async_setup_entry(
         hass_isy_data[ISY994_VARIABLES][domain] = []
 
     isy_config = entry.data
+    isy_options = entry.options
 
     # Required
     user = isy_config[CONF_USERNAME]
@@ -482,8 +491,8 @@ async def async_setup_entry(
 
     # Optional
     tls_version = isy_config.get(CONF_TLS_VER)
-    ignore_identifier = isy_config.get(CONF_IGNORE_STRING)
-    sensor_identifier = isy_config.get(CONF_SENSOR_STRING)
+    ignore_identifier = isy_options.get(CONF_IGNORE_STRING, DEFAULT_IGNORE_STRING)
+    sensor_identifier = isy_options.get(CONF_SENSOR_STRING, DEFAULT_SENSOR_STRING)
     isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
 
     if host.scheme == "http":
@@ -547,7 +556,33 @@ async def async_setup_entry(
 
     await hass.async_add_executor_job(_start_auto_update)
 
+    undo_listener = entry.add_update_listener(_async_update_listener)
+
+    hass_isy_data[UNDO_UPDATE_LISTENER] = undo_listener
+
     return True
+
+
+async def _async_update_listener(
+    hass: HomeAssistant, entry: config_entries.ConfigEntry
+):
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+@callback
+def _async_import_options_from_data_if_missing(
+    hass: HomeAssistant, entry: config_entries.ConfigEntry
+):
+    options = dict(entry.options)
+    modified = False
+    for importable_option in [CONF_IGNORE_STRING, CONF_SENSOR_STRING]:
+        if importable_option not in entry.options and importable_option in entry.data:
+            options[importable_option] = entry.data[importable_option]
+            modified = True
+
+    if modified:
+        hass.config_entries.async_update_entry(entry, options=options)
 
 
 async def _async_get_or_create_isy_device_in_registry(
@@ -579,7 +614,9 @@ async def async_unload_entry(
         )
     )
 
-    isy = hass.data[DOMAIN][entry.entry_id][ISY994_ISY]
+    hass_isy_data = hass.data[DOMAIN][entry.entry_id]
+
+    isy = hass_isy_data[ISY994_ISY]
 
     def _stop_auto_update() -> None:
         """Start isy auto update."""
@@ -587,6 +624,8 @@ async def async_unload_entry(
         isy.auto_update = False
 
     await hass.async_add_executor_job(_stop_auto_update)
+
+    hass_isy_data[UNDO_UPDATE_LISTENER]()
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
