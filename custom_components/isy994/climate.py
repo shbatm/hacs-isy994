@@ -63,7 +63,6 @@ async def async_setup_entry(
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     for node in hass_isy_data[ISY994_NODES][DOMAIN]:
-        _LOGGER.debug("Adding ISY node %s to Climate platform", node)
         devices.append(ISYThermostatDevice(node))
 
     await migrate_old_unique_ids(hass, DOMAIN, devices)
@@ -75,6 +74,9 @@ def fix_temp(temp, uom, prec) -> float:
 
     Insteon Thermostats report temperature in 0.5-deg precision as an int
     by sending a value of 2 times the Temp. Correct by dividing by 2 here.
+
+    Z-Wave Thermostats report temps in tenths as an integer and precision.
+    Correct by shifting the decimal place left by the value of prec.
     """
     if temp is None or temp == ISY_VALUE_UNKNOWN:
         return None
@@ -117,9 +119,9 @@ class ISYThermostatDevice(ISYDevice, ClimateDevice):
     def temperature_unit(self):
         """Return the unit of measurement."""
         if self._node.aux_properties.get(PROP_UOM):
-            if self._node.aux_properties[PROP_UOM].value == "1":
+            if self._node.aux_properties[PROP_UOM].value == 1:
                 return TEMP_CELSIUS
-            if self._node.aux_properties[PROP_UOM].value == "2":
+            if self._node.aux_properties[PROP_UOM].value == 2:
                 return TEMP_FAHRENHEIT
         return self.hass.config.units.temperature_unit
 
