@@ -143,7 +143,7 @@ NODE_FILTERS = {
     },
     PLATFORM_FAN: {
         "uom": [],
-        "states": [STATE_OFF, "low", "med", "high"],
+        "states": ["off", "low", "med", "high"],
         "node_def_id": ["FanLincMotor"],
         "insteon_type": ["1.46."],
         "zwave_cat": [],
@@ -157,7 +157,7 @@ NODE_FILTERS = {
     },
     PLATFORM_LIGHT: {
         "uom": ["51"],
-        "states": [STATE_ON, STATE_OFF, "%"],
+        "states": ["on", "off", "%"],
         "node_def_id": [
             "BallastRelayLampSwitch",
             "BallastRelayLampSwitch_ADV",
@@ -172,7 +172,7 @@ NODE_FILTERS = {
     },
     PLATFORM_SWITCH: {
         "uom": ["2", "78"],
-        "states": [STATE_ON, STATE_OFF],
+        "states": ["on", "off"],
         "node_def_id": [
             "AlertModuleArmed",
             "AlertModuleSiren",
@@ -200,7 +200,7 @@ NODE_FILTERS = {
     },
     PLATFORM_CLIMATE: {
         "uom": ["2"],
-        "states": ["heating", "cooling", "idle", "fan_only", STATE_OFF],
+        "states": ["heating", "cooling", "idle", "fan_only", "off"],
         "node_def_id": ["TempLinc", "Thermostat"],
         "insteon_type": ["4.8", "5."],
         "zwave_cat": ["140"],
