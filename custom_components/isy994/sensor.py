@@ -1,5 +1,4 @@
 """Support for ISY994 sensors."""
-import logging
 from typing import Callable, Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
@@ -21,14 +20,13 @@ from homeassistant.helpers.typing import Dict, HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_VARIABLES,
     UOM_FRIENDLY_NAME,
     UOM_TO_STATES,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(

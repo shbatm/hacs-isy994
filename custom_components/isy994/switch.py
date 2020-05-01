@@ -1,5 +1,4 @@
 """Support for ISY994 switches."""
-import logging
 from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
@@ -19,13 +18,12 @@ from homeassistant.helpers.typing import Dict, HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(

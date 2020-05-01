@@ -1,4 +1,6 @@
 """Constants for the ISY994 Platform."""
+import logging
+
 from homeassistant.components.binary_sensor import DOMAIN as PLATFORM_BINARY_SENSOR
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_COOL,
@@ -71,6 +73,8 @@ from homeassistant.const import (
     VOLUME_GALLONS,
     VOLUME_LITERS,
 )
+
+_LOGGER = logging.getLogger(__package__)
 
 DOMAIN = "isy994"
 

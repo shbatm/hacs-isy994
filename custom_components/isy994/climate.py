@@ -1,5 +1,4 @@
 """Support for Insteon Thermostats via ISY994 Platform."""
-import logging
 from typing import Callable, List, Optional
 
 from pyisy.constants import (
@@ -38,6 +37,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
@@ -45,8 +45,6 @@ from .const import (
     ISY_HVAC_MODES,
     UOM_TO_STATES,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 ISY_SUPPORTED_FEATURES = (
     SUPPORT_FAN_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_TARGET_TEMPERATURE_RANGE

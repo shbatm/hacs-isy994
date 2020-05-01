@@ -1,5 +1,4 @@
 """Support for ISY994 covers."""
-import logging
 from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
@@ -10,9 +9,13 @@ from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
-from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS, UOM_TO_STATES
-
-_LOGGER = logging.getLogger(__name__)
+from .const import (
+    _LOGGER,
+    DOMAIN as ISY994_DOMAIN,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+    UOM_TO_STATES,
+)
 
 
 async def async_setup_entry(

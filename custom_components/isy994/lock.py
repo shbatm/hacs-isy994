@@ -1,5 +1,4 @@
 """Support for ISY994 locks."""
-import logging
 from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
@@ -10,9 +9,7 @@ from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
 from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
-from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
-
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 
 VALUE_TO_STATE = {0: STATE_UNLOCKED, 100: STATE_LOCKED}
 

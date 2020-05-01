@@ -1,6 +1,5 @@
 """Support for ISY994 binary sensors."""
 from datetime import timedelta
-import logging
 from typing import Callable, Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
@@ -29,6 +28,7 @@ from homeassistant.util import dt as dt_util
 
 from . import ISYDevice, migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_PROGRAMS,
@@ -36,8 +36,6 @@ from .const import (
     ISY_BIN_SENS_DEVICE_TYPES,
     ZWAVE_BIN_SENS_DEVICE_TYPES,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(

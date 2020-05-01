@@ -1,5 +1,4 @@
 """Support for ISY994 fans."""
-import logging
 from typing import Callable
 
 from homeassistant.components.fan import (
@@ -15,9 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
-from .const import DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
-
-_LOGGER = logging.getLogger(__name__)
+from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 
 VALUE_TO_STATE = {
     0: SPEED_OFF,

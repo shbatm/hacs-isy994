@@ -1,7 +1,6 @@
 """Support the ISY-994 controllers."""
 import asyncio
 from functools import partial
-import logging
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -56,6 +55,7 @@ from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.typing import ConfigType, Dict
 
 from .const import (
+    _LOGGER,
     CONF_IGNORE_STRING,
     CONF_ISY_VARIABLES,
     CONF_SENSOR_STRING,
@@ -81,8 +81,6 @@ from .const import (
     SUPPORTED_VARIABLE_PLATFORMS,
     UNDO_UPDATE_LISTENER,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 VAR_BASE_SCHEMA = vol.Schema(
     {
