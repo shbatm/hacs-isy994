@@ -16,6 +16,7 @@ from .const import (
     ISY994_PROGRAMS,
     UOM_TO_STATES,
 )
+from .services import async_setup_device_services
 
 
 async def async_setup_entry(
@@ -34,6 +35,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    await async_setup_device_services(hass)
 
 
 class ISYCoverDevice(ISYDevice, CoverDevice):

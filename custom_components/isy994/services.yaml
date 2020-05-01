@@ -1,0 +1,126 @@
+# Describes the ISY994-specific services available
+
+# Note: only one entity_id is allowed to be called for each service to prevent
+# flooding the ISY with requests. To control multiple devices with a service call
+# the recommendation is to add a scene in the ISY and control that scene.
+---
+send_cmd:
+  description: Send a ISY REST Command to a Node.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+    command:
+      description: The ISY REST Command to be sent to the device
+      example: "DON"
+    value:
+      description: (Optional) The integer value to be sent with the command.
+      example: 255
+    parameters:
+      description: (Optional) A dict of parameters to be sent in the query string (e.g. for controlling colored bulbs).
+      example: {GV2: 0, GV3: 0, GV4: 255}
+    uom:
+      description: (Optional) The ISY Unit of Measurement (UOM) to send with the command, if required.
+      example: 67
+beep:
+  description: Send a ISY beep command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+brighten:
+  description: Send a ISY brighten command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+dim:
+  description: Send a ISY dim command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+disable:
+  description: Send a ISY disable command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+enable:
+  description: Send a ISY enable command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+fade_down:
+  description: Send a ISY fade_down command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+fade_stop:
+  description: Send a ISY fade_stop command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+fade_up:
+  description: Send a ISY fade_up command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+fast_off:
+  description: Send a ISY fast_off command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+fast_on:
+  description: Send a ISY fast_on command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+set_on_level:
+  description: Send a ISY set_on_level command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+    value:
+      description: integer value to set (0-255).
+      example: 255
+set_ramp_rate:
+  description: Send a ISY set_ramp_rate command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+    value:
+      description: Integer value to set (0-31), see PyISY/ISY documentation for values to actual ramp times.
+      example: 30
+start_manual_dimming:
+  description: Send a ISY start_manual_dimming command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+stop_manual_dimming:
+  description: Send a ISY stop_manual_dimming command to a Node/Group.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"
+system_query:
+  description: Request the ISY Query the connected devices.
+  fields:
+    address:
+      description: (Optional) ISY Address to Query. Omitting this requests a system-wide scan (typically scheduled once per day).
+      example: "1A 2B 3C 1"
+device_query:
+  description: Request the ISY Query a Home Assistant entity endpoint.
+  fields:
+    entity_id:
+      description: Name of an entity to send command.
+      example: "light.front_door"

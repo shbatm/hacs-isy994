@@ -81,6 +81,7 @@ from .const import (
     SUPPORTED_VARIABLE_PLATFORMS,
     UNDO_UPDATE_LISTENER,
 )
+from .services import async_setup_services, async_unload_services
 
 VAR_BASE_SCHEMA = vol.Schema(
     {
@@ -579,6 +580,9 @@ async def async_setup_entry(
 
     hass_isy_data[UNDO_UPDATE_LISTENER] = undo_listener
 
+    # Register Integration-wide Services:
+    await async_setup_services(hass)
+
     return True
 
 
@@ -648,6 +652,8 @@ async def async_unload_entry(
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
+
+    await async_unload_services(hass)
 
     return unload_ok
 

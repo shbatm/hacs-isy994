@@ -10,6 +10,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from . import ISYDevice, migrate_old_unique_ids
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .services import async_setup_device_services
 
 VALUE_TO_STATE = {0: STATE_UNLOCKED, 100: STATE_LOCKED}
 
@@ -30,6 +31,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    await async_setup_device_services(hass)
 
 
 class ISYLockDevice(ISYDevice, LockDevice):

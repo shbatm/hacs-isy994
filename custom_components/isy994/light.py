@@ -21,6 +21,7 @@ from .const import (
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
 )
+from .services import async_setup_device_services, async_setup_light_services
 
 
 async def async_setup_entry(
@@ -39,6 +40,8 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    await async_setup_device_services(hass)
+    await async_setup_light_services(hass)
 
 
 class ISYLightDevice(ISYDevice, Light, RestoreEntity):

@@ -45,6 +45,7 @@ from .const import (
     ISY_HVAC_MODES,
     UOM_TO_STATES,
 )
+from .services import async_setup_device_services
 
 ISY_SUPPORTED_FEATURES = (
     SUPPORT_FAN_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_TARGET_TEMPERATURE_RANGE
@@ -65,6 +66,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    await async_setup_device_services(hass)
 
 
 def fix_temp(temp, uom, prec) -> float:
