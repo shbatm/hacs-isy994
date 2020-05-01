@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.sensor import DOMAIN
+from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
@@ -40,14 +40,14 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
 
-    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorDevice(node))
 
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
         devices.append(ISYSensorVariableDevice(vcfg, vname, vobj))
 
-    await migrate_old_unique_ids(hass, DOMAIN, devices)
+    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
 
 

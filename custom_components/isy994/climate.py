@@ -18,7 +18,7 @@ from homeassistant.components.climate import ClimateDevice
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
-    DOMAIN,
+    DOMAIN as PLATFORM_DOMAIN,
     FAN_AUTO,
     FAN_ON,
     HVAC_MODE_COOL,
@@ -62,10 +62,10 @@ async def async_setup_entry(
     devices = []
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
-    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         devices.append(ISYThermostatDevice(node))
 
-    await migrate_old_unique_ids(hass, DOMAIN, devices)
+    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
 
 

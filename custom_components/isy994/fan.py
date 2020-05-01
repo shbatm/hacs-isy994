@@ -3,7 +3,7 @@ import logging
 from typing import Callable
 
 from homeassistant.components.fan import (
-    DOMAIN,
+    DOMAIN as PLATFORM_DOMAIN,
     SPEED_HIGH,
     SPEED_LOW,
     SPEED_MEDIUM,
@@ -42,13 +42,13 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
 
-    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         devices.append(ISYFanDevice(node))
 
-    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
         devices.append(ISYFanProgram(name, status, actions))
 
-    await migrate_old_unique_ids(hass, DOMAIN, devices)
+    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
 
 

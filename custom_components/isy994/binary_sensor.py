@@ -5,7 +5,10 @@ from typing import Callable, Optional
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
 
-from homeassistant.components.binary_sensor import DOMAIN, BinarySensorDevice
+from homeassistant.components.binary_sensor import (
+    DOMAIN as PLATFORM_DOMAIN,
+    BinarySensorDevice,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
@@ -48,7 +51,7 @@ async def async_setup_entry(
     child_nodes = []
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
-    for node in hass_isy_data[ISY994_NODES][DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         device_class, device_type = _detect_device_type(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
             device = ISYBinarySensorDevice(node, device_class)
@@ -141,13 +144,13 @@ async def async_setup_entry(
         device = ISYBinarySensorDevice(node, device_class)
         devices.append(device)
 
-    for name, status, _ in hass_isy_data[ISY994_PROGRAMS][DOMAIN]:
+    for name, status, _ in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
         devices.append(ISYBinarySensorProgram(name, status))
 
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][DOMAIN]:
+    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
         devices.append(ISYBinarySensorVariableDevice(vcfg, vname, vobj))
 
-    await migrate_old_unique_ids(hass, DOMAIN, devices)
+    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
 
 

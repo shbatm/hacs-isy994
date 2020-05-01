@@ -12,6 +12,7 @@ from pyisy.constants import (
     ISY_VALUE_UNKNOWN,
     PROTO_GROUP,
     PROTO_INSTEON,
+    PROTO_PROGRAM,
     PROTO_ZWAVE,
 )
 from pyisy.helpers import NodeProperty
@@ -21,8 +22,16 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
+    DOMAIN as PLATFORM_BINARY_SENSOR,
 )
-from homeassistant.components.sensor import DEVICE_CLASSES_SCHEMA as SENSOR_DCS
+from homeassistant.components.climate.const import DOMAIN as PLATFORM_CLIMATE
+from homeassistant.components.fan import DOMAIN as PLATFORM_FAN
+from homeassistant.components.light import DOMAIN as PLATFORM_LIGHT
+from homeassistant.components.sensor import (
+    DEVICE_CLASSES_SCHEMA as SENSOR_DCS,
+    DOMAIN as PLATFORM_SENSOR,
+)
+from homeassistant.components.switch import DOMAIN as PLATFORM_SWITCH
 from homeassistant.const import (
     CONF_BINARY_SENSORS,
     CONF_DEVICE_CLASS,
@@ -61,16 +70,16 @@ from .const import (
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
+    ISY_GROUP_PLATFORM,
     KEY_ACTIONS,
     KEY_FOLDER,
     KEY_MY_PROGRAMS,
     KEY_STATUS,
     MANUFACTURER,
     NODE_FILTERS,
-    SCENE_DOMAIN,
-    SUPPORTED_DOMAINS,
-    SUPPORTED_PROGRAM_DOMAINS,
-    SUPPORTED_VARIABLE_DOMAINS,
+    SUPPORTED_PLATFORMS,
+    SUPPORTED_PROGRAM_PLATFORMS,
+    SUPPORTED_VARIABLE_PLATFORMS,
     UNDO_UPDATE_LISTENER,
 )
 
@@ -143,8 +152,8 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-def _check_for_node_def(hass_isy_data: dict, node, single_domain: str = None) -> bool:
-    """Check if the node matches the node_def_id for any domains.
+def _check_for_node_def(hass_isy_data: dict, node, single_platform: str = None) -> bool:
+    """Check if the node matches the node_def_id for any platforms.
 
     This is only present on the 5.0 ISY firmware, and is the most reliable
     way to determine a device's type.
@@ -155,19 +164,19 @@ def _check_for_node_def(hass_isy_data: dict, node, single_domain: str = None) ->
 
     node_def_id = node.node_def_id
 
-    domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-    for domain in domains:
-        if node_def_id in NODE_FILTERS[domain]["node_def_id"]:
-            hass_isy_data[ISY994_NODES][domain].append(node)
+    platforms = SUPPORTED_PLATFORMS if not single_platform else [single_platform]
+    for platform in platforms:
+        if node_def_id in NODE_FILTERS[platform]["node_def_id"]:
+            hass_isy_data[ISY994_NODES][platform].append(node)
             return True
 
     return False
 
 
 def _check_for_insteon_type(
-    hass_isy_data: dict, node, single_domain: str = None
+    hass_isy_data: dict, node, single_platform: str = None
 ) -> bool:
-    """Check if the node matches the Insteon type for any domains.
+    """Check if the node matches the Insteon type for any platforms.
 
     This is for (presumably) every version of the ISY firmware, but only
     works for Insteon device. "Node Server" (v5+) and Z-Wave and others will
@@ -180,53 +189,55 @@ def _check_for_insteon_type(
         return False
 
     device_type = node.type
-    domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-    for domain in domains:
+    platforms = SUPPORTED_PLATFORMS if not single_platform else [single_platform]
+    for platform in platforms:
         if any(
             [
                 device_type.startswith(t)
-                for t in set(NODE_FILTERS[domain]["insteon_type"])
+                for t in set(NODE_FILTERS[platform]["insteon_type"])
             ]
         ):
 
-            # Hacky special-cases for certain devices with different domains
+            # Hacky special-cases for certain devices with different platforms
             # included as subnodes. Note that special-cases are not necessary
             # on ISY 5.x firmware as it uses the superior NodeDefs method
 
             # FanLinc, which has a light module as one of its nodes.
-            if domain == "fan" and str(node.address[-1]) in ["1"]:
-                hass_isy_data[ISY994_NODES]["light"].append(node)
+            if platform == PLATFORM_FAN and str(node.address[-1]) in ["1"]:
+                hass_isy_data[ISY994_NODES][PLATFORM_LIGHT].append(node)
                 return True
 
             # Thermostats, which has a "Heat" and "Cool" sub-node on address 2 and 3
-            if domain == "climate" and str(node.address[-1]) in ["2", "3"]:
-                hass_isy_data[ISY994_NODES]["binary_sensor"].append(node)
+            if platform == PLATFORM_CLIMATE and str(node.address[-1]) in ["2", "3"]:
+                hass_isy_data[ISY994_NODES][PLATFORM_BINARY_SENSOR].append(node)
                 return True
 
             # IOLincs which have a sensor and relay on 2 different nodes
             if (
-                domain == "binary_sensor"
+                platform == PLATFORM_BINARY_SENSOR
                 and device_type.startswith("7.")
                 and str(node.address[-1]) in ["2"]
             ):
-                hass_isy_data[ISY994_NODES]["switch"].append(node)
+                hass_isy_data[ISY994_NODES][PLATFORM_SWITCH].append(node)
 
             # Smartenit EZIO2X4
             if (
-                domain == "switch"
+                platform == PLATFORM_SWITCH
                 and device_type.startswith("7.3.255.")
                 and str(node.address[-1]) in ["9", "A", "B", "C"]
             ):
-                hass_isy_data[ISY994_NODES]["binary_sensor"].append(node)
+                hass_isy_data[ISY994_NODES][PLATFORM_BINARY_SENSOR].append(node)
 
-            hass_isy_data[ISY994_NODES][domain].append(node)
+            hass_isy_data[ISY994_NODES][platform].append(node)
             return True
 
     return False
 
 
-def _check_for_zwave_cat(hass_isy_data: dict, node, single_domain: str = None) -> bool:
-    """Check if the node matches the ISY Z-Wave Category for any domains.
+def _check_for_zwave_cat(
+    hass_isy_data: dict, node, single_platform: str = None
+) -> bool:
+    """Check if the node matches the ISY Z-Wave Category for any platforms.
 
     This is for (presumably) every version of the ISY firmware, but only
     works for Z-Wave Devices with the devtype.cat property.
@@ -239,22 +250,25 @@ def _check_for_zwave_cat(hass_isy_data: dict, node, single_domain: str = None) -
         return False
 
     device_type = node.zwave_props.category
-    domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-    for domain in domains:
+    platforms = SUPPORTED_PLATFORMS if not single_platform else [single_platform]
+    for platform in platforms:
         if any(
-            [device_type.startswith(t) for t in set(NODE_FILTERS[domain]["zwave_cat"])]
+            [
+                device_type.startswith(t)
+                for t in set(NODE_FILTERS[platform]["zwave_cat"])
+            ]
         ):
 
-            hass_isy_data[ISY994_NODES][domain].append(node)
+            hass_isy_data[ISY994_NODES][platform].append(node)
             return True
 
     return False
 
 
 def _check_for_uom_id(
-    hass_isy_data: dict, node, single_domain: str = None, uom_list: list = None
+    hass_isy_data: dict, node, single_platform: str = None, uom_list: list = None
 ) -> bool:
-    """Check if a node's uom matches any of the domains uom filter.
+    """Check if a node's uom matches any of the platforms uom filter.
 
     This is used for versions of the ISY firmware that report uoms as a single
     ID. We can often infer what type of device it is by that ID.
@@ -267,20 +281,20 @@ def _check_for_uom_id(
 
     if uom_list:
         if node_uom.intersection(uom_list):
-            hass_isy_data[ISY994_NODES][single_domain].append(node)
+            hass_isy_data[ISY994_NODES][single_platform].append(node)
             return True
     else:
-        domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-        for domain in domains:
-            if node_uom.intersection(NODE_FILTERS[domain]["uom"]):
-                hass_isy_data[ISY994_NODES][domain].append(node)
+        platforms = SUPPORTED_PLATFORMS if not single_platform else [single_platform]
+        for platform in platforms:
+            if node_uom.intersection(NODE_FILTERS[platform]["uom"]):
+                hass_isy_data[ISY994_NODES][platform].append(node)
                 return True
 
     return False
 
 
 def _check_for_states_in_uom(
-    hass_isy_data: dict, node, single_domain: str = None, states_list: list = None
+    hass_isy_data: dict, node, single_platform: str = None, states_list: list = None
 ) -> bool:
     """Check if a list of uoms matches two possible filters.
 
@@ -296,13 +310,13 @@ def _check_for_states_in_uom(
 
     if states_list:
         if node_uom == set(states_list):
-            hass_isy_data[ISY994_NODES][single_domain].append(node)
+            hass_isy_data[ISY994_NODES][single_platform].append(node)
             return True
     else:
-        domains = SUPPORTED_DOMAINS if not single_domain else [single_domain]
-        for domain in domains:
-            if node_uom == set(NODE_FILTERS[domain]["states"]):
-                hass_isy_data[ISY994_NODES][domain].append(node)
+        platforms = SUPPORTED_PLATFORMS if not single_platform else [single_platform]
+        for platform in platforms:
+            if node_uom == set(NODE_FILTERS[platform]["states"]):
+                hass_isy_data[ISY994_NODES][platform].append(node)
                 return True
 
     return False
@@ -310,9 +324,11 @@ def _check_for_states_in_uom(
 
 def _is_sensor_a_binary_sensor(hass_isy_data: dict, node) -> bool:
     """Determine if the given sensor node should be a binary_sensor."""
-    if _check_for_node_def(hass_isy_data, node, single_domain="binary_sensor"):
+    if _check_for_node_def(hass_isy_data, node, single_platform=PLATFORM_BINARY_SENSOR):
         return True
-    if _check_for_insteon_type(hass_isy_data, node, single_domain="binary_sensor"):
+    if _check_for_insteon_type(
+        hass_isy_data, node, single_platform=PLATFORM_BINARY_SENSOR
+    ):
         return True
 
     # For the next two checks, we're providing our own set of uoms that
@@ -320,11 +336,17 @@ def _is_sensor_a_binary_sensor(hass_isy_data: dict, node) -> bool:
     # checks in the context of already knowing that this is definitely a
     # sensor device.
     if _check_for_uom_id(
-        hass_isy_data, node, single_domain="binary_sensor", uom_list=["2", "78"]
+        hass_isy_data,
+        node,
+        single_platform=PLATFORM_BINARY_SENSOR,
+        uom_list=["2", "78"],
     ):
         return True
     if _check_for_states_in_uom(
-        hass_isy_data, node, single_domain="binary_sensor", states_list=["on", "off"]
+        hass_isy_data,
+        node,
+        single_platform=PLATFORM_BINARY_SENSOR,
+        states_list=["on", "off"],
     ):
         return True
 
@@ -334,7 +356,7 @@ def _is_sensor_a_binary_sensor(hass_isy_data: dict, node) -> bool:
 def _categorize_nodes(
     hass_isy_data: dict, nodes, ignore_identifier: str, sensor_identifier: str
 ) -> None:
-    """Sort the nodes to their proper domains."""
+    """Sort the nodes to their proper platforms."""
     for (path, node) in nodes:
         ignored = ignore_identifier in path or ignore_identifier in node.name
         if ignored:
@@ -342,7 +364,7 @@ def _categorize_nodes(
             continue
 
         if isinstance(node, Group):
-            hass_isy_data[ISY994_NODES][SCENE_DOMAIN].append(node)
+            hass_isy_data[ISY994_NODES][ISY_GROUP_PLATFORM].append(node)
             continue
 
         if sensor_identifier in path or sensor_identifier in node.name:
@@ -350,7 +372,7 @@ def _categorize_nodes(
             # determine if it should be a binary_sensor.
             if _is_sensor_a_binary_sensor(hass_isy_data, node):
                 continue
-            hass_isy_data[ISY994_NODES]["sensor"].append(node)
+            hass_isy_data[ISY994_NODES][PLATFORM_SENSOR].append(node)
             continue
 
         # We have a bunch of different methods for determining the device type,
@@ -370,9 +392,9 @@ def _categorize_nodes(
 
 def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
     """Categorize the ISY994 programs."""
-    for domain in SUPPORTED_PROGRAM_DOMAINS:
+    for platform in SUPPORTED_PROGRAM_PLATFORMS:
         try:
-            folder = programs[KEY_MY_PROGRAMS][f"HA.{domain}"]
+            folder = programs[KEY_MY_PROGRAMS][f"HA.{platform}"]
         except KeyError:
             pass
         else:
@@ -382,10 +404,10 @@ def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
                 entity_folder = folder[node_id]
                 try:
                     status = entity_folder[KEY_STATUS]
-                    assert status.dtype == "program", "Not a program"
-                    if domain != "binary_sensor":
+                    assert status.dtype == PROTO_PROGRAM, "Not a program"
+                    if platform != PLATFORM_BINARY_SENSOR:
                         actions = entity_folder[KEY_ACTIONS]
-                        assert actions.dtype == "program", "Not a program"
+                        assert actions.dtype == PROTO_PROGRAM, "Not a program"
                     else:
                         actions = None
                 except (AttributeError, KeyError, AssertionError):
@@ -397,16 +419,16 @@ def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
                     continue
 
                 entity = (entity_folder.name, status, actions)
-                hass_isy_data[ISY994_PROGRAMS][domain].append(entity)
+                hass_isy_data[ISY994_PROGRAMS][platform].append(entity)
 
 
 def _categorize_variables(
-    hass_isy_data: dict, variables, domain_cfg: dict, domain: str
+    hass_isy_data: dict, variables, platform_cfg: dict, platform: str
 ) -> None:
     """Categorize the ISY994 Variables."""
-    if domain_cfg is None:
+    if platform_cfg is None:
         return
-    for isy_var in domain_cfg:
+    for isy_var in platform_cfg:
         vid = isy_var.get(CONF_ID)
         vtype = isy_var.get(CONF_TYPE)
         vname = ""
@@ -417,7 +439,7 @@ def _categorize_variables(
             continue
         else:
             variable = (isy_var, vname, variables[vtype][vid])
-            hass_isy_data[ISY994_VARIABLES][domain].append(variable)
+            hass_isy_data[ISY994_VARIABLES][platform].append(variable)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -470,16 +492,16 @@ async def async_setup_entry(
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     hass_isy_data[ISY994_NODES] = {}
-    for domain in SUPPORTED_DOMAINS:
-        hass_isy_data[ISY994_NODES][domain] = []
+    for platform in SUPPORTED_PLATFORMS:
+        hass_isy_data[ISY994_NODES][platform] = []
 
     hass_isy_data[ISY994_PROGRAMS] = {}
-    for domain in SUPPORTED_DOMAINS:
-        hass_isy_data[ISY994_PROGRAMS][domain] = []
+    for platform in SUPPORTED_PLATFORMS:
+        hass_isy_data[ISY994_PROGRAMS][platform] = []
 
     hass_isy_data[ISY994_VARIABLES] = {}
-    for domain in SUPPORTED_VARIABLE_DOMAINS:
-        hass_isy_data[ISY994_VARIABLES][domain] = []
+    for platform in SUPPORTED_VARIABLE_PLATFORMS:
+        hass_isy_data[ISY994_VARIABLES][platform] = []
 
     isy_config = entry.data
     isy_options = entry.options
@@ -525,16 +547,16 @@ async def async_setup_entry(
     _categorize_nodes(hass_isy_data, isy.nodes, ignore_identifier, sensor_identifier)
     _categorize_programs(hass_isy_data, isy.programs)
     _categorize_variables(
-        hass_isy_data, isy.variables, isy_variables.get(CONF_SENSORS), "sensor"
+        hass_isy_data, isy.variables, isy_variables.get(CONF_SENSORS), PLATFORM_SENSOR
     )
     _categorize_variables(
         hass_isy_data,
         isy.variables,
         isy_variables.get(CONF_BINARY_SENSORS),
-        "binary_sensor",
+        PLATFORM_BINARY_SENSOR,
     )
     _categorize_variables(
-        hass_isy_data, isy.variables, isy_variables.get(CONF_SWITCHES), "switch"
+        hass_isy_data, isy.variables, isy_variables.get(CONF_SWITCHES), PLATFORM_SWITCH
     )
 
     # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
@@ -544,7 +566,7 @@ async def async_setup_entry(
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
 
     # Load platforms for the devices in the ISY controller that we support.
-    for component in SUPPORTED_DOMAINS:
+    for component in SUPPORTED_PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
@@ -609,7 +631,7 @@ async def async_unload_entry(
         await asyncio.gather(
             *[
                 hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in SUPPORTED_DOMAINS
+                for component in SUPPORTED_PLATFORMS
             ]
         )
     )
