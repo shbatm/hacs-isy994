@@ -58,13 +58,11 @@ class ISYSensorDevice(ISYDevice):
     def raw_unit_of_measurement(self) -> str:
         """Get the raw unit of measurement for the ISY994 sensor device."""
         uom = self._node.uom
-        if isinstance(uom, list):
-            uom = uom[0]
 
-        friendly_name = UOM_FRIENDLY_NAME.get(uom, uom)
-        if friendly_name in [TEMP_CELSIUS, TEMP_FAHRENHEIT]:
-            friendly_name = self.hass.config.units.temperature_unit
-        return friendly_name
+        # Backwards compatibility for ISYv4 Firmware:
+        if isinstance(uom, list):
+            return UOM_FRIENDLY_NAME.get(uom[0], uom[0])
+        return UOM_FRIENDLY_NAME.get(uom)
 
     @property
     def state(self):
@@ -73,6 +71,7 @@ class ISYSensorDevice(ISYDevice):
             return STATE_UNKNOWN
 
         uom = self._node.uom
+        # Backwards compatibility for ISYv4 Firmware:
         if isinstance(uom, list):
             uom = uom[0]
         if not uom:
