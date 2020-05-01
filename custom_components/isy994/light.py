@@ -40,8 +40,8 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
-    await async_setup_device_services(hass)
-    await async_setup_light_services(hass)
+    async_setup_device_services(hass)
+    async_setup_light_services(hass)
 
 
 class ISYLightDevice(ISYDevice, Light, RestoreEntity):
@@ -110,3 +110,19 @@ class ISYLightDevice(ISYDevice, Light, RestoreEntity):
             and last_state.attributes[ATTR_LAST_BRIGHTNESS]
         ):
             self._last_brightness = last_state.attributes[ATTR_LAST_BRIGHTNESS]
+
+    def set_on_level(self, value):
+        """Set the ON Level for a device."""
+        self._node.set_on_level(value)
+
+    def set_ramp_rate(self, value):
+        """Set the Ramp Rate for a device."""
+        self._node.set_ramp_rate(value)
+
+    def start_manual_dimming(self):
+        """Set the Ramp Rate for a device."""
+        self._node.start_manual_dimming()
+
+    def stop_manual_dimming(self):
+        """Set the Ramp Rate for a device."""
+        self._node.stop_manual_dimming()

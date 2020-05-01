@@ -7,6 +7,7 @@ from pyisy.constants import COMMAND_FRIENDLY_NAME
 import voluptuous as vol
 
 from homeassistant.const import ATTR_COMMAND, ATTR_ENTITY_ID
+from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
@@ -67,13 +68,13 @@ SERVICE_SIMPLE_SCHEMA = vol.Schema(
 
 SERVICE_SYSTEM_QUERY_SCHEMA = vol.Schema({vol.Optional(ATTR_ADDRESS): cv.string})
 
-SERVICE_SET_RAMP_RATE_SCHEMA = SERVICE_SIMPLE_SCHEMA.extend(
-    {vol.Required(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 31))}
-)
+SERVICE_SET_RAMP_RATE_SCHEMA = {
+    vol.Required(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 31))
+}
 
-SERVICE_SET_VALUE_SCHEMA = SERVICE_SIMPLE_SCHEMA.extend(
-    {vol.Required(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 255))}
-)
+SERVICE_SET_VALUE_SCHEMA = {
+    vol.Required(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 255))
+}
 
 
 def valid_isy_commands(value: Any) -> str:
@@ -94,7 +95,8 @@ SERVICE_SEND_COMMAND_SCHEMA = SERVICE_SIMPLE_SCHEMA.extend(
 )
 
 
-async def async_setup_services(hass: HomeAssistantType):
+@callback
+def async_setup_services(hass: HomeAssistantType):
     """Create and register services for the ISY integration."""
     if hass.services.async_services().get(DOMAIN):
         return
@@ -130,7 +132,8 @@ async def async_setup_services(hass: HomeAssistantType):
     )
 
 
-async def async_unload_services(hass: HomeAssistantType):
+@callback
+def async_unload_services(hass: HomeAssistantType):
     """Unload services for the ISY integration."""
     if hass.data[DOMAIN]:
         # There is still another config entry for this domain, don't remove services.
@@ -140,7 +143,8 @@ async def async_unload_services(hass: HomeAssistantType):
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SYSTEM_QUERY)
 
 
-async def async_setup_device_services(hass: HomeAssistantType):
+@callback
+def async_setup_device_services(hass: HomeAssistantType):
     """Create device-specific services for the ISY Integration."""
     platform = entity_platform.current_platform.get()
 
@@ -211,50 +215,20 @@ async def async_setup_device_services(hass: HomeAssistantType):
     )
 
 
-async def async_setup_light_services(hass: HomeAssistantType):
+@callback
+def async_setup_light_services(hass: HomeAssistantType):
     """Create device-specific services for the ISY Integration."""
     platform = entity_platform.current_platform.get()
 
-    async def light_service_handler(entity, service_call):
-        """Handle device-specific service calls."""
-        # pylint: disable=protected-access
-        if not hasattr(entity, "_node") or not hasattr(
-            entity._node, service_call.service
-        ):
-            _LOGGER.warning(
-                "Invalid Service Call %s for device %s.",
-                service_call.service,
-                entity.entity_id,
-            )
-            return
-
-        if service_call.service in [SERVICE_SET_RAMP_RATE, SERVICE_SET_ON_LEVEL]:
-            value = service_call.data.get(ATTR_VALUE)
-            _LOGGER.debug(
-                "Sending command %s to device %s with value %s.",
-                service_call.service,
-                entity.entity_id,
-                value,
-            )
-            await hass.async_add_executor_job(
-                ft.partial(getattr(entity._node, service_call.service), value)
-            )
-            return
-
-        _LOGGER.debug(
-            "Sending command %s to device %s.", service_call.service, entity.entity_id
-        )
-        await hass.async_add_executor_job(getattr(entity._node, service_call.service))
-
     platform.async_register_entity_service(
-        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, light_service_handler
+        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, SERVICE_SET_ON_LEVEL
     )
     platform.async_register_entity_service(
-        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, light_service_handler
+        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, SERVICE_SET_RAMP_RATE
     )
     platform.async_register_entity_service(
-        SERVICE_START_MANUAL_DIMMING, SERVICE_SIMPLE_SCHEMA, light_service_handler
+        SERVICE_START_MANUAL_DIMMING, {}, SERVICE_START_MANUAL_DIMMING
     )
     platform.async_register_entity_service(
-        SERVICE_STOP_MANUAL_DIMMING, SERVICE_SIMPLE_SCHEMA, light_service_handler
+        SERVICE_STOP_MANUAL_DIMMING, {}, SERVICE_STOP_MANUAL_DIMMING
     )

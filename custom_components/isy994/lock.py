@@ -31,7 +31,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
-    await async_setup_device_services(hass)
+    async_setup_device_services(hass)
 
 
 class ISYLockDevice(ISYDevice, LockDevice):

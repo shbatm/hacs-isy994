@@ -581,7 +581,7 @@ async def async_setup_entry(
     hass_isy_data[UNDO_UPDATE_LISTENER] = undo_listener
 
     # Register Integration-wide Services:
-    await async_setup_services(hass)
+    async_setup_services(hass)
 
     return True
 
@@ -653,7 +653,7 @@ async def async_unload_entry(
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 
-    await async_unload_services(hass)
+    async_unload_services(hass)
 
     return unload_ok
 
