@@ -6,7 +6,7 @@ from typing import Any
 from pyisy.constants import COMMAND_FRIENDLY_NAME
 import voluptuous as vol
 
-from homeassistant.const import ATTR_COMMAND, ATTR_ENTITY_ID
+from homeassistant.const import ATTR_COMMAND
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
@@ -62,9 +62,7 @@ ATTR_PARAMETERS = "parameters"
 ATTR_UOM = "uom"
 ATTR_VALUE = "value"
 
-SERVICE_SIMPLE_SCHEMA = vol.Schema(
-    {vol.Required(ATTR_ENTITY_ID, default=[]): cv.entity_ids}
-)
+SERVICE_ENTITY_SCHEMA = cv.make_entity_service_schema({})
 
 SERVICE_SYSTEM_QUERY_SCHEMA = vol.Schema({vol.Optional(ATTR_ADDRESS): cv.string})
 
@@ -85,7 +83,7 @@ def valid_isy_commands(value: Any) -> str:
     raise vol.Invalid("Invalid ISY Command.")
 
 
-SERVICE_SEND_COMMAND_SCHEMA = SERVICE_SIMPLE_SCHEMA.extend(
+SERVICE_SEND_COMMAND_SCHEMA = SERVICE_ENTITY_SCHEMA.extend(
     {
         vol.Required(ATTR_COMMAND): vol.All(cv.string, valid_isy_commands),
         vol.Optional(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 255)),
@@ -181,37 +179,37 @@ def async_setup_device_services(hass: HomeAssistantType):
         SERVICE_SEND_COMMAND, SERVICE_SEND_COMMAND_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_BEEP, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_BEEP, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_BRIGHTEN, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_BRIGHTEN, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_DEVICE_QUERY, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_DEVICE_QUERY, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_DIM, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_DIM, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_DISABLE, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_DISABLE, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_ENABLE, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_ENABLE, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_FADE_DOWN, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_FADE_DOWN, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_FADE_STOP, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_FADE_STOP, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_FADE_UP, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_FADE_UP, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_FAST_OFF, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_FAST_OFF, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_FAST_ON, SERVICE_SIMPLE_SCHEMA, device_service_handler
+        SERVICE_FAST_ON, SERVICE_ENTITY_SCHEMA, device_service_handler
     )
 
 
