@@ -16,7 +16,6 @@ from pyisy.constants import (
     PROTO_ZWAVE,
 )
 from pyisy.helpers import NodeProperty
-from pyisy.nodes import Group
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -363,7 +362,7 @@ def _categorize_nodes(
             # Don't import this node as a device at all
             continue
 
-        if isinstance(node, Group):
+        if hasattr(node, "protocol") and node.protocol == PROTO_GROUP:
             hass_isy_data[ISY994_NODES][ISY_GROUP_PLATFORM].append(node)
             continue
 
