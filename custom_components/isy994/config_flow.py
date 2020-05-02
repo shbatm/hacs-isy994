@@ -1,5 +1,4 @@
 """Config flow for Universal Devices ISY994 integration."""
-from functools import partial
 import logging
 from urllib.parse import urlparse
 
@@ -60,31 +59,40 @@ async def validate_input(hass: core.HomeAssistant, data):
         raise InvalidHost
 
     # Connect to ISY controller.
+    isy_conf = await hass.async_add_executor_job(
+        _fetch_isy_configuration,
+        host.hostname,
+        port,
+        user,
+        password,
+        https,
+        tls_version,
+        host.path,
+    )
+
+    # Return info that you want to store in the config entry.
+    return {"title": f"{isy_conf['name']} ({host.hostname})", "uuid": isy_conf["uuid"]}
+
+
+def _fetch_isy_configuration(
+    address, port, username, password, use_https, tls_ver, webroot
+):
+    """Validate and fetch the configuration from the ISY."""
     try:
-        isy_conn = await hass.async_add_executor_job(
-            partial(
-                Connection,
-                host.hostname,
-                port,
-                username=user,
-                password=password,
-                use_https=https,
-                tls_ver=tls_version,
-                log=_LOGGER,
-                webroot=host.path,
-            )
+        isy_conn = Connection(
+            address,
+            port,
+            username,
+            password,
+            use_https,
+            tls_ver,
+            log=_LOGGER,
+            webroot=webroot,
         )
     except ValueError as err:
         raise InvalidAuth(err.args[0])
-    else:
-        isy_conf = await hass.async_add_executor_job(
-            partial(Configuration, log=_LOGGER, xml=isy_conn.get_config())
-        )
-        # Return info that you want to store in the config entry.
-        return {
-            "title": f"{isy_conf['name']} ({host.hostname})",
-            "uuid": isy_conf["uuid"],
-        }
+
+    return Configuration(log=_LOGGER, xml=isy_conn.get_config())
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -92,6 +100,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -122,12 +136,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_import(self, user_input):
         """Handle import."""
         return await self.async_step_user(user_input)
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
