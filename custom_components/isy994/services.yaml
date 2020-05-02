@@ -34,7 +34,7 @@ send_node_command:
       description: The command to be sent to the device.
       example: "fast_on"
 set_on_level:
-  description: Send a ISY set_on_level command to a Node/Group.
+  description: Send a ISY set_on_level command to a Node.
   fields:
     entity_id:
       description: Name of an entity to send command.
@@ -43,7 +43,7 @@ set_on_level:
       description: integer value to set (0-255).
       example: 255
 set_ramp_rate:
-  description: Send a ISY set_ramp_rate command to a Node/Group.
+  description: Send a ISY set_ramp_rate command to a Node.
   fields:
     entity_id:
       description: Name of an entity to send command.
@@ -68,6 +68,7 @@ set_variable:
       example: 2
     name:
       description: The ISY name of the variable to set (optional, use instead of type/address are not provided).
+      name: my_variable_name
     init:
       description: (Optional) If True, the initial value will be updated instead of the current value.
       example: false
