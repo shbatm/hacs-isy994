@@ -365,9 +365,7 @@ def _categorize_variables(hass_isy_data: dict, variables, identifier: str) -> No
         _LOGGER.error("Error adding ISY Variables: %s", err)
     else:
         for vtype, vname, vid in var_to_add:
-            hass_isy_data[ISY994_VARIABLES][PLATFORM_SENSOR].append(
-                (vname, variables[vtype][vid])
-            )
+            hass_isy_data[ISY994_VARIABLES].append((vname, variables[vtype][vid]))
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -423,7 +421,7 @@ async def async_setup_entry(
     for platform in SUPPORTED_PLATFORMS:
         hass_isy_data[ISY994_PROGRAMS][platform] = []
 
-    hass_isy_data[ISY994_VARIABLES][PLATFORM_SENSOR] = {}
+    hass_isy_data[ISY994_VARIABLES] = {}
 
     isy_config = entry.data
     isy_options = entry.options

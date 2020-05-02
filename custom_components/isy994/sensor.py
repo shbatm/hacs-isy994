@@ -33,7 +33,7 @@ async def async_setup_entry(
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorEntity(node))
 
-    for vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
+    for vname, vobj in hass_isy_data[ISY994_VARIABLES]:
         devices.append(ISYSensorVariableEntity(vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
