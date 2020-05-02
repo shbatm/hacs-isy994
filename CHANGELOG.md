@@ -1,5 +1,34 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.4.0] - Services, Variables Reavamped, Inheritance Fixes
+
+#### BREAKING CHANGES!! - Variable Support Has Changed in this Version!
+
+- To ensure future support and ability to merge the changes in this custom component into the Home Assistant core, some changes needed to be made to how variables were handled:
+    + Variables are no longer configured in `configuration.yaml`.
+    + A new `Variable Sensor String` config option has been added in the Integrations > Options page (or by using `variable_sensor_string: "HA."` in your `configuration.yaml`).
+        * This behaves similarly to Sensor String and Ignore String for nodes: you need to rename the variables ***in your ISY*** to have the `Variable Sensor String` somewhere in the name.
+        * If your Variable Sensor String is `"HA."` then every variable with `HA.` in the name will be imported as a sensor.
+        * Additional configuration (changing device class, friendly name, unit of measurement, etc.) can be done using customizations in Home Assistant.
+    + Variables as a `switch` or `binary_sensor` are no longer supported. This was a duplicate functionality that is already available [using Programs](https://www.home-assistant.io/integrations/isy994/#creating-custom-devices)
+
+#### New:
+
+- Add services to ISY994 Integration to access additional commands available in PyISY, such as fast on/off and fade up/down/stop as well as enable/disable nodes. The following services are now available:
+     + `isy994.send_raw_node_command`: Send a "raw" ISY REST Device Command to a Node using its Home Assistant Entity ID.
+     + `isy994.send_node_command`: Send a command to an ISY Device using its Home Assistant entity ID. Valid commands are: beep, brighten, dim, disable, enable, fade_down, fade_stop, fade_up, fast_off, fast_on, and query.
+     + `isy994.set_on_level`: Send a ISY set_on_level command to a Node.
+     + `isy994.set_ramp_rate`: Send a ISY set_ramp_rate command to a Node.
+     + `isy994.system_query`: Request the ISY Query the connected devices.
+     + `isy994.set_variable`: Set an ISY variable's current or initial value. Variables can be set by either type/address or by name.
+     + `isy994.send_program_command`: Send a command to control an ISY program or folder. Valid commands are run, run_then, run_else, stop, enable, disable, enable_run_at_startup, and disable_run_at_startup.
+     + `isy994.run_network_resource`: Run a network resource on the ISY.
+
+#### Fixed:
+
+- Fix #51 - Temperatures are not converted if ISY thermostat and HASS are different units
+- Fix #54 - Z-Wave Sensor showing UOM as integer next to actual state.
+
 ### [1.3.7] - Bug Fixes and Core Catchup to 0.109.0
 
 - Fix #50 for ISYv4 Firmware UOMs in Climate Module

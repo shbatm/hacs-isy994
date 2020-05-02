@@ -421,7 +421,7 @@ async def async_setup_entry(
     for platform in SUPPORTED_PLATFORMS:
         hass_isy_data[ISY994_PROGRAMS][platform] = []
 
-    hass_isy_data[ISY994_VARIABLES] = {}
+    hass_isy_data[ISY994_VARIABLES] = []
 
     isy_config = entry.data
     isy_options = entry.options

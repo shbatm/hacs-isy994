@@ -154,12 +154,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         options_schema = vol.Schema(
             {
-                vol.Required(
-                    CONF_RESTORE_LIGHT_STATE, default=restore_light_state
-                ): bool,
                 vol.Optional(CONF_IGNORE_STRING, default=ignore_string): str,
                 vol.Optional(CONF_SENSOR_STRING, default=sensor_string): str,
                 vol.Optional(CONF_VAR_SENSOR_STRING, default=var_sensor_string): str,
+                vol.Required(
+                    CONF_RESTORE_LIGHT_STATE, default=restore_light_state
+                ): bool,
             }
         )
 
