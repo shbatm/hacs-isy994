@@ -1,6 +1,5 @@
 """ISY Services and Commands."""
 
-import functools as ft
 from typing import Any
 
 from pyisy.constants import COMMAND_FRIENDLY_NAME
@@ -62,8 +61,6 @@ ATTR_PARAMETERS = "parameters"
 ATTR_UOM = "uom"
 ATTR_VALUE = "value"
 
-SERVICE_ENTITY_SCHEMA = cv.make_entity_service_schema({})
-
 SERVICE_SYSTEM_QUERY_SCHEMA = vol.Schema({vol.Optional(ATTR_ADDRESS): cv.string})
 
 SERVICE_SET_RAMP_RATE_SCHEMA = {
@@ -83,14 +80,12 @@ def valid_isy_commands(value: Any) -> str:
     raise vol.Invalid("Invalid ISY Command.")
 
 
-SERVICE_SEND_COMMAND_SCHEMA = SERVICE_ENTITY_SCHEMA.extend(
-    {
-        vol.Required(ATTR_COMMAND): vol.All(cv.string, valid_isy_commands),
-        vol.Optional(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 255)),
-        vol.Optional(ATTR_UOM): vol.All(vol.Coerce(int), vol.Range(0, 120)),
-        vol.Optional(ATTR_PARAMETERS, default={}): {cv.string: cv.string},
-    }
-)
+SERVICE_SEND_COMMAND_SCHEMA = {
+    vol.Required(ATTR_COMMAND): vol.All(cv.string, valid_isy_commands),
+    vol.Optional(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(0, 255)),
+    vol.Optional(ATTR_UOM): vol.All(vol.Coerce(int), vol.Range(0, 120)),
+    vol.Optional(ATTR_PARAMETERS, default={}): {cv.string: cv.string},
+}
 
 
 @callback
@@ -114,7 +109,7 @@ def async_setup_services(hass: HomeAssistantType):
                     isy.configuration["uuid"],
                 )
                 # TODO: Enable once PyISY is updated with PR#94
-                # await hass.async_add_executor_job(ft.partial(isy.query, address))
+                # await hass.async_add_executor_job(isy.query, address)
                 return
             _LOGGER.debug(
                 "Requesting system query of ISY %s", isy.configuration["uuid"]
@@ -166,8 +161,9 @@ def async_setup_device_services(hass: HomeAssistantType):
             uom = service_call.data.get(ATTR_UOM)
             _LOGGER.debug("Sending command %s to device %s.", command, entity.entity_id)
             await hass.async_add_executor_job(
-                ft.partial(entity._node.send_cmd, command, value, uom, parameters)
+                entity._node.send_cmd, command, value, uom, parameters
             )
+
             return
 
         _LOGGER.debug(
@@ -178,39 +174,23 @@ def async_setup_device_services(hass: HomeAssistantType):
     platform.async_register_entity_service(
         SERVICE_SEND_COMMAND, SERVICE_SEND_COMMAND_SCHEMA, device_service_handler
     )
+    platform.async_register_entity_service(SERVICE_BEEP, {}, device_service_handler)
+    platform.async_register_entity_service(SERVICE_BRIGHTEN, {}, device_service_handler)
     platform.async_register_entity_service(
-        SERVICE_BEEP, SERVICE_ENTITY_SCHEMA, device_service_handler
+        SERVICE_DEVICE_QUERY, {}, device_service_handler
+    )
+    platform.async_register_entity_service(SERVICE_DIM, {}, device_service_handler)
+    platform.async_register_entity_service(SERVICE_DISABLE, {}, device_service_handler)
+    platform.async_register_entity_service(SERVICE_ENABLE, {}, device_service_handler)
+    platform.async_register_entity_service(
+        SERVICE_FADE_DOWN, {}, device_service_handler
     )
     platform.async_register_entity_service(
-        SERVICE_BRIGHTEN, SERVICE_ENTITY_SCHEMA, device_service_handler
+        SERVICE_FADE_STOP, {}, device_service_handler
     )
-    platform.async_register_entity_service(
-        SERVICE_DEVICE_QUERY, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_DIM, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_DISABLE, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_ENABLE, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_FADE_DOWN, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_FADE_STOP, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_FADE_UP, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_FAST_OFF, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
-    platform.async_register_entity_service(
-        SERVICE_FAST_ON, SERVICE_ENTITY_SCHEMA, device_service_handler
-    )
+    platform.async_register_entity_service(SERVICE_FADE_UP, {}, device_service_handler)
+    platform.async_register_entity_service(SERVICE_FAST_OFF, {}, device_service_handler)
+    platform.async_register_entity_service(SERVICE_FAST_ON, {}, device_service_handler)
 
 
 @callback
