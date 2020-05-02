@@ -2,7 +2,7 @@
 from datetime import timedelta
 from typing import Callable
 
-from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON
 
 from homeassistant.components.binary_sensor import (
     DOMAIN as PLATFORM_DOMAIN,
@@ -15,15 +15,10 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
-from .const import (
-    _LOGGER,
-    DOMAIN as ISY994_DOMAIN,
-    ISY994_NODES,
-    ISY994_PROGRAMS,
-    ISY_BIN_SENS_DEVICE_TYPES,
-    ZWAVE_BIN_SENS_DEVICE_TYPES,
-)
+from . import migrate_old_unique_ids
+from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .entity import ISYNodeEntity, ISYProgramEntity
+from .helpers import _detect_device_type
 from .services import async_setup_device_services
 
 
@@ -137,32 +132,6 @@ async def async_setup_entry(
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
-
-
-def _detect_device_type(node) -> (str, str):
-    try:
-        device_type = node.type
-    except AttributeError:
-        # The type attribute didn't exist in the ISY's API response
-        return (None, None)
-
-    # Z-Wave Devices:
-    if node.protocol == PROTO_ZWAVE:
-        device_type = "Z{}".format(node.zwave_props.category)
-        for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
-            if node.zwave_props.category in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
-                return device_class, device_type
-    else:  # Other devices (incl Insteon.)
-        for device_class in [*ISY_BIN_SENS_DEVICE_TYPES]:
-            if any(
-                [
-                    device_type.startswith(t)
-                    for t in set(ISY_BIN_SENS_DEVICE_TYPES[device_class])
-                ]
-            ):
-                return device_class, device_type
-
-    return (None, device_type)
 
 
 class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorDevice):

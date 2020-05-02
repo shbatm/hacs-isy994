@@ -13,8 +13,9 @@ from homeassistant.components.fan import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
+from . import migrate_old_unique_ids
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .entity import ISYNodeEntity, ISYProgramEntity
 from .services import async_setup_device_services
 
 VALUE_TO_STATE = {

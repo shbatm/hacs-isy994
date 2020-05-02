@@ -8,8 +8,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
+from . import migrate_old_unique_ids
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .entity import ISYNodeEntity, ISYProgramEntity
 from .services import async_setup_device_services
 
 
@@ -77,3 +78,8 @@ class ISYSwitchProgram(ISYProgramEntity, SwitchDevice):
         """Send the turn off command to the ISY994 switch program."""
         if not self._actions.run_else():
             _LOGGER.error("Unable to turn off switch")
+
+    @property
+    def icon(self) -> str:
+        """Get the icon for programs."""
+        return "mdi:script-text-outline"  # Matches isy program icon
