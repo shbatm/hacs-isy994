@@ -688,7 +688,7 @@ async def migrate_old_unique_ids(hass, platform, devices):
             )
 
 
-class ISYDevice(Entity):
+class ISYEntity(Entity):
     """Representation of an ISY994 device."""
 
     _name: str = None
@@ -803,6 +803,10 @@ class ISYDevice(Entity):
             return STATE_UNKNOWN
         return super().state
 
+
+class ISYNodeEntity(ISYEntity):
+    """Representation of a ISY Nodebase (Node/Group) entity."""
+
     @property
     def device_state_attributes(self) -> Dict:
         """Get the state attributes for the device.
@@ -825,3 +829,61 @@ class ISYDevice(Entity):
 
         self._attrs.update(attr)
         return self._attrs
+
+
+class ISYProgramEntity(ISYEntity):
+    """Representation of an ISY994 program base."""
+
+    def __init__(self, name: str, node, actions=None) -> None:
+        """Initialize the ISY994 program-based entity."""
+        super().__init__(node)
+        self._name = name
+        self._actions = actions
+
+    @property
+    def icon(self) -> str:
+        """Get the icon for programs."""
+        return "mdi:script-text-outline"  # Matches isy program icon
+
+    @property
+    def device_state_attributes(self) -> Dict:
+        """Get the state attributes for the device."""
+        attr = {}
+        if self._actions:
+            attr["actions_enabled"] = self._actions.enabled
+            attr["actions_last_finished"] = self._actions.last_finished
+            attr["actions_last_run"] = self._actions.last_run
+            attr["actions_last_update"] = self._actions.last_update
+            attr["ran_else"] = self._actions.ran_else
+            attr["ran_then"] = self._actions.ran_then
+            attr["run_at_startup"] = self._actions.run_at_startup
+            attr["running"] = self._actions.running
+        attr["status_enabled"] = self._node.enabled
+        attr["status_last_finished"] = self._node.last_finished
+        attr["status_last_run"] = self._node.last_run
+        attr["status_last_update"] = self._node.last_update
+        return attr
+
+
+class ISYVariableEntity(ISYEntity):
+    """Representation of an ISY994 variable-based entity."""
+
+    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
+        """Initialize the ISY994 binary sensor program."""
+        super().__init__(vobj)
+        self._config = vcfg
+        self._name = vcfg.get(CONF_NAME, vname)
+        self._vtype = vcfg.get(CONF_TYPE)
+        self._vid = vcfg.get(CONF_ID)
+
+    @property
+    def device_state_attributes(self) -> Dict:
+        """Get the state attributes for the device."""
+        return {"init_value": int(self._node.init)}
+
+    @property
+    def icon(self):
+        """Return the icon."""
+        if self._config.get(CONF_ICON):
+            return self._config.get(CONF_ICON)
+        return "mdi:counter"

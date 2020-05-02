@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -28,7 +28,7 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYCoverDevice(node))
+        devices.append(ISYCoverEntity(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
         devices.append(ISYCoverProgram(name, status, actions))
@@ -38,7 +38,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYCoverDevice(ISYDevice, CoverDevice):
+class ISYCoverEntity(ISYNodeEntity, CoverDevice):
     """Representation of an ISY994 cover device."""
 
     @property
@@ -71,14 +71,8 @@ class ISYCoverDevice(ISYDevice, CoverDevice):
             _LOGGER.error("Unable to close the cover")
 
 
-class ISYCoverProgram(ISYCoverDevice):
+class ISYCoverProgram(ISYProgramEntity, CoverDevice):
     """Representation of an ISY994 cover program."""
-
-    def __init__(self, name: str, node: object, actions: object) -> None:
-        """Initialize the ISY994 cover program."""
-        super().__init__(node)
-        self._name = name
-        self._actions = actions
 
     @property
     def state(self) -> str:
@@ -94,22 +88,3 @@ class ISYCoverProgram(ISYCoverDevice):
         """Send the close cover command to the ISY994 cover program."""
         if not self._actions.run_else():
             _LOGGER.error("Unable to close the cover")
-
-    @property
-    def device_state_attributes(self):
-        """Get the state attributes for the device."""
-        attr = {}
-        if self._actions:
-            attr["actions_enabled"] = self._actions.enabled
-            attr["actions_last_finished"] = self._actions.last_finished
-            attr["actions_last_run"] = self._actions.last_run
-            attr["actions_last_update"] = self._actions.last_update
-            attr["ran_else"] = self._actions.ran_else
-            attr["ran_then"] = self._actions.ran_then
-            attr["run_at_startup"] = self._actions.run_at_startup
-            attr["running"] = self._actions.running
-        attr["status_enabled"] = self._node.enabled
-        attr["status_last_finished"] = self._node.last_finished
-        attr["status_last_run"] = self._node.last_run
-        attr["status_last_update"] = self._node.last_update
-        return attr

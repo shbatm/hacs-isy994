@@ -13,7 +13,7 @@ from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     ATTR_LAST_BRIGHTNESS,
@@ -36,7 +36,7 @@ async def async_setup_entry(
 
     devices = []
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYLightDevice(node, restore_light_state))
+        devices.append(ISYLightEntity(node, restore_light_state))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
@@ -44,7 +44,7 @@ async def async_setup_entry(
     async_setup_light_services(hass)
 
 
-class ISYLightDevice(ISYDevice, Light, RestoreEntity):
+class ISYLightEntity(ISYNodeEntity, Light, RestoreEntity):
     """Representation of an ISY994 light device."""
 
     def __init__(self, node, restore_light_state) -> None:

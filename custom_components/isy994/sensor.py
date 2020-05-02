@@ -7,18 +7,14 @@ from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_TYPE,
     CONF_UNIT_OF_MEASUREMENT,
     STATE_UNKNOWN,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
-from homeassistant.helpers.typing import Dict, HomeAssistantType
+from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, ISYVariableEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -41,17 +37,17 @@ async def async_setup_entry(
 
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         _LOGGER.debug("Loading %s", node.name)
-        devices.append(ISYSensorDevice(node))
+        devices.append(ISYSensorEntity(node))
 
     for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYSensorVariableDevice(vcfg, vname, vobj))
+        devices.append(ISYSensorVariableEntity(vcfg, vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 
 
-class ISYSensorDevice(ISYDevice):
+class ISYSensorEntity(ISYNodeEntity):
     """Representation of an ISY994 sensor device."""
 
     @property
@@ -101,26 +97,8 @@ class ISYSensorDevice(ISYDevice):
         return raw_units
 
 
-class ISYSensorVariableDevice(ISYDevice):
+class ISYSensorVariableEntity(ISYVariableEntity):
     """Representation of an ISY994 variable as a sensor device."""
-
-    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(vobj)
-        self._config = vcfg
-        self._name = vcfg.get(CONF_NAME, vname)
-        self._vtype = vcfg.get(CONF_TYPE)
-        self._vid = vcfg.get(CONF_ID)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        return {"init_value": int(self._node.init)}
-
-    @property
-    def icon(self):
-        """Return the icon."""
-        return self._config.get(CONF_ICON)
 
     @property
     def device_class(self) -> Optional[str]:

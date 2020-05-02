@@ -26,7 +26,7 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import Dict, HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, ISYProgramEntity, ISYVariableEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -53,7 +53,7 @@ async def async_setup_entry(
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         device_class, device_type = _detect_device_type(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
-            device = ISYBinarySensorDevice(node, device_class)
+            device = ISYBinarySensorEntity(node, device_class)
             devices.append(device)
             devices_by_address[node.address] = device
         else:
@@ -72,11 +72,11 @@ async def async_setup_entry(
                 # detected after an ISY Restart, so we assume it's off.
                 # As soon as the ISY Event Stream connects if it has a
                 # valid state, it will be set.
-                device = ISYBinarySensorDevice(node, "cold", False)
+                device = ISYBinarySensorEntity(node, "cold", False)
                 devices.append(device)
             elif subnode_id == 3:
                 # Subnode 3 is the "Heat Control" sensor
-                device = ISYBinarySensorDevice(node, "heat", False)
+                device = ISYBinarySensorEntity(node, "heat", False)
                 devices.append(device)
             continue
         if device_class in ("opening", "moisture", "motion"):
@@ -121,33 +121,33 @@ async def async_setup_entry(
                     )
                     if subnode_id == 2:
                         # Subnode 2 is the Dusk/Dawn sensor
-                        device = ISYBinarySensorDevice(node, "light")
+                        device = ISYBinarySensorEntity(node, "light")
                         devices.append(device)
                     elif subnode_id == 3:
                         # Subnode 3 is the low battery node
-                        device = ISYBinarySensorDevice(node, "battery", initial_state)
+                        device = ISYBinarySensorEntity(node, "battery", initial_state)
                         devices.append(device)
                     elif subnode_id in (10, 16):
                         # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
                         # reported as "10", which translate from Hex to 10 and 16 resp.
-                        device = ISYBinarySensorDevice(node, "problem", initial_state)
+                        device = ISYBinarySensorEntity(node, "problem", initial_state)
                         devices.append(device)
                     elif subnode_id in (13, 19):
                         # Motion Disabled Sub-node for MS II ("D" or "13")
-                        device = ISYBinarySensorDevice(node, "None")
+                        device = ISYBinarySensorEntity(node, "None")
                         devices.append(device)
                     continue
                 continue
         # We don't yet have any special logic for other sensor
         # types, so add the nodes as individual devices
-        device = ISYBinarySensorDevice(node, device_class)
+        device = ISYBinarySensorEntity(node, device_class)
         devices.append(device)
 
     for name, status, _ in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
-        devices.append(ISYBinarySensorProgram(name, status))
+        devices.append(ISYBinarySensorProgramEntity(name, status))
 
     for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYBinarySensorVariableDevice(vcfg, vname, vobj))
+        devices.append(ISYBinarySensorVariableEntity(vcfg, vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
@@ -180,7 +180,7 @@ def _detect_device_type(node) -> (str, str):
     return (None, device_type)
 
 
-class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorDevice):
     """Representation of an ISY994 binary sensor device.
 
     Often times, a single device is represented by multiple nodes in the ISY,
@@ -337,7 +337,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         return self._device_class_from_type
 
 
-class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorDevice):
     """Representation of the battery state of an ISY994 sensor."""
 
     def __init__(self, node, parent_device) -> None:
@@ -451,35 +451,20 @@ class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
         return attr
 
 
-class ISYBinarySensorProgram(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorDevice):
     """Representation of an ISY994 binary sensor program.
 
     This does not need all of the subnode logic in the device version of binary
     sensors.
     """
 
-    def __init__(self, name, node) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(node)
-        self._name = name
-
     @property
     def is_on(self) -> bool:
         """Get whether the ISY994 binary sensor device is on."""
         return bool(self.value)
 
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        attr = {}
-        attr["status_enabled"] = self._node.enabled
-        attr["status_last_finished"] = self._node.last_finished
-        attr["status_last_run"] = self._node.last_run
-        attr["status_last_update"] = self._node.last_update
-        return attr
 
-
-class ISYBinarySensorVariableDevice(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorVariableEntity(ISYVariableEntity, BinarySensorDevice):
     """Representation of an ISY994 variable as a sensor device."""
 
     def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:

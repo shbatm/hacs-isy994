@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .services import async_setup_device_services
 
@@ -24,17 +24,17 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYLockDevice(node))
+        devices.append(ISYLockEnitity(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
-        devices.append(ISYLockProgram(name, status, actions))
+        devices.append(ISYLockProgramEntity(name, status, actions))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 
 
-class ISYLockDevice(ISYDevice, LockDevice):
+class ISYLockEnitity(ISYNodeEntity, LockDevice):
     """Representation of an ISY994 lock device."""
 
     @property
@@ -64,14 +64,8 @@ class ISYLockDevice(ISYDevice, LockDevice):
         self._node.update(0.5)
 
 
-class ISYLockProgram(ISYLockDevice):
+class ISYLockProgramEntity(ISYProgramEntity, LockDevice):
     """Representation of a ISY lock program."""
-
-    def __init__(self, name: str, node, actions) -> None:
-        """Initialize the lock."""
-        super().__init__(node)
-        self._name = name
-        self._actions = actions
 
     @property
     def is_locked(self) -> bool:
@@ -92,22 +86,3 @@ class ISYLockProgram(ISYLockDevice):
         """Unlock the device."""
         if not self._actions.run_else():
             _LOGGER.error("Unable to unlock device")
-
-    @property
-    def device_state_attributes(self):
-        """Get the state attributes for the device."""
-        attr = {}
-        if self._actions:
-            attr["actions_enabled"] = self._actions.enabled
-            attr["actions_last_finished"] = self._actions.last_finished
-            attr["actions_last_run"] = self._actions.last_run
-            attr["actions_last_update"] = self._actions.last_update
-            attr["ran_else"] = self._actions.ran_else
-            attr["ran_then"] = self._actions.ran_then
-            attr["run_at_startup"] = self._actions.run_at_startup
-            attr["running"] = self._actions.running
-        attr["status_enabled"] = self._node.enabled
-        attr["status_last_finished"] = self._node.last_finished
-        attr["status_last_run"] = self._node.last_run
-        attr["status_last_update"] = self._node.last_update
-        return attr

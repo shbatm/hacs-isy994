@@ -35,7 +35,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import ISYNodeEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -62,7 +62,7 @@ async def async_setup_entry(
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYThermostatDevice(node))
+        devices.append(ISYThermostatEntity(node))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
@@ -87,7 +87,7 @@ def fix_temp(temp, uom, prec) -> float:
     return int(temp)
 
 
-class ISYThermostatDevice(ISYDevice, ClimateDevice):
+class ISYThermostatEntity(ISYNodeEntity, ClimateDevice):
     """Representation of an ISY994 thermostat device."""
 
     def __init__(self, node) -> None:
