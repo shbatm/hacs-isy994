@@ -16,10 +16,12 @@ from .const import (
     CONF_RESTORE_LIGHT_STATE,
     CONF_SENSOR_STRING,
     CONF_TLS_VER,
+    CONF_VAR_SENSOR_STRING,
     DEFAULT_IGNORE_STRING,
     DEFAULT_RESTORE_LIGHT_STATE,
     DEFAULT_SENSOR_STRING,
     DEFAULT_TLS_VERSION,
+    DEFAULT_VAR_SENSOR_STRING,
 )
 from .const import DOMAIN  # pylint:disable=unused-import
 
@@ -32,7 +34,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
         vol.Optional(CONF_TLS_VER, default=DEFAULT_TLS_VERSION): vol.In([1.1, 1.2]),
-        # Variables require yaml
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -147,6 +148,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
         ignore_string = options.get(CONF_IGNORE_STRING, DEFAULT_IGNORE_STRING)
         sensor_string = options.get(CONF_SENSOR_STRING, DEFAULT_SENSOR_STRING)
+        var_sensor_string = options.get(
+            CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
+        )
 
         options_schema = vol.Schema(
             {
@@ -155,10 +159,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(CONF_IGNORE_STRING, default=ignore_string): str,
                 vol.Optional(CONF_SENSOR_STRING, default=sensor_string): str,
+                vol.Optional(CONF_VAR_SENSOR_STRING, default=var_sensor_string): str,
             }
         )
 
-        return self.async_show_form(step_id="init", data_schema=options_schema,)
+        return self.async_show_form(step_id="init", data_schema=options_schema)
 
 
 class InvalidHost(exceptions.HomeAssistantError):

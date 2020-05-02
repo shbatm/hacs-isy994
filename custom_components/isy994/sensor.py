@@ -1,20 +1,14 @@
 """Support for ISY994 sensors."""
-from typing import Callable, Optional
+from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_DEVICE_CLASS,
-    CONF_UNIT_OF_MEASUREMENT,
-    STATE_UNKNOWN,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-)
+from homeassistant.const import STATE_UNKNOWN, TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYNodeEntity, ISYVariableEntity, migrate_old_unique_ids
+from . import ISYEntity, ISYNodeEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -39,8 +33,8 @@ async def async_setup_entry(
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorEntity(node))
 
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYSensorVariableEntity(vcfg, vname, vobj))
+    for vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
+        devices.append(ISYSensorVariableEntity(vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
@@ -97,13 +91,13 @@ class ISYSensorEntity(ISYNodeEntity):
         return raw_units
 
 
-class ISYSensorVariableEntity(ISYVariableEntity):
+class ISYSensorVariableEntity(ISYEntity):
     """Representation of an ISY994 variable as a sensor device."""
 
-    @property
-    def device_class(self) -> Optional[str]:
-        """Return the device class of the sensor."""
-        return self._config.get(CONF_DEVICE_CLASS)
+    def __init__(self, vname: str, vobj: object) -> None:
+        """Initialize the ISY994 binary sensor program."""
+        super().__init__(vobj)
+        self._name = vname
 
     @property
     def state(self):
@@ -111,6 +105,11 @@ class ISYSensorVariableEntity(ISYVariableEntity):
         return self.value
 
     @property
-    def unit_of_measurement(self):
-        """Return the unit this state is expressed in."""
-        return self._config.get(CONF_UNIT_OF_MEASUREMENT)
+    def device_state_attributes(self) -> Dict:
+        """Get the state attributes for the device."""
+        return {"init_value": int(self._node.init)}
+
+    @property
+    def icon(self):
+        """Return the icon."""
+        return "mdi:counter"

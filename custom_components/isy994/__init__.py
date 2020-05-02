@@ -18,35 +18,13 @@ from pyisy.helpers import NodeProperty
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.components.binary_sensor import (
-    DEVICE_CLASSES_SCHEMA as BINARY_SENSOR_DCS,
-    DOMAIN as PLATFORM_BINARY_SENSOR,
-)
+from homeassistant.components.binary_sensor import DOMAIN as PLATFORM_BINARY_SENSOR
 from homeassistant.components.climate.const import DOMAIN as PLATFORM_CLIMATE
 from homeassistant.components.fan import DOMAIN as PLATFORM_FAN
 from homeassistant.components.light import DOMAIN as PLATFORM_LIGHT
-from homeassistant.components.sensor import (
-    DEVICE_CLASSES_SCHEMA as SENSOR_DCS,
-    DOMAIN as PLATFORM_SENSOR,
-)
+from homeassistant.components.sensor import DOMAIN as PLATFORM_SENSOR
 from homeassistant.components.switch import DOMAIN as PLATFORM_SWITCH
-from homeassistant.const import (
-    CONF_BINARY_SENSORS,
-    CONF_DEVICE_CLASS,
-    CONF_HOST,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_PASSWORD,
-    CONF_PAYLOAD_OFF,
-    CONF_PAYLOAD_ON,
-    CONF_SENSORS,
-    CONF_SWITCHES,
-    CONF_TYPE,
-    CONF_UNIT_OF_MEASUREMENT,
-    CONF_USERNAME,
-    STATE_UNKNOWN,
-)
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 import homeassistant.helpers.device_registry as dr
@@ -57,13 +35,12 @@ from homeassistant.helpers.typing import ConfigType, Dict
 from .const import (
     _LOGGER,
     CONF_IGNORE_STRING,
-    CONF_ISY_VARIABLES,
     CONF_SENSOR_STRING,
     CONF_TLS_VER,
+    CONF_VAR_SENSOR_STRING,
     DEFAULT_IGNORE_STRING,
-    DEFAULT_OFF_VALUE,
-    DEFAULT_ON_VALUE,
     DEFAULT_SENSOR_STRING,
+    DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
     ISY994_ISY,
     ISY994_NODES,
@@ -78,55 +55,9 @@ from .const import (
     NODE_FILTERS,
     SUPPORTED_PLATFORMS,
     SUPPORTED_PROGRAM_PLATFORMS,
-    SUPPORTED_VARIABLE_PLATFORMS,
     UNDO_UPDATE_LISTENER,
 )
 from .services import async_setup_services, async_unload_services
-
-VAR_BASE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ID): cv.positive_int,
-        vol.Required(CONF_TYPE): vol.All(cv.positive_int, vol.In([1, 2])),
-        vol.Optional(CONF_ICON): cv.icon,
-        vol.Optional(CONF_NAME): cv.string,
-    }
-)
-
-SENSOR_VAR_SCHEMA = VAR_BASE_SCHEMA.extend(
-    {
-        vol.Optional(CONF_DEVICE_CLASS): SENSOR_DCS,
-        vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
-    }
-)
-
-BINARY_SENSOR_VAR_SCHEMA = VAR_BASE_SCHEMA.extend(
-    {
-        vol.Optional(CONF_DEVICE_CLASS): BINARY_SENSOR_DCS,
-        vol.Optional(CONF_PAYLOAD_ON, default=DEFAULT_ON_VALUE): vol.Coerce(int),
-        vol.Optional(CONF_PAYLOAD_OFF, default=DEFAULT_OFF_VALUE): vol.Coerce(int),
-    }
-)
-
-SWITCH_VAR_SCHEMA = VAR_BASE_SCHEMA.extend(
-    {
-        vol.Optional(CONF_PAYLOAD_ON, default=DEFAULT_ON_VALUE): vol.Coerce(int),
-        vol.Optional(CONF_PAYLOAD_OFF, default=DEFAULT_OFF_VALUE): vol.Coerce(int),
-    }
-)
-
-ISY_VARIABLES_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_SENSORS, default=[]): vol.All(
-            cv.ensure_list, [SENSOR_VAR_SCHEMA]
-        ),
-        vol.Optional(CONF_BINARY_SENSORS, default=[]): vol.All(
-            cv.ensure_list, [BINARY_SENSOR_VAR_SCHEMA]
-        ),
-        vol.Optional(CONF_SWITCHES, default=[]): vol.All(
-            cv.ensure_list, [SWITCH_VAR_SCHEMA]
-        ),
-    }
-)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -142,7 +73,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_SENSOR_STRING, default=DEFAULT_SENSOR_STRING
                 ): cv.string,
-                vol.Optional(CONF_ISY_VARIABLES, default={}): ISY_VARIABLES_SCHEMA,
+                vol.Optional(
+                    CONF_VAR_SENSOR_STRING, default=DEFAULT_VAR_SENSOR_STRING
+                ): cv.string,
             }
         )
     },
@@ -420,40 +353,33 @@ def _categorize_programs(hass_isy_data: dict, programs: dict) -> None:
                 hass_isy_data[ISY994_PROGRAMS][platform].append(entity)
 
 
-def _categorize_variables(
-    hass_isy_data: dict, variables, platform_cfg: dict, platform: str
-) -> None:
-    """Categorize the ISY994 Variables."""
-    if platform_cfg is None:
-        return
-    for isy_var in platform_cfg:
-        vid = isy_var.get(CONF_ID)
-        vtype = isy_var.get(CONF_TYPE)
-        vname = ""
-        try:
-            vname = variables[vtype][vid].name
-        except KeyError as err:
-            _LOGGER.error("Error adding ISY Variable %s.%s: %s", vtype, vid, err)
-            continue
-        else:
-            variable = (isy_var, vname, variables[vtype][vid])
-            hass_isy_data[ISY994_VARIABLES][platform].append(variable)
+def _categorize_variables(hass_isy_data: dict, variables, identifier: str) -> None:
+    """Gather the ISY994 Variables to be added as sensors."""
+    try:
+        var_to_add = [
+            (vtype, vname, vid)
+            for (vtype, vname, vid) in variables.children
+            if identifier in vname
+        ]
+    except KeyError as err:
+        _LOGGER.error("Error adding ISY Variables: %s", err)
+    else:
+        for vtype, vname, vid in var_to_add:
+            hass_isy_data[ISY994_VARIABLES][PLATFORM_SENSOR].append(
+                (vname, variables[vtype][vid])
+            )
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the isy994 component from YAML."""
     isy_config: Optional[ConfigType] = config.get(DOMAIN)
-    hass.data.setdefault(DOMAIN, {})
-    config_entry = _async_find_matching_config_entry(hass)
 
     if not isy_config:
-        if config_entry:
-            # Config entry was created because user had configuration.yaml entry
-            # They removed that, so remove entry.
-            await hass.config_entries.async_remove(config_entry.entry_id)
         return True
 
     # Only import if we haven't before.
+    hass.data.setdefault(DOMAIN, {})
+    config_entry = _async_find_matching_config_entry(hass)
     if not config_entry:
         hass.async_create_task(
             hass.config_entries.flow.async_init(
@@ -497,9 +423,7 @@ async def async_setup_entry(
     for platform in SUPPORTED_PLATFORMS:
         hass_isy_data[ISY994_PROGRAMS][platform] = []
 
-    hass_isy_data[ISY994_VARIABLES] = {}
-    for platform in SUPPORTED_VARIABLE_PLATFORMS:
-        hass_isy_data[ISY994_VARIABLES][platform] = []
+    hass_isy_data[ISY994_VARIABLES][PLATFORM_SENSOR] = {}
 
     isy_config = entry.data
     isy_options = entry.options
@@ -513,7 +437,9 @@ async def async_setup_entry(
     tls_version = isy_config.get(CONF_TLS_VER)
     ignore_identifier = isy_options.get(CONF_IGNORE_STRING, DEFAULT_IGNORE_STRING)
     sensor_identifier = isy_options.get(CONF_SENSOR_STRING, DEFAULT_SENSOR_STRING)
-    isy_variables = isy_config.get(CONF_ISY_VARIABLES, {})
+    variable_identifier = isy_options.get(
+        CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
+    )
 
     if host.scheme == "http":
         https = False
@@ -544,18 +470,7 @@ async def async_setup_entry(
 
     _categorize_nodes(hass_isy_data, isy.nodes, ignore_identifier, sensor_identifier)
     _categorize_programs(hass_isy_data, isy.programs)
-    _categorize_variables(
-        hass_isy_data, isy.variables, isy_variables.get(CONF_SENSORS), PLATFORM_SENSOR
-    )
-    _categorize_variables(
-        hass_isy_data,
-        isy.variables,
-        isy_variables.get(CONF_BINARY_SENSORS),
-        PLATFORM_BINARY_SENSOR,
-    )
-    _categorize_variables(
-        hass_isy_data, isy.variables, isy_variables.get(CONF_SWITCHES), PLATFORM_SWITCH
-    )
+    _categorize_variables(hass_isy_data, isy.variables, variable_identifier)
 
     # Dump ISY Clock Information. Future: Add ISY as sensor to Hass with attrs
     _LOGGER.info(repr(isy.clock))
@@ -883,27 +798,3 @@ class ISYProgramEntity(ISYEntity):
         attr["status_last_run"] = self._node.last_run
         attr["status_last_update"] = self._node.last_update
         return attr
-
-
-class ISYVariableEntity(ISYEntity):
-    """Representation of an ISY994 variable-based entity."""
-
-    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(vobj)
-        self._config = vcfg
-        self._name = vcfg.get(CONF_NAME, vname)
-        self._vtype = vcfg.get(CONF_TYPE)
-        self._vid = vcfg.get(CONF_ID)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        return {"init_value": int(self._node.init)}
-
-    @property
-    def icon(self):
-        """Return the icon."""
-        if self._config.get(CONF_ICON):
-            return self._config.get(CONF_ICON)
-        return "mdi:counter"

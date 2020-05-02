@@ -84,12 +84,13 @@ ATTR_LAST_BRIGHTNESS = "last_brightness"
 
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
-CONF_ISY_VARIABLES = "isy_variables"
+CONF_VAR_SENSOR_STRING = "variable_sensor_string"
 CONF_TLS_VER = "tls"
 CONF_RESTORE_LIGHT_STATE = "restore_light_state"
 
 DEFAULT_IGNORE_STRING = "{IGNORE ME}"
 DEFAULT_SENSOR_STRING = "sensor"
+DEFAULT_VAR_SENSOR_STRING = "HA."
 DEFAULT_RESTORE_LIGHT_STATE = False
 DEFAULT_TLS_VERSION = 1.1
 
@@ -228,12 +229,6 @@ SUPPORTED_PROGRAM_PLATFORMS = [
     PLATFORM_COVER,
     PLATFORM_SWITCH,
 ]
-SUPPORTED_VARIABLE_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_SENSOR,
-    PLATFORM_SWITCH,
-]
-
 # ISY Scenes are more like Switches than Home Assistant Scenes
 # (they can turn off, and report their state)
 ISY_GROUP_PLATFORM = PLATFORM_SWITCH

@@ -1,6 +1,6 @@
 """Support for ISY994 binary sensors."""
 from datetime import timedelta
-from typing import Callable, Optional
+from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
 
@@ -9,30 +9,18 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDevice,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_DEVICE_CLASS,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_PAYLOAD_OFF,
-    CONF_PAYLOAD_ON,
-    CONF_TYPE,
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNKNOWN,
-)
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.typing import Dict, HomeAssistantType
+from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYNodeEntity, ISYProgramEntity, ISYVariableEntity, migrate_old_unique_ids
+from . import ISYNodeEntity, ISYProgramEntity, migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_PROGRAMS,
-    ISY994_VARIABLES,
     ISY_BIN_SENS_DEVICE_TYPES,
     ZWAVE_BIN_SENS_DEVICE_TYPES,
 )
@@ -145,9 +133,6 @@ async def async_setup_entry(
 
     for name, status, _ in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
         devices.append(ISYBinarySensorProgramEntity(name, status))
-
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYBinarySensorVariableEntity(vcfg, vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
@@ -462,41 +447,3 @@ class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorDevice):
     def is_on(self) -> bool:
         """Get whether the ISY994 binary sensor device is on."""
         return bool(self.value)
-
-
-class ISYBinarySensorVariableEntity(ISYVariableEntity, BinarySensorDevice):
-    """Representation of an ISY994 variable as a sensor device."""
-
-    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(vobj)
-        self._config = vcfg
-        self._name = vcfg.get(CONF_NAME, vname)
-        self._vtype = vcfg.get(CONF_TYPE)
-        self._vid = vcfg.get(CONF_ID)
-        self._on_value = vcfg.get(CONF_PAYLOAD_ON)
-        self._off_value = vcfg.get(CONF_PAYLOAD_OFF)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        return {"init_value": int(self._node.init)}
-
-    @property
-    def is_on(self):
-        """Return true if the binary sensor is on."""
-        if self.value == self._on_value:
-            return True
-        if self.value == self._off_value:
-            return False
-        return None
-
-    @property
-    def icon(self):
-        """Return the icon."""
-        return self._config.get(CONF_ICON)
-
-    @property
-    def device_class(self) -> Optional[str]:
-        """Return the device class of the sensor."""
-        return self._config.get(CONF_DEVICE_CLASS)
