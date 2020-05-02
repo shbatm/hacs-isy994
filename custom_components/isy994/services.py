@@ -150,14 +150,12 @@ def async_setup_services(hass: HomeAssistantType):
                     address,
                     isy.configuration["uuid"],
                 )
-                # TODO: Enable once PyISY is updated with PR#94
-                # await hass.async_add_executor_job(isy.query, address)
+                hass.async_add_executor_job(isy.query, address)
                 return
             _LOGGER.debug(
                 "Requesting system query of ISY %s", isy.configuration["uuid"]
             )
-            # TODO: Enable once PyISY is updated with PR#94
-            # await hass.async_add_executor_job(isy.query)
+            hass.async_add_executor_job(isy.query)
 
     async def async_run_network_resource_service_handler(service):
         """Handle a network resource service call."""
@@ -174,7 +172,7 @@ def async_setup_services(hass: HomeAssistantType):
             if name:
                 command = isy.networking.get_by_name(name)
             if command is not None:
-                hass.async_add_executor_job(command.run())
+                hass.async_add_executor_job(command.run)
                 return
         _LOGGER.error(
             "Could not run network resource command. Not found or enabled on the ISY."
@@ -194,7 +192,7 @@ def async_setup_services(hass: HomeAssistantType):
             if name:
                 program = isy.programs.get_by_name(name)
             if program is not None:
-                hass.async_add_executor_job(getattr(program, command)())
+                hass.async_add_executor_job(getattr(program, command))
                 return
         _LOGGER.error(
             "Could not send program command. Not found or enabled on the ISY."
@@ -212,9 +210,7 @@ def async_setup_services(hass: HomeAssistantType):
             isy = hass.data[DOMAIN][entry][ISY994_ISY]
             variable = None
             if name:
-                vtype, _, address = next(
-                    item for item in isy.variables.children if name in item
-                )
+                variable = isy.variables.get_by_name(name)
             if address and vtype:
                 variable = isy.variables.vobjs[vtype].get(address)
             if variable is not None:
