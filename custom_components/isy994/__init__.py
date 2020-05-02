@@ -830,6 +830,26 @@ class ISYNodeEntity(ISYEntity):
         self._attrs.update(attr)
         return self._attrs
 
+    def send_node_command(self, command):
+        """Respond to an entity service command call."""
+        if not hasattr(self._node, command):
+            _LOGGER.error(
+                "Invalid Service Call %s for device %s.", command, self.entity_id
+            )
+            return
+        getattr(self._node, command)()
+
+    def send_raw_node_command(
+        self, command, value=None, unit_of_measurement=None, parameters=None
+    ):
+        """Respond to an entity service raw command call."""
+        if not hasattr(self._node, "send_cmd"):
+            _LOGGER.error(
+                "Invalid Service Call %s for device %s.", command, self.entity_id
+            )
+            return
+        self._node.send_cmd(command, value, unit_of_measurement, parameters)
+
 
 class ISYProgramEntity(ISYEntity):
     """Representation of an ISY994 program base."""

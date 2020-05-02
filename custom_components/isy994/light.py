@@ -118,11 +118,3 @@ class ISYLightEntity(ISYNodeEntity, Light, RestoreEntity):
     def set_ramp_rate(self, value):
         """Set the Ramp Rate for a device."""
         self._node.set_ramp_rate(value)
-
-    def start_manual_dimming(self):
-        """Set the Ramp Rate for a device."""
-        self._node.start_manual_dimming()
-
-    def stop_manual_dimming(self):
-        """Set the Ramp Rate for a device."""
-        self._node.stop_manual_dimming()
