@@ -25,7 +25,7 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][LOCK]:
-        devices.append(ISYLockEnitity(node))
+        devices.append(ISYLockEntity(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][LOCK]:
         devices.append(ISYLockProgramEntity(name, status, actions))
@@ -35,7 +35,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYLockEnitity(ISYNodeEntity, LockEntity):
+class ISYLockEntity(ISYNodeEntity, LockEntity):
     """Representation of an ISY994 lock device."""
 
     @property

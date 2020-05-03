@@ -56,7 +56,7 @@ class ISYSensorEntity(ISYNodeEntity):
         return UOM_FRIENDLY_NAME.get(uom)
 
     @property
-    def state(self):
+    def state(self) -> str:
         """Get the state of the ISY994 sensor device."""
         if self.value == ISY_VALUE_UNKNOWN:
             return STATE_UNKNOWN

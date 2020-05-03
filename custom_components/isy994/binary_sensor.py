@@ -17,7 +17,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity
-from .helpers import _detect_device_type, migrate_old_unique_ids
+from .helpers import _detect_device_type_and_class, migrate_old_unique_ids
 from .services import async_setup_device_services
 
 
@@ -33,7 +33,7 @@ async def async_setup_entry(
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     for node in hass_isy_data[ISY994_NODES][BINARY_SENSOR]:
-        device_class, device_type = _detect_device_type(node)
+        device_class, device_type = _detect_device_type_and_class(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
             device = ISYBinarySensorEntity(node, device_class)
             devices.append(device)
@@ -138,8 +138,8 @@ class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorEntity):
 
     Often times, a single device is represented by multiple nodes in the ISY,
     allowing for different nuances in how those devices report their on and
-    off events. This class turns those multiple nodes in to a single Home Assistant
-    entity and handles both ways that ISY binary sensors can work.
+    off events. This class turns those multiple nodes into a single Home
+    Assistant entity and handles both ways that ISY binary sensors can work.
     """
 
     def __init__(self, node, force_device_class=None, unknown_state=None) -> None:
@@ -147,7 +147,7 @@ class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorEntity):
         super().__init__(node)
         self._negative_node = None
         self._heartbeat_device = None
-        self._device_class_from_type = force_device_class
+        self._device_class = force_device_class
         if self._node.status == ISY_VALUE_UNKNOWN:
             self._computed_state = unknown_state
             self._status_was_unknown = True
@@ -287,7 +287,7 @@ class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorEntity):
 
         This was discovered by parsing the device type code during init
         """
-        return self._device_class_from_type
+        return self._device_class
 
 
 class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):

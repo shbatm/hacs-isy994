@@ -96,6 +96,7 @@ def _check_for_insteon_type(
                 and str(node.address[-1]) in ["2"]
             ):
                 hass_isy_data[ISY994_NODES][SWITCH].append(node)
+                return True
 
             # Smartenit EZIO2X4
             if (
@@ -104,6 +105,7 @@ def _check_for_insteon_type(
                 and str(node.address[-1]) in ["9", "A", "B", "C"]
             ):
                 hass_isy_data[ISY994_NODES][BINARY_SENSOR].append(node)
+                return True
 
             hass_isy_data[ISY994_NODES][platform].append(node)
             return True
@@ -306,7 +308,7 @@ def _categorize_variables(hass_isy_data: dict, variables, identifier: str) -> No
             hass_isy_data[ISY994_VARIABLES].append((vname, variables[vtype][vid]))
 
 
-def _detect_device_type(node) -> (str, str):
+def _detect_device_type_and_class(node) -> (str, str):
     try:
         device_type = node.type
     except AttributeError:

@@ -160,7 +160,6 @@ class ISYNodeEntity(ISYEntity):
 
         # If a Group/Scene, set a property if the entire scene is on/off
         if hasattr(self._node, "group_all_on"):
-            # pylint: disable=protected-access
             attr["group_all_on"] = "on" if self._node.group_all_on else "off"
 
         self._attrs.update(attr)

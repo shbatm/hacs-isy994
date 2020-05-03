@@ -32,7 +32,7 @@ async def async_setup_entry(
         devices.append(ISYCoverEntity(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][COVER]:
-        devices.append(ISYCoverProgram(name, status, actions))
+        devices.append(ISYCoverProgramEntity(name, status, actions))
 
     await migrate_old_unique_ids(hass, COVER, devices)
     async_add_entities(devices)
@@ -72,7 +72,7 @@ class ISYCoverEntity(ISYNodeEntity, CoverEntity):
             _LOGGER.error("Unable to close the cover")
 
 
-class ISYCoverProgram(ISYProgramEntity, CoverEntity):
+class ISYCoverProgramEntity(ISYProgramEntity, CoverEntity):
     """Representation of an ISY994 cover program."""
 
     @property

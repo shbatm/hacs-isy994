@@ -23,17 +23,17 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][SWITCH]:
-        devices.append(ISYSwitchDevice(node))
+        devices.append(ISYSwitchEntity(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][SWITCH]:
-        devices.append(ISYSwitchProgram(name, status, actions))
+        devices.append(ISYSwitchProgramEntity(name, status, actions))
 
     await migrate_old_unique_ids(hass, SWITCH, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 
 
-class ISYSwitchDevice(ISYNodeEntity, SwitchEntity):
+class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):
     """Representation of an ISY994 switch device."""
 
     @property
@@ -61,7 +61,7 @@ class ISYSwitchDevice(ISYNodeEntity, SwitchEntity):
         return super().icon
 
 
-class ISYSwitchProgram(ISYProgramEntity, SwitchEntity):
+class ISYSwitchProgramEntity(ISYProgramEntity, SwitchEntity):
     """A representation of an ISY994 program switch."""
 
     @property

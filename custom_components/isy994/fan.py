@@ -45,7 +45,7 @@ async def async_setup_entry(
         devices.append(ISYFanDevice(node))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][FAN]:
-        devices.append(ISYFanProgram(name, status, actions))
+        devices.append(ISYFanProgramEntity(name, status, actions))
 
     await migrate_old_unique_ids(hass, FAN, devices)
     async_add_entities(devices)
@@ -88,7 +88,7 @@ class ISYFanDevice(ISYNodeEntity, FanEntity):
         return SUPPORT_SET_SPEED
 
 
-class ISYFanProgram(ISYProgramEntity, FanEntity):
+class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     """Representation of an ISY994 fan program."""
 
     @property
