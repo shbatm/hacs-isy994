@@ -1,5 +1,4 @@
 """Support for Insteon Thermostats via ISY994 Platform."""
-import logging
 from typing import Callable, List, Optional
 
 from pyisy.constants import (
@@ -36,8 +35,9 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
@@ -45,8 +45,8 @@ from .const import (
     ISY_HVAC_MODES,
     UOM_TO_STATES,
 )
-
-_LOGGER = logging.getLogger(__name__)
+from .entity import ISYNodeEntity
+from .services import async_setup_device_services
 
 ISY_SUPPORTED_FEATURES = (
     SUPPORT_FAN_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_TARGET_TEMPERATURE_RANGE
@@ -63,10 +63,11 @@ async def async_setup_entry(
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYThermostatDevice(node))
+        devices.append(ISYThermostatEntity(node))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    async_setup_device_services(hass)
 
 
 def fix_temp(temp, uom, prec) -> float:
@@ -87,7 +88,7 @@ def fix_temp(temp, uom, prec) -> float:
     return int(temp)
 
 
-class ISYThermostatDevice(ISYDevice, ClimateDevice):
+class ISYThermostatEntity(ISYNodeEntity, ClimateDevice):
     """Representation of an ISY994 thermostat device."""
 
     def __init__(self, node) -> None:

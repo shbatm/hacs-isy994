@@ -1,5 +1,4 @@
 """Support for ISY994 lights."""
-import logging
 from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
@@ -14,15 +13,16 @@ from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     ATTR_LAST_BRIGHTNESS,
     CONF_RESTORE_LIGHT_STATE,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
 )
-
-_LOGGER = logging.getLogger(__name__)
+from .entity import ISYNodeEntity
+from .services import async_setup_device_services, async_setup_light_services
 
 
 async def async_setup_entry(
@@ -37,13 +37,15 @@ async def async_setup_entry(
 
     devices = []
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
-        devices.append(ISYLightDevice(node, restore_light_state))
+        devices.append(ISYLightEntity(node, restore_light_state))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    async_setup_device_services(hass)
+    async_setup_light_services(hass)
 
 
-class ISYLightDevice(ISYDevice, Light, RestoreEntity):
+class ISYLightEntity(ISYNodeEntity, Light, RestoreEntity):
     """Representation of an ISY994 light device."""
 
     def __init__(self, node, restore_light_state) -> None:
@@ -109,3 +111,11 @@ class ISYLightDevice(ISYDevice, Light, RestoreEntity):
             and last_state.attributes[ATTR_LAST_BRIGHTNESS]
         ):
             self._last_brightness = last_state.attributes[ATTR_LAST_BRIGHTNESS]
+
+    def set_on_level(self, value):
+        """Set the ON Level for a device."""
+        self._node.set_on_level(value)
+
+    def set_ramp_rate(self, value):
+        """Set the Ramp Rate for a device."""
+        self._node.set_ramp_rate(value)

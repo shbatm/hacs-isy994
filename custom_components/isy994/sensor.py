@@ -1,34 +1,24 @@
 """Support for ISY994 sensors."""
-import logging
-from typing import Callable, Optional
+from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_DEVICE_CLASS,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_TYPE,
-    CONF_UNIT_OF_MEASUREMENT,
-    STATE_UNKNOWN,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-)
-from homeassistant.helpers.typing import Dict, HomeAssistantType
+from homeassistant.const import STATE_UNKNOWN, TEMP_CELSIUS, TEMP_FAHRENHEIT
+from homeassistant.helpers.typing import HomeAssistantType
 
-from . import ISYDevice, migrate_old_unique_ids
+from . import migrate_old_unique_ids
 from .const import (
+    _LOGGER,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
     ISY994_VARIABLES,
     UOM_FRIENDLY_NAME,
     UOM_TO_STATES,
 )
-
-_LOGGER = logging.getLogger(__name__)
+from .entity import ISYEntity, ISYNodeEntity
+from .services import async_setup_device_services
 
 
 async def async_setup_entry(
@@ -42,16 +32,17 @@ async def async_setup_entry(
 
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         _LOGGER.debug("Loading %s", node.name)
-        devices.append(ISYSensorDevice(node))
+        devices.append(ISYSensorEntity(node))
 
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYSensorVariableDevice(vcfg, vname, vobj))
+    for vname, vobj in hass_isy_data[ISY994_VARIABLES]:
+        devices.append(ISYSensorVariableEntity(vname, vobj))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    async_setup_device_services(hass)
 
 
-class ISYSensorDevice(ISYDevice):
+class ISYSensorEntity(ISYNodeEntity):
     """Representation of an ISY994 sensor device."""
 
     @property
@@ -101,16 +92,18 @@ class ISYSensorDevice(ISYDevice):
         return raw_units
 
 
-class ISYSensorVariableDevice(ISYDevice):
+class ISYSensorVariableEntity(ISYEntity):
     """Representation of an ISY994 variable as a sensor device."""
 
-    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
+    def __init__(self, vname: str, vobj: object) -> None:
         """Initialize the ISY994 binary sensor program."""
         super().__init__(vobj)
-        self._config = vcfg
-        self._name = vcfg.get(CONF_NAME, vname)
-        self._vtype = vcfg.get(CONF_TYPE)
-        self._vid = vcfg.get(CONF_ID)
+        self._name = vname
+
+    @property
+    def state(self):
+        """Return the state of the variable."""
+        return self.value
 
     @property
     def device_state_attributes(self) -> Dict:
@@ -120,19 +113,4 @@ class ISYSensorVariableDevice(ISYDevice):
     @property
     def icon(self):
         """Return the icon."""
-        return self._config.get(CONF_ICON)
-
-    @property
-    def device_class(self) -> Optional[str]:
-        """Return the device class of the sensor."""
-        return self._config.get(CONF_DEVICE_CLASS)
-
-    @property
-    def state(self):
-        """Return the state of the variable."""
-        return self.value
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit this state is expressed in."""
-        return self._config.get(CONF_UNIT_OF_MEASUREMENT)
+        return "mdi:counter"

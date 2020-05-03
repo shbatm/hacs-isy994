@@ -1,43 +1,25 @@
 """Support for ISY994 binary sensors."""
 from datetime import timedelta
-import logging
-from typing import Callable, Optional
+from typing import Callable
 
-from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON, PROTO_ZWAVE
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON
 
 from homeassistant.components.binary_sensor import (
     DOMAIN as PLATFORM_DOMAIN,
     BinarySensorDevice,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_DEVICE_CLASS,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_PAYLOAD_OFF,
-    CONF_PAYLOAD_ON,
-    CONF_TYPE,
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNKNOWN,
-)
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.typing import Dict, HomeAssistantType
+from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import ISYDevice, migrate_old_unique_ids
-from .const import (
-    DOMAIN as ISY994_DOMAIN,
-    ISY994_NODES,
-    ISY994_PROGRAMS,
-    ISY994_VARIABLES,
-    ISY_BIN_SENS_DEVICE_TYPES,
-    ZWAVE_BIN_SENS_DEVICE_TYPES,
-)
-
-_LOGGER = logging.getLogger(__name__)
+from . import migrate_old_unique_ids
+from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .entity import ISYNodeEntity, ISYProgramEntity
+from .helpers import _detect_device_type
+from .services import async_setup_device_services
 
 
 async def async_setup_entry(
@@ -54,7 +36,7 @@ async def async_setup_entry(
     for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
         device_class, device_type = _detect_device_type(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
-            device = ISYBinarySensorDevice(node, device_class)
+            device = ISYBinarySensorEntity(node, device_class)
             devices.append(device)
             devices_by_address[node.address] = device
         else:
@@ -73,11 +55,11 @@ async def async_setup_entry(
                 # detected after an ISY Restart, so we assume it's off.
                 # As soon as the ISY Event Stream connects if it has a
                 # valid state, it will be set.
-                device = ISYBinarySensorDevice(node, "cold", False)
+                device = ISYBinarySensorEntity(node, "cold", False)
                 devices.append(device)
             elif subnode_id == 3:
                 # Subnode 3 is the "Heat Control" sensor
-                device = ISYBinarySensorDevice(node, "heat", False)
+                device = ISYBinarySensorEntity(node, "heat", False)
                 devices.append(device)
             continue
         if device_class in ("opening", "moisture", "motion"):
@@ -122,65 +104,37 @@ async def async_setup_entry(
                     )
                     if subnode_id == 2:
                         # Subnode 2 is the Dusk/Dawn sensor
-                        device = ISYBinarySensorDevice(node, "light")
+                        device = ISYBinarySensorEntity(node, "light")
                         devices.append(device)
                     elif subnode_id == 3:
                         # Subnode 3 is the low battery node
-                        device = ISYBinarySensorDevice(node, "battery", initial_state)
+                        device = ISYBinarySensorEntity(node, "battery", initial_state)
                         devices.append(device)
                     elif subnode_id in (10, 16):
                         # Tamper Sub-node for MS II. Sometimes reported as "A" sometimes
                         # reported as "10", which translate from Hex to 10 and 16 resp.
-                        device = ISYBinarySensorDevice(node, "problem", initial_state)
+                        device = ISYBinarySensorEntity(node, "problem", initial_state)
                         devices.append(device)
                     elif subnode_id in (13, 19):
                         # Motion Disabled Sub-node for MS II ("D" or "13")
-                        device = ISYBinarySensorDevice(node, "None")
+                        device = ISYBinarySensorEntity(node, "None")
                         devices.append(device)
                     continue
                 continue
         # We don't yet have any special logic for other sensor
         # types, so add the nodes as individual devices
-        device = ISYBinarySensorDevice(node, device_class)
+        device = ISYBinarySensorEntity(node, device_class)
         devices.append(device)
 
     for name, status, _ in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
-        devices.append(ISYBinarySensorProgram(name, status))
-
-    for vcfg, vname, vobj in hass_isy_data[ISY994_VARIABLES][PLATFORM_DOMAIN]:
-        devices.append(ISYBinarySensorVariableDevice(vcfg, vname, vobj))
+        devices.append(ISYBinarySensorProgramEntity(name, status))
 
     await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
     async_add_entities(devices)
+    async_setup_device_services(hass)
 
 
-def _detect_device_type(node) -> (str, str):
-    try:
-        device_type = node.type
-    except AttributeError:
-        # The type attribute didn't exist in the ISY's API response
-        return (None, None)
-
-    # Z-Wave Devices:
-    if node.protocol == PROTO_ZWAVE:
-        device_type = "Z{}".format(node.zwave_props.category)
-        for device_class in [*ZWAVE_BIN_SENS_DEVICE_TYPES]:
-            if node.zwave_props.category in ZWAVE_BIN_SENS_DEVICE_TYPES[device_class]:
-                return device_class, device_type
-    else:  # Other devices (incl Insteon.)
-        for device_class in [*ISY_BIN_SENS_DEVICE_TYPES]:
-            if any(
-                [
-                    device_type.startswith(t)
-                    for t in set(ISY_BIN_SENS_DEVICE_TYPES[device_class])
-                ]
-            ):
-                return device_class, device_type
-
-    return (None, device_type)
-
-
-class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorDevice):
     """Representation of an ISY994 binary sensor device.
 
     Often times, a single device is represented by multiple nodes in the ISY,
@@ -337,7 +291,7 @@ class ISYBinarySensorDevice(ISYDevice, BinarySensorDevice):
         return self._device_class_from_type
 
 
-class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorDevice):
     """Representation of the battery state of an ISY994 sensor."""
 
     def __init__(self, node, parent_device) -> None:
@@ -451,67 +405,14 @@ class ISYBinarySensorHeartbeat(ISYDevice, BinarySensorDevice):
         return attr
 
 
-class ISYBinarySensorProgram(ISYDevice, BinarySensorDevice):
+class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorDevice):
     """Representation of an ISY994 binary sensor program.
 
     This does not need all of the subnode logic in the device version of binary
     sensors.
     """
 
-    def __init__(self, name, node) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(node)
-        self._name = name
-
     @property
     def is_on(self) -> bool:
         """Get whether the ISY994 binary sensor device is on."""
         return bool(self.value)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        attr = {}
-        attr["status_enabled"] = self._node.enabled
-        attr["status_last_finished"] = self._node.last_finished
-        attr["status_last_run"] = self._node.last_run
-        attr["status_last_update"] = self._node.last_update
-        return attr
-
-
-class ISYBinarySensorVariableDevice(ISYDevice, BinarySensorDevice):
-    """Representation of an ISY994 variable as a sensor device."""
-
-    def __init__(self, vcfg: dict, vname: str, vobj: object) -> None:
-        """Initialize the ISY994 binary sensor program."""
-        super().__init__(vobj)
-        self._config = vcfg
-        self._name = vcfg.get(CONF_NAME, vname)
-        self._vtype = vcfg.get(CONF_TYPE)
-        self._vid = vcfg.get(CONF_ID)
-        self._on_value = vcfg.get(CONF_PAYLOAD_ON)
-        self._off_value = vcfg.get(CONF_PAYLOAD_OFF)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Get the state attributes for the device."""
-        return {"init_value": int(self._node.init)}
-
-    @property
-    def is_on(self):
-        """Return true if the binary sensor is on."""
-        if self.value == self._on_value:
-            return True
-        if self.value == self._off_value:
-            return False
-        return None
-
-    @property
-    def icon(self):
-        """Return the icon."""
-        return self._config.get(CONF_ICON)
-
-    @property
-    def device_class(self) -> Optional[str]:
-        """Return the device class of the sensor."""
-        return self._config.get(CONF_DEVICE_CLASS)

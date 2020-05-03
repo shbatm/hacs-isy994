@@ -1,5 +1,4 @@
 """Config flow for Universal Devices ISY994 integration."""
-from functools import partial
 import logging
 from urllib.parse import urlparse
 
@@ -16,10 +15,12 @@ from .const import (
     CONF_RESTORE_LIGHT_STATE,
     CONF_SENSOR_STRING,
     CONF_TLS_VER,
+    CONF_VAR_SENSOR_STRING,
     DEFAULT_IGNORE_STRING,
     DEFAULT_RESTORE_LIGHT_STATE,
     DEFAULT_SENSOR_STRING,
     DEFAULT_TLS_VERSION,
+    DEFAULT_VAR_SENSOR_STRING,
 )
 from .const import DOMAIN  # pylint:disable=unused-import
 
@@ -32,7 +33,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
         vol.Optional(CONF_TLS_VER, default=DEFAULT_TLS_VERSION): vol.In([1.1, 1.2]),
-        # Variables require yaml
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -59,31 +59,40 @@ async def validate_input(hass: core.HomeAssistant, data):
         raise InvalidHost
 
     # Connect to ISY controller.
+    isy_conf = await hass.async_add_executor_job(
+        _fetch_isy_configuration,
+        host.hostname,
+        port,
+        user,
+        password,
+        https,
+        tls_version,
+        host.path,
+    )
+
+    # Return info that you want to store in the config entry.
+    return {"title": f"{isy_conf['name']} ({host.hostname})", "uuid": isy_conf["uuid"]}
+
+
+def _fetch_isy_configuration(
+    address, port, username, password, use_https, tls_ver, webroot
+):
+    """Validate and fetch the configuration from the ISY."""
     try:
-        isy_conn = await hass.async_add_executor_job(
-            partial(
-                Connection,
-                host.hostname,
-                port,
-                username=user,
-                password=password,
-                use_https=https,
-                tls_ver=tls_version,
-                log=_LOGGER,
-                webroot=host.path,
-            )
+        isy_conn = Connection(
+            address,
+            port,
+            username,
+            password,
+            use_https,
+            tls_ver,
+            log=_LOGGER,
+            webroot=webroot,
         )
     except ValueError as err:
         raise InvalidAuth(err.args[0])
-    else:
-        isy_conf = await hass.async_add_executor_job(
-            partial(Configuration, log=_LOGGER, xml=isy_conn.get_config())
-        )
-        # Return info that you want to store in the config entry.
-        return {
-            "title": f"{isy_conf['name']} ({host.hostname})",
-            "uuid": isy_conf["uuid"],
-        }
+
+    return Configuration(log=_LOGGER, xml=isy_conn.get_config())
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -91,6 +100,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -122,12 +137,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle import."""
         return await self.async_step_user(user_input)
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
-
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for isy994."""
@@ -147,18 +156,22 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
         ignore_string = options.get(CONF_IGNORE_STRING, DEFAULT_IGNORE_STRING)
         sensor_string = options.get(CONF_SENSOR_STRING, DEFAULT_SENSOR_STRING)
+        var_sensor_string = options.get(
+            CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
+        )
 
         options_schema = vol.Schema(
             {
+                vol.Optional(CONF_IGNORE_STRING, default=ignore_string): str,
+                vol.Optional(CONF_SENSOR_STRING, default=sensor_string): str,
+                vol.Optional(CONF_VAR_SENSOR_STRING, default=var_sensor_string): str,
                 vol.Required(
                     CONF_RESTORE_LIGHT_STATE, default=restore_light_state
                 ): bool,
-                vol.Optional(CONF_IGNORE_STRING, default=ignore_string): str,
-                vol.Optional(CONF_SENSOR_STRING, default=sensor_string): str,
             }
         )
 
-        return self.async_show_form(step_id="init", data_schema=options_schema,)
+        return self.async_show_form(step_id="init", data_schema=options_schema)
 
 
 class InvalidHost(exceptions.HomeAssistantError):

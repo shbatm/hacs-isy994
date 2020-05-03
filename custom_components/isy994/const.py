@@ -1,4 +1,6 @@
 """Constants for the ISY994 Platform."""
+import logging
+
 from homeassistant.components.binary_sensor import DOMAIN as PLATFORM_BINARY_SENSOR
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_COOL,
@@ -72,6 +74,8 @@ from homeassistant.const import (
     VOLUME_LITERS,
 )
 
+_LOGGER = logging.getLogger(__package__)
+
 DOMAIN = "isy994"
 
 MANUFACTURER = "Universal Devices, Inc"
@@ -80,22 +84,51 @@ ATTR_LAST_BRIGHTNESS = "last_brightness"
 
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
-CONF_ISY_VARIABLES = "isy_variables"
+CONF_VAR_SENSOR_STRING = "variable_sensor_string"
 CONF_TLS_VER = "tls"
 CONF_RESTORE_LIGHT_STATE = "restore_light_state"
 
 DEFAULT_IGNORE_STRING = "{IGNORE ME}"
 DEFAULT_SENSOR_STRING = "sensor"
+DEFAULT_VAR_SENSOR_STRING = "HA."
 DEFAULT_RESTORE_LIGHT_STATE = False
 DEFAULT_TLS_VERSION = 1.1
-
-DEFAULT_ON_VALUE = 1
-DEFAULT_OFF_VALUE = 0
 
 KEY_ACTIONS = "actions"
 KEY_FOLDER = "folder"
 KEY_MY_PROGRAMS = "My Programs"
 KEY_STATUS = "status"
+
+SUPPORTED_PLATFORMS = [
+    PLATFORM_BINARY_SENSOR,
+    PLATFORM_SENSOR,
+    PLATFORM_LOCK,
+    PLATFORM_FAN,
+    PLATFORM_COVER,
+    PLATFORM_LIGHT,
+    PLATFORM_SWITCH,
+    PLATFORM_CLIMATE,
+]
+SUPPORTED_PROGRAM_PLATFORMS = [
+    PLATFORM_BINARY_SENSOR,
+    PLATFORM_LOCK,
+    PLATFORM_FAN,
+    PLATFORM_COVER,
+    PLATFORM_SWITCH,
+]
+
+SUPPORTED_BIN_SENS_CLASSES = ["moisture", "opening", "motion", "climate"]
+
+# ISY Scenes are more like Switches than Home Assistant Scenes
+# (they can turn off, and report their state)
+ISY_GROUP_PLATFORM = PLATFORM_SWITCH
+
+ISY994_ISY = "isy"
+ISY994_NODES = "isy994_nodes"
+ISY994_PROGRAMS = "isy994_programs"
+ISY994_VARIABLES = "isy994_variables"
+
+UNDO_UPDATE_LISTENER = "undo_update_listener"
 
 # Do not use the Home Assistant consts for the states here - we're matching exact API
 # responses, not using them for Home Assistant states
@@ -206,49 +239,6 @@ NODE_FILTERS = {
         "zwave_cat": ["140"],
     },
 }
-
-SUPPORTED_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_SENSOR,
-    PLATFORM_LOCK,
-    PLATFORM_FAN,
-    PLATFORM_COVER,
-    PLATFORM_LIGHT,
-    PLATFORM_SWITCH,
-    PLATFORM_CLIMATE,
-]
-SUPPORTED_PROGRAM_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_LOCK,
-    PLATFORM_FAN,
-    PLATFORM_COVER,
-    PLATFORM_SWITCH,
-]
-SUPPORTED_VARIABLE_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_SENSOR,
-    PLATFORM_SWITCH,
-]
-
-# ISY Scenes are more like Switches than Home Assistant Scenes
-# (they can turn off, and report their state)
-ISY_GROUP_PLATFORM = PLATFORM_SWITCH
-
-ISY994_ISY = "isy"
-ISY994_NODES = "isy994_nodes"
-ISY994_PROGRAMS = "isy994_programs"
-ISY994_VARIABLES = "isy994_variables"
-
-UNDO_UPDATE_LISTENER = "undo_update_listener"
-
-ISY_HVAC_MODES = [
-    HVAC_MODE_OFF,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT_COOL,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_FAN_ONLY,
-]
 
 UOM_FRIENDLY_NAME = {
     "1": "A",
@@ -510,6 +500,15 @@ UOM_TO_STATES = {
     "99": {7: FAN_ON, 8: FAN_AUTO},  # Insteon Thermostat Fan Mode
 }
 
+ISY_HVAC_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_COOL,
+    HVAC_MODE_HEAT_COOL,
+    HVAC_MODE_AUTO,
+    HVAC_MODE_FAN_ONLY,
+]
+
 HA_HVAC_TO_ISY = {
     HVAC_MODE_OFF: "off",
     HVAC_MODE_HEAT: "heat",
@@ -520,8 +519,6 @@ HA_HVAC_TO_ISY = {
 }
 
 HA_FAN_TO_ISY = {FAN_ON: "on", FAN_AUTO: "auto"}
-
-SUPPORTED_BIN_SENS_CLASSES = ["moisture", "opening", "motion", "climate"]
 
 ISY_BIN_SENS_DEVICE_TYPES = {
     "moisture": ["16.8.", "16.13.", "16.14."],
