@@ -12,6 +12,8 @@ As of version 1.4.0, there are now services exposed for more control over your I
  - `isy994.set_variable`: Set an ISY variable's current or initial value. Variables can be set by either type/address or by name.
  - `isy994.send_program_command`: Send a command to control an ISY program or folder. Valid commands are run, run_then, run_else, stop, enable, disable, enable_run_at_startup, and disable_run_at_startup.
  - `isy994.run_network_resource`: Run a network resource on the ISY.
+ - `isy994.reload`: Reload the ISY994 connection(s) without restarting Home Assistant. Use to pick up new devices that have been added or changed on the ISY.
+ - `isy994.cleanup_entities`: Cleanup old entities and devices no longer used by the ISY994 integrations. Useful if you've removed devices from the ISY or changed the options in the configuration to exclude additional items.
 
 ### Now Configurable from the Integrations Page!
 
