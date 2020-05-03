@@ -3,7 +3,7 @@ from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.lock import DOMAIN as LOCK, LockDevice
+from homeassistant.components.lock import DOMAIN as LOCK, LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_LOCKED, STATE_UNKNOWN, STATE_UNLOCKED
 from homeassistant.helpers.typing import HomeAssistantType
@@ -35,7 +35,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYLockEnitity(ISYNodeEntity, LockDevice):
+class ISYLockEnitity(ISYNodeEntity, LockEntity):
     """Representation of an ISY994 lock device."""
 
     @property
@@ -65,7 +65,7 @@ class ISYLockEnitity(ISYNodeEntity, LockDevice):
         self._node.update(0.5)
 
 
-class ISYLockProgramEntity(ISYProgramEntity, LockDevice):
+class ISYLockProgramEntity(ISYProgramEntity, LockEntity):
     """Representation of a ISY lock program."""
 
     @property

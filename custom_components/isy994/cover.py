@@ -3,7 +3,7 @@ from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.cover import DOMAIN as COVER, CoverDevice
+from homeassistant.components.cover import DOMAIN as COVER, CoverEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
@@ -39,7 +39,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYCoverEntity(ISYNodeEntity, CoverDevice):
+class ISYCoverEntity(ISYNodeEntity, CoverEntity):
     """Representation of an ISY994 cover device."""
 
     @property
@@ -72,7 +72,7 @@ class ISYCoverEntity(ISYNodeEntity, CoverDevice):
             _LOGGER.error("Unable to close the cover")
 
 
-class ISYCoverProgram(ISYProgramEntity, CoverDevice):
+class ISYCoverProgram(ISYProgramEntity, CoverEntity):
     """Representation of an ISY994 cover program."""
 
     @property
@@ -89,8 +89,3 @@ class ISYCoverProgram(ISYProgramEntity, CoverDevice):
         """Send the close cover command to the ISY994 cover program."""
         if not self._actions.run_else():
             _LOGGER.error("Unable to close the cover")
-
-    @property
-    def icon(self) -> str:
-        """Get the icon for programs."""
-        return None

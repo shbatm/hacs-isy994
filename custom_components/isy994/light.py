@@ -3,7 +3,11 @@ from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.light import DOMAIN as LIGHT, SUPPORT_BRIGHTNESS, Light
+from homeassistant.components.light import (
+    DOMAIN as LIGHT,
+    SUPPORT_BRIGHTNESS,
+    LightEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -11,7 +15,6 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import (
     _LOGGER,
-    ATTR_LAST_BRIGHTNESS,
     CONF_RESTORE_LIGHT_STATE,
     DOMAIN as ISY994_DOMAIN,
     ISY994_NODES,
@@ -19,6 +22,8 @@ from .const import (
 from .entity import ISYNodeEntity
 from .helpers import migrate_old_unique_ids
 from .services import async_setup_device_services, async_setup_light_services
+
+ATTR_LAST_BRIGHTNESS = "last_brightness"
 
 
 async def async_setup_entry(
@@ -41,13 +46,13 @@ async def async_setup_entry(
     async_setup_light_services(hass)
 
 
-class ISYLightEntity(ISYNodeEntity, Light, RestoreEntity):
+class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     """Representation of an ISY994 light device."""
 
     def __init__(self, node, restore_light_state) -> None:
         """Initialize the ISY994 light device."""
         super().__init__(node)
-        self._last_brightness = self.brightness
+        self._last_brightness = None
         self._restore_light_state = restore_light_state
 
     @property

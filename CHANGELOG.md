@@ -1,5 +1,19 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.4.3] - Bug Fixes and Core Catchup to 0.10x.x
+
+- Rename BinarySensorDevice to BinarySensorEntity (home-assistant/core#34462)
+- Rename LockDevice to LockEntity (home-assistant/core#34594)
+- Rename SwitchDevice to SwitchEntity (home-assistant/core#34673)
+- Rename LockDevice to LockEntity (home-assistant/core#34594)
+- Rename CoverDevice to CoverEntity (home-assistant/core#34595)
+- Rename Light to LightEntity (home-assistant/core#34593)
+- Rename ClimateDevice to ClimateEntity (home-assistant/core#34591)
+- Fix restoring isy994 brightness with no previous state (home-assistant/core#34972)
+- Rename "platform" (formerly "domain") to "component" to better align with Home Assistant terminology.
+
+### [1.4.2]
+
 ### [1.4.1] - Added Reload and Cleanup Services, Bye-bye Beta!
 
 - **MAJOR MILESTONE**: Good-bye beta! Now running on `pyisy==2.0.0`!

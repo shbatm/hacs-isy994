@@ -3,7 +3,7 @@ from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
-from homeassistant.components.switch import DOMAIN as SWITCH, SwitchDevice
+from homeassistant.components.switch import DOMAIN as SWITCH, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
@@ -33,7 +33,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYSwitchDevice(ISYNodeEntity, SwitchDevice):
+class ISYSwitchDevice(ISYNodeEntity, SwitchEntity):
     """Representation of an ISY994 switch device."""
 
     @property
@@ -61,7 +61,7 @@ class ISYSwitchDevice(ISYNodeEntity, SwitchDevice):
         return super().icon
 
 
-class ISYSwitchProgram(ISYProgramEntity, SwitchDevice):
+class ISYSwitchProgram(ISYProgramEntity, SwitchEntity):
     """A representation of an ISY994 program switch."""
 
     @property

@@ -6,7 +6,7 @@ from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON
 
 from homeassistant.components.binary_sensor import (
     DOMAIN as BINARY_SENSOR,
-    BinarySensorDevice,
+    BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
@@ -133,7 +133,7 @@ async def async_setup_entry(
     async_setup_device_services(hass)
 
 
-class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorDevice):
+class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorEntity):
     """Representation of an ISY994 binary sensor device.
 
     Often times, a single device is represented by multiple nodes in the ISY,
@@ -290,7 +290,7 @@ class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorDevice):
         return self._device_class_from_type
 
 
-class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorDevice):
+class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
     """Representation of the battery state of an ISY994 sensor."""
 
     def __init__(self, node, parent_device) -> None:
@@ -404,7 +404,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorDevice):
         return attr
 
 
-class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorDevice):
+class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorEntity):
     """Representation of an ISY994 binary sensor program.
 
     This does not need all of the subnode logic in the device version of binary

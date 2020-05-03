@@ -13,7 +13,7 @@ from pyisy.constants import (
     PROTO_INSTEON,
 )
 
-from homeassistant.components.climate import ClimateDevice
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
@@ -88,7 +88,7 @@ def fix_temp(temp, uom, prec) -> float:
     return int(temp)
 
 
-class ISYThermostatEntity(ISYNodeEntity, ClimateDevice):
+class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
     """Representation of an ISY994 thermostat device."""
 
     def __init__(self, node) -> None:

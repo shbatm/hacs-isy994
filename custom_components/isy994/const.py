@@ -80,8 +80,6 @@ DOMAIN = "isy994"
 
 MANUFACTURER = "Universal Devices, Inc"
 
-ATTR_LAST_BRIGHTNESS = "last_brightness"
-
 CONF_IGNORE_STRING = "ignore_string"
 CONF_SENSOR_STRING = "sensor_string"
 CONF_VAR_SENSOR_STRING = "variable_sensor_string"
@@ -125,6 +123,7 @@ NODE_FILTERS = {
         "states": [],
         "node_def_id": [
             "BinaryAlarm",
+            "BinaryAlarm_ADV",
             "BinaryControl",
             "BinaryControl_ADV",
             "EZIO2x4_Input",
@@ -184,6 +183,8 @@ NODE_FILTERS = {
             "DimmerLampSwitch_ADV",
             "DimmerSwitchOnly",
             "DimmerSwitchOnly_ADV",
+            "KeypadDimmer",
+            "KeypadDimmer_ADV",
         ],
         "insteon_type": ["1."],
         "zwave_cat": ["109", "119"],
