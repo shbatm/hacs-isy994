@@ -13,7 +13,6 @@ from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import migrate_old_unique_ids
 from .const import (
     _LOGGER,
     ATTR_LAST_BRIGHTNESS,
@@ -22,6 +21,7 @@ from .const import (
     ISY994_NODES,
 )
 from .entity import ISYNodeEntity
+from .helpers import migrate_old_unique_ids
 from .services import async_setup_device_services, async_setup_light_services
 
 

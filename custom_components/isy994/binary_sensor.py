@@ -15,10 +15,9 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from . import migrate_old_unique_ids
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity
-from .helpers import _detect_device_type
+from .helpers import _detect_device_type, migrate_old_unique_ids
 from .services import async_setup_device_services
 
 

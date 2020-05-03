@@ -36,7 +36,7 @@ SERVICE_SYSTEM_QUERY = "system_query"
 SERVICE_SET_VARIABLE = "set_variable"
 SERVICE_SEND_PROGRAM_COMMAND = "send_program_command"
 SERVICE_RUN_NETWORK_RESOURCE = "run_network_resource"
-SERVICE_CLEANUP = "cleanup"
+SERVICE_CLEANUP = "cleanup_entities"
 
 INTEGRATION_SERVICES = [
     SERVICE_SYSTEM_QUERY,
@@ -268,7 +268,7 @@ def async_setup_services(hass: HomeAssistantType):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
             for platform in SUPPORTED_PROGRAM_PLATFORMS:
-                for node in hass_isy_data[ISY994_PROGRAMS][platform]:
+                for _, node, _ in hass_isy_data[ISY994_PROGRAMS][platform]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
@@ -281,13 +281,6 @@ def async_setup_services(hass: HomeAssistantType):
             for unique_id, entity_id, device_id in config_ids
             if unique_id not in current_unique_ids
         ]
-
-        _LOGGER.info(
-            "Cleaning up ISY994 Entities: Config Entries: %s, Current Entries: %s, Extra Entries Removed: %s",
-            len(config_ids),
-            len(current_unique_ids),
-            len(extra_entities),
-        )
 
         for entity_id, _ in extra_entities:
             if entity_registry.async_is_registered(entity_id):
@@ -302,13 +295,17 @@ def async_setup_services(hass: HomeAssistantType):
         current_devices = {item.device_id for item in entity_registry.entities.values()}
         devices_to_remove = devices_to_check - current_devices
 
-        _LOGGER.info(
-            "Cleaning up ISY994 Devices: Extra Devices Removed: %s",
-            len(devices_to_remove),
-        )
-
         for device_id in devices_to_remove:
             device_registry.async_remove_device(device_id)
+
+        _LOGGER.info(
+            "Cleaning up ISY994 Entities and devices: Config Entries: %s, Current Entries: %s, "
+            "Extra Entries Removed: %s, Extra Devices Removed: %s",
+            len(config_ids),
+            len(current_unique_ids),
+            len(extra_entities),
+            len(devices_to_remove),
+        )
 
     async def async_reload_config_entries(service) -> None:
         """Trigger a reload of all ISY994 config entries."""
@@ -372,7 +369,7 @@ def async_unload_services(hass: HomeAssistantType):
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_RUN_NETWORK_RESOURCE)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_PROGRAM_COMMAND)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SET_VARIABLE)
-    hass.services.async_remove(domain=DOMAIN, service="cleanup")
+    hass.services.async_remove(domain=DOMAIN, service=SERVICE_CLEANUP)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_RELOAD)
 
 

@@ -12,7 +12,6 @@ from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 import homeassistant.helpers.device_registry as dr
-from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -262,33 +261,3 @@ async def async_unload_entry(
     async_unload_services(hass)
 
     return unload_ok
-
-
-async def migrate_old_unique_ids(hass, platform, devices):
-    """Migrate to new controller-specific unique ids."""
-    registry = await async_get_registry(hass)
-
-    for device in devices:
-        old_entity_id = registry.async_get_entity_id(
-            platform, DOMAIN, device.old_unique_id
-        )
-        if old_entity_id is not None:
-            _LOGGER.debug(
-                "Migrating unique_id from [%s] to [%s]",
-                device.old_unique_id,
-                device.unique_id,
-            )
-            registry.async_update_entity(old_entity_id, new_unique_id=device.unique_id)
-
-        old_entity_id_2 = registry.async_get_entity_id(
-            platform, DOMAIN, device.unique_id.replace(":", "")
-        )
-        if old_entity_id_2 is not None:
-            _LOGGER.debug(
-                "Migrating unique_id from [%s] to [%s]",
-                device.unique_id.replace(":", ""),
-                device.unique_id,
-            )
-            registry.async_update_entity(
-                old_entity_id_2, new_unique_id=device.unique_id
-            )

@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN, TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -18,6 +17,7 @@ from .const import (
     UOM_TO_STATES,
 )
 from .entity import ISYEntity, ISYNodeEntity
+from .helpers import migrate_old_unique_ids
 from .services import async_setup_device_services
 
 

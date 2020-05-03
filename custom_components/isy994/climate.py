@@ -35,7 +35,6 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import migrate_old_unique_ids
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
@@ -46,6 +45,7 @@ from .const import (
     UOM_TO_STATES,
 )
 from .entity import ISYNodeEntity
+from .helpers import migrate_old_unique_ids
 from .services import async_setup_device_services
 
 ISY_SUPPORTED_FEATURES = (
