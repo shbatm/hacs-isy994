@@ -11,19 +11,40 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_TYPE,
     CONF_UNIT_OF_MEASUREMENT,
+    SERVICE_RELOAD,
 )
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
+import homeassistant.helpers.device_registry as dr
+import homeassistant.helpers.entity_registry as er
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import _LOGGER, DOMAIN, ISY994_ISY
+from .const import (
+    _LOGGER,
+    DOMAIN,
+    ISY994_ISY,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+    ISY994_VARIABLES,
+    SUPPORTED_PLATFORMS,
+    SUPPORTED_PROGRAM_PLATFORMS,
+)
 
 # Common Services for All Platforms:
 SERVICE_SYSTEM_QUERY = "system_query"
 SERVICE_SET_VARIABLE = "set_variable"
 SERVICE_SEND_PROGRAM_COMMAND = "send_program_command"
 SERVICE_RUN_NETWORK_RESOURCE = "run_network_resource"
+SERVICE_CLEANUP = "cleanup"
+
+INTEGRATION_SERVICES = [
+    SERVICE_SYSTEM_QUERY,
+    SERVICE_SET_VARIABLE,
+    SERVICE_SEND_PROGRAM_COMMAND,
+    SERVICE_RUN_NETWORK_RESOURCE,
+    SERVICE_CLEANUP,
+]
 
 # Entity specific methods (valid for most Groups/ISY Scenes, Lights, Switches, Fans)
 SERVICE_SEND_RAW_NODE_COMMAND = "send_raw_node_command"
@@ -133,7 +154,11 @@ SERVICE_RUN_NETWORK_RESOURCE_SCHEMA = vol.All(
 @callback
 def async_setup_services(hass: HomeAssistantType):
     """Create and register services for the ISY integration."""
-    if hass.services.async_services().get(DOMAIN):
+    existing_services = hass.services.async_services().get(DOMAIN)
+    if existing_services and any(
+        service in INTEGRATION_SERVICES for service in existing_services.keys()
+    ):
+        # Integration-level services have already been added. Return.
         return
 
     async def async_system_query_service_handler(service):
@@ -218,6 +243,78 @@ def async_setup_services(hass: HomeAssistantType):
                 return
         _LOGGER.error("Could not set variable value. Not found or enabled on the ISY.")
 
+    async def async_cleanup_registry_entries(service) -> None:
+        """Remove extra entities that are no longer part of the integration."""
+        entity_registry = await er.async_get_registry(hass)
+        device_registry = await dr.async_get_registry(hass)
+        config_ids = []
+        current_unique_ids = []
+
+        for entry in hass.data[DOMAIN]:
+            config_enitities = er.async_entries_for_config_entry(entity_registry, entry)
+            config_ids.extend(
+                [
+                    (item.unique_id, item.entity_id, item.device_id)
+                    for item in config_enitities
+                ]
+            )
+
+            hass_isy_data = hass.data[DOMAIN][entry]
+            uuid = hass_isy_data[ISY994_ISY].configuration["uuid"]
+
+            for platform in SUPPORTED_PLATFORMS:
+                for node in hass_isy_data[ISY994_NODES][platform]:
+                    if hasattr(node, "address"):
+                        current_unique_ids.append(f"{uuid}_{node.address}")
+
+            for platform in SUPPORTED_PROGRAM_PLATFORMS:
+                for node in hass_isy_data[ISY994_PROGRAMS][platform]:
+                    if hasattr(node, "address"):
+                        current_unique_ids.append(f"{uuid}_{node.address}")
+
+            for node in hass_isy_data[ISY994_VARIABLES]:
+                if hasattr(node, "address"):
+                    current_unique_ids.append(f"{uuid}_{node.address}")
+
+        extra_entities = [
+            (entity_id, device_id)
+            for unique_id, entity_id, device_id in config_ids
+            if unique_id not in current_unique_ids
+        ]
+
+        _LOGGER.info(
+            "Cleaning up ISY994 Entities: Config Entries: %s, Current Entries: %s, Extra Entries Removed: %s",
+            len(config_ids),
+            len(current_unique_ids),
+            len(extra_entities),
+        )
+
+        for entity_id, _ in extra_entities:
+            if entity_registry.async_is_registered(entity_id):
+                entity_registry.async_remove(entity_id)
+
+        # Remove device registry entry if there are no remaining entities.
+        devices_to_check = set(
+            device_id
+            for entity_id, device_id in extra_entities
+            if device_id is not None
+        )
+        current_devices = {item.device_id for item in entity_registry.entities.values()}
+        devices_to_remove = devices_to_check - current_devices
+
+        _LOGGER.info(
+            "Cleaning up ISY994 Devices: Extra Devices Removed: %s",
+            len(devices_to_remove),
+        )
+
+        for device_id in devices_to_remove:
+            device_registry.async_remove_device(device_id)
+
+    async def async_reload_config_entries(service) -> None:
+        """Trigger a reload of all ISY994 config entries."""
+        for entry in hass.data[DOMAIN]:
+            hass.async_create_task(hass.config_entries.async_reload(entry))
+
     hass.services.async_register(
         domain=DOMAIN,
         service=SERVICE_SYSTEM_QUERY,
@@ -246,6 +343,16 @@ def async_setup_services(hass: HomeAssistantType):
         schema=SERVICE_SET_VARIABLE_SCHEMA,
     )
 
+    hass.services.async_register(
+        domain=DOMAIN,
+        service=SERVICE_CLEANUP,
+        service_func=async_cleanup_registry_entries,
+    )
+
+    hass.services.async_register(
+        domain=DOMAIN, service=SERVICE_RELOAD, service_func=async_reload_config_entries
+    )
+
 
 @callback
 def async_unload_services(hass: HomeAssistantType):
@@ -254,11 +361,19 @@ def async_unload_services(hass: HomeAssistantType):
         # There is still another config entry for this domain, don't remove services.
         return
 
+    existing_services = hass.services.async_services().get(DOMAIN)
+    if not existing_services or not any(
+        service in INTEGRATION_SERVICES for service in existing_services.keys()
+    ):
+        return
+
     _LOGGER.info("Unloading ISY994 Services.")
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SYSTEM_QUERY)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_RUN_NETWORK_RESOURCE)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_PROGRAM_COMMAND)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SET_VARIABLE)
+    hass.services.async_remove(domain=DOMAIN, service="cleanup")
+    hass.services.async_remove(domain=DOMAIN, service=SERVICE_RELOAD)
 
 
 @callback

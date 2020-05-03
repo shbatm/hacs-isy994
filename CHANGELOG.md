@@ -1,5 +1,11 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
+### [1.4.1] - Added Reload and Cleanup Services, Bye-bye Beta!
+
+- **MAJOR MILESTONE**: Good-bye beta! Now running on `pyisy==2.0.0`!
+    + This is a major milestone towards enabling these changes to be migrated into the Home Assistant Core code, and have been over a year in the making!
+- Added `isy994.reload` and `isy994.cleanup` services to reload the integration without restarting (to add new devices) and to cleanup old devices that have been removed or disabled on the ISY.
+
 ### [1.4.0] - Services, Variables Reavamped, Inheritance Fixes
 
 #### BREAKING CHANGES!! - Variable Support Has Changed in this Version!

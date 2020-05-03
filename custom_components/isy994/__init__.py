@@ -64,12 +64,12 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the isy994 component from YAML."""
     isy_config: Optional[ConfigType] = config.get(DOMAIN)
+    hass.data.setdefault(DOMAIN, {})
 
     if not isy_config:
         return True
 
     # Only import if we haven't before.
-    hass.data.setdefault(DOMAIN, {})
     config_entry = _async_find_matching_config_entry(hass)
     if not config_entry:
         hass.async_create_task(
