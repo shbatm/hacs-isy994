@@ -29,8 +29,8 @@ from .const import (
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
     MANUFACTURER,
-    SUPPORTED_COMPONENTS,
-    SUPPORTED_PROGRAM_COMPONENTS,
+    SUPPORTED_PLATFORMS,
+    SUPPORTED_PROGRAM_PLATFORMS,
     UNDO_UPDATE_LISTENER,
 )
 from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
@@ -106,12 +106,12 @@ async def async_setup_entry(
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     hass_isy_data[ISY994_NODES] = {}
-    for component in SUPPORTED_COMPONENTS:
-        hass_isy_data[ISY994_NODES][component] = []
+    for platform in SUPPORTED_PLATFORMS:
+        hass_isy_data[ISY994_NODES][platform] = []
 
     hass_isy_data[ISY994_PROGRAMS] = {}
-    for component in SUPPORTED_PROGRAM_COMPONENTS:
-        hass_isy_data[ISY994_PROGRAMS][component] = []
+    for platform in SUPPORTED_PROGRAM_PLATFORMS:
+        hass_isy_data[ISY994_PROGRAMS][platform] = []
 
     hass_isy_data[ISY994_VARIABLES] = []
 
@@ -168,10 +168,10 @@ async def async_setup_entry(
     hass_isy_data[ISY994_ISY] = isy
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
 
-    # Load components for the devices in the ISY controller that we support.
-    for component in SUPPORTED_COMPONENTS:
+    # Load platforms for the devices in the ISY controller that we support.
+    for platform in SUPPORTED_PLATFORMS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
+            hass.config_entries.async_forward_entry_setup(entry, platform)
         )
 
     def _start_auto_update() -> None:
@@ -236,8 +236,8 @@ async def async_unload_entry(
     unload_ok = all(
         await asyncio.gather(
             *[
-                hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in SUPPORTED_COMPONENTS
+                hass.config_entries.async_forward_entry_unload(entry, platform)
+                for platform in SUPPORTED_PLATFORMS
             ]
         )
     )
