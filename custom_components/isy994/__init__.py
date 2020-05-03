@@ -29,8 +29,8 @@ from .const import (
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
     MANUFACTURER,
-    SUPPORTED_PLATFORMS,
-    SUPPORTED_PROGRAM_PLATFORMS,
+    SUPPORTED_COMPONENTS,
+    SUPPORTED_PROGRAM_COMPONENTS,
     UNDO_UPDATE_LISTENER,
 )
 from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
@@ -61,7 +61,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the isy994 component from YAML."""
+    """Set up the isy994 integration from YAML."""
     isy_config: Optional[ConfigType] = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
 
@@ -95,7 +95,7 @@ def _async_find_matching_config_entry(hass):
 async def async_setup_entry(
     hass: HomeAssistant, entry: config_entries.ConfigEntry
 ) -> bool:
-    """Set up the ISY 994 platform."""
+    """Set up the ISY 994 integration."""
     # As there currently is no way to import options from yaml
     # when setting up a config entry, we fallback to adding
     # the options to the config entry and pull them out here if
@@ -106,12 +106,12 @@ async def async_setup_entry(
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
 
     hass_isy_data[ISY994_NODES] = {}
-    for platform in SUPPORTED_PLATFORMS:
-        hass_isy_data[ISY994_NODES][platform] = []
+    for component in SUPPORTED_COMPONENTS:
+        hass_isy_data[ISY994_NODES][component] = []
 
     hass_isy_data[ISY994_PROGRAMS] = {}
-    for platform in SUPPORTED_PROGRAM_PLATFORMS:
-        hass_isy_data[ISY994_PROGRAMS][platform] = []
+    for component in SUPPORTED_PROGRAM_COMPONENTS:
+        hass_isy_data[ISY994_PROGRAMS][component] = []
 
     hass_isy_data[ISY994_VARIABLES] = []
 
@@ -168,8 +168,8 @@ async def async_setup_entry(
     hass_isy_data[ISY994_ISY] = isy
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
 
-    # Load platforms for the devices in the ISY controller that we support.
-    for component in SUPPORTED_PLATFORMS:
+    # Load components for the devices in the ISY controller that we support.
+    for component in SUPPORTED_COMPONENTS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
@@ -237,7 +237,7 @@ async def async_unload_entry(
         await asyncio.gather(
             *[
                 hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in SUPPORTED_PLATFORMS
+                for component in SUPPORTED_COMPONENTS
             ]
         )
     )

@@ -3,11 +3,7 @@ from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.light import (
-    DOMAIN as PLATFORM_DOMAIN,
-    SUPPORT_BRIGHTNESS,
-    Light,
-)
+from homeassistant.components.light import DOMAIN as LIGHT, SUPPORT_BRIGHTNESS, Light
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -36,10 +32,10 @@ async def async_setup_entry(
     restore_light_state = isy_options.get(CONF_RESTORE_LIGHT_STATE, False)
 
     devices = []
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][LIGHT]:
         devices.append(ISYLightEntity(node, restore_light_state))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, LIGHT, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
     async_setup_light_services(hass)

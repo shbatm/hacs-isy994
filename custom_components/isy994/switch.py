@@ -3,7 +3,7 @@ from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
-from homeassistant.components.switch import DOMAIN as PLATFORM_DOMAIN, SwitchDevice
+from homeassistant.components.switch import DOMAIN as SWITCH, SwitchDevice
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
@@ -22,13 +22,13 @@ async def async_setup_entry(
     """Set up the ISY994 switch platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][SWITCH]:
         devices.append(ISYSwitchDevice(node))
 
-    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][SWITCH]:
         devices.append(ISYSwitchProgram(name, status, actions))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, SWITCH, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 

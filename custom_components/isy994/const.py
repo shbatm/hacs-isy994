@@ -1,13 +1,13 @@
 """Constants for the ISY994 Platform."""
 import logging
 
-from homeassistant.components.binary_sensor import DOMAIN as PLATFORM_BINARY_SENSOR
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_COOL,
     CURRENT_HVAC_FAN,
     CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
-    DOMAIN as PLATFORM_CLIMATE,
+    DOMAIN as CLIMATE,
     FAN_AUTO,
     FAN_HIGH,
     FAN_MEDIUM,
@@ -22,12 +22,12 @@ from homeassistant.components.climate.const import (
     PRESET_AWAY,
     PRESET_BOOST,
 )
-from homeassistant.components.cover import DOMAIN as PLATFORM_COVER
-from homeassistant.components.fan import DOMAIN as PLATFORM_FAN
-from homeassistant.components.light import DOMAIN as PLATFORM_LIGHT
-from homeassistant.components.lock import DOMAIN as PLATFORM_LOCK
-from homeassistant.components.sensor import DOMAIN as PLATFORM_SENSOR
-from homeassistant.components.switch import DOMAIN as PLATFORM_SWITCH
+from homeassistant.components.cover import DOMAIN as COVER
+from homeassistant.components.fan import DOMAIN as FAN
+from homeassistant.components.light import DOMAIN as LIGHT
+from homeassistant.components.lock import DOMAIN as LOCK
+from homeassistant.components.sensor import DOMAIN as SENSOR
+from homeassistant.components.switch import DOMAIN as SWITCH
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     DEGREE,
@@ -99,29 +99,14 @@ KEY_FOLDER = "folder"
 KEY_MY_PROGRAMS = "My Programs"
 KEY_STATUS = "status"
 
-SUPPORTED_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_SENSOR,
-    PLATFORM_LOCK,
-    PLATFORM_FAN,
-    PLATFORM_COVER,
-    PLATFORM_LIGHT,
-    PLATFORM_SWITCH,
-    PLATFORM_CLIMATE,
-]
-SUPPORTED_PROGRAM_PLATFORMS = [
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_LOCK,
-    PLATFORM_FAN,
-    PLATFORM_COVER,
-    PLATFORM_SWITCH,
-]
+SUPPORTED_COMPONENTS = [BINARY_SENSOR, SENSOR, LOCK, FAN, COVER, LIGHT, SWITCH, CLIMATE]
+SUPPORTED_PROGRAM_COMPONENTS = [BINARY_SENSOR, LOCK, FAN, COVER, SWITCH]
 
 SUPPORTED_BIN_SENS_CLASSES = ["moisture", "opening", "motion", "climate"]
 
 # ISY Scenes are more like Switches than Home Assistant Scenes
 # (they can turn off, and report their state)
-ISY_GROUP_PLATFORM = PLATFORM_SWITCH
+ISY_GROUP_PLATFORM = SWITCH
 
 ISY994_ISY = "isy"
 ISY994_NODES = "isy994_nodes"
@@ -135,7 +120,7 @@ UNDO_UPDATE_LISTENER = "undo_update_listener"
 # Z-Wave Categories: https://www.universal-devices.com/developers/
 #                      wsdk/5.0.4/4_fam.xml
 NODE_FILTERS = {
-    PLATFORM_BINARY_SENSOR: {
+    BINARY_SENSOR: {
         "uom": [],
         "states": [],
         "node_def_id": [
@@ -150,7 +135,7 @@ NODE_FILTERS = {
         "insteon_type": ["7.0.", "7.13.", "16."],  # Does a startswith() match; incl .
         "zwave_cat": (["104", "112", "138"] + list(map(str, range(148, 180)))),
     },
-    PLATFORM_SENSOR: {
+    SENSOR: {
         # This is just a more-readable way of including MOST uoms between 1-100
         # (Remember that range() is non-inclusive of the stop value)
         "uom": (
@@ -167,28 +152,28 @@ NODE_FILTERS = {
         "insteon_type": ["9.0.", "9.7."],
         "zwave_cat": (["118", "143"] + list(map(str, range(180, 185)))),
     },
-    PLATFORM_LOCK: {
+    LOCK: {
         "uom": ["11"],
         "states": ["locked", "unlocked"],
         "node_def_id": ["DoorLock"],
         "insteon_type": ["15.", "4.64."],
         "zwave_cat": ["111"],
     },
-    PLATFORM_FAN: {
+    FAN: {
         "uom": [],
         "states": ["off", "low", "med", "high"],
         "node_def_id": ["FanLincMotor"],
         "insteon_type": ["1.46."],
         "zwave_cat": [],
     },
-    PLATFORM_COVER: {
+    COVER: {
         "uom": ["97"],
         "states": ["open", "closed", "closing", "opening", "stopped"],
         "node_def_id": [],
         "insteon_type": [],
         "zwave_cat": [],
     },
-    PLATFORM_LIGHT: {
+    LIGHT: {
         "uom": ["51"],
         "states": ["on", "off", "%"],
         "node_def_id": [
@@ -203,7 +188,7 @@ NODE_FILTERS = {
         "insteon_type": ["1."],
         "zwave_cat": ["109", "119"],
     },
-    PLATFORM_SWITCH: {
+    SWITCH: {
         "uom": ["2", "78"],
         "states": ["on", "off"],
         "node_def_id": [
@@ -231,7 +216,7 @@ NODE_FILTERS = {
         "insteon_type": ["0.16.", "2.", "7.3.255.", "9.10.", "9.11.", "113."],
         "zwave_cat": ["121", "122", "123", "137", "141", "147"],
     },
-    PLATFORM_CLIMATE: {
+    CLIMATE: {
         "uom": ["2"],
         "states": ["heating", "cooling", "idle", "fan_only", "off"],
         "node_def_id": ["TempLinc", "Thermostat"],

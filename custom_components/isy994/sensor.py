@@ -3,7 +3,7 @@ from typing import Callable, Dict
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN, TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
@@ -30,14 +30,14 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
 
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][SENSOR]:
         _LOGGER.debug("Loading %s", node.name)
         devices.append(ISYSensorEntity(node))
 
     for vname, vobj in hass_isy_data[ISY994_VARIABLES]:
         devices.append(ISYSensorVariableEntity(vname, vobj))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, SENSOR, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 

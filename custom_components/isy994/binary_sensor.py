@@ -5,7 +5,7 @@ from typing import Callable
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON
 
 from homeassistant.components.binary_sensor import (
-    DOMAIN as PLATFORM_DOMAIN,
+    DOMAIN as BINARY_SENSOR,
     BinarySensorDevice,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -32,7 +32,7 @@ async def async_setup_entry(
     child_nodes = []
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][BINARY_SENSOR]:
         device_class, device_type = _detect_device_type(node)
         if node.parent_node is None or node.protocol != PROTO_INSTEON:
             device = ISYBinarySensorEntity(node, device_class)
@@ -125,10 +125,10 @@ async def async_setup_entry(
         device = ISYBinarySensorEntity(node, device_class)
         devices.append(device)
 
-    for name, status, _ in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
+    for name, status, _ in hass_isy_data[ISY994_PROGRAMS][BINARY_SENSOR]:
         devices.append(ISYBinarySensorProgramEntity(name, status))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, BINARY_SENSOR, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 

@@ -14,7 +14,7 @@ from homeassistant.const import (
     SERVICE_RELOAD,
 )
 from homeassistant.core import callback
-from homeassistant.helpers import entity_platform
+from homeassistant.helpers import entity_component
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.entity_registry as er
@@ -27,8 +27,8 @@ from .const import (
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
-    SUPPORTED_PLATFORMS,
-    SUPPORTED_PROGRAM_PLATFORMS,
+    SUPPORTED_COMPONENTS,
+    SUPPORTED_PROGRAM_COMPONENTS,
 )
 
 # Common Services for All Platforms:
@@ -262,13 +262,13 @@ def async_setup_services(hass: HomeAssistantType):
             hass_isy_data = hass.data[DOMAIN][entry]
             uuid = hass_isy_data[ISY994_ISY].configuration["uuid"]
 
-            for platform in SUPPORTED_PLATFORMS:
-                for node in hass_isy_data[ISY994_NODES][platform]:
+            for component in SUPPORTED_COMPONENTS:
+                for node in hass_isy_data[ISY994_NODES][component]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
-            for platform in SUPPORTED_PROGRAM_PLATFORMS:
-                for _, node, _ in hass_isy_data[ISY994_PROGRAMS][platform]:
+            for component in SUPPORTED_PROGRAM_COMPONENTS:
+                for _, node, _ in hass_isy_data[ISY994_PROGRAMS][component]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
@@ -376,14 +376,14 @@ def async_unload_services(hass: HomeAssistantType):
 @callback
 def async_setup_device_services(hass: HomeAssistantType):
     """Create device-specific services for the ISY Integration."""
-    platform = entity_platform.current_platform.get()
+    component = entity_component.current_component.get()
 
-    platform.async_register_entity_service(
+    component.async_register_entity_service(
         SERVICE_SEND_RAW_NODE_COMMAND,
         SERVICE_SEND_RAW_NODE_COMMAND_SCHEMA,
         SERVICE_SEND_RAW_NODE_COMMAND,
     )
-    platform.async_register_entity_service(
+    component.async_register_entity_service(
         SERVICE_SEND_NODE_COMMAND,
         SERVICE_SEND_NODE_COMMAND_SCHEMA,
         SERVICE_SEND_NODE_COMMAND,
@@ -393,11 +393,11 @@ def async_setup_device_services(hass: HomeAssistantType):
 @callback
 def async_setup_light_services(hass: HomeAssistantType):
     """Create device-specific services for the ISY Integration."""
-    platform = entity_platform.current_platform.get()
+    component = entity_component.current_component.get()
 
-    platform.async_register_entity_service(
+    component.async_register_entity_service(
         SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, SERVICE_SET_ON_LEVEL
     )
-    platform.async_register_entity_service(
+    component.async_register_entity_service(
         SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, SERVICE_SET_RAMP_RATE
     )
