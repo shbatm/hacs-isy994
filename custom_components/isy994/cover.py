@@ -3,7 +3,7 @@ from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
-from homeassistant.components.cover import DOMAIN as PLATFORM_DOMAIN, CoverDevice
+from homeassistant.components.cover import DOMAIN as COVER, CoverDevice
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_CLOSED, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.helpers.typing import HomeAssistantType
@@ -28,13 +28,13 @@ async def async_setup_entry(
     """Set up the ISY994 cover platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][COVER]:
         devices.append(ISYCoverEntity(node))
 
-    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][COVER]:
         devices.append(ISYCoverProgram(name, status, actions))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, COVER, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 

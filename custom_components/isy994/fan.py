@@ -2,7 +2,7 @@
 from typing import Callable
 
 from homeassistant.components.fan import (
-    DOMAIN as PLATFORM_DOMAIN,
+    DOMAIN as FAN,
     SPEED_HIGH,
     SPEED_LOW,
     SPEED_MEDIUM,
@@ -41,13 +41,13 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
 
-    for node in hass_isy_data[ISY994_NODES][PLATFORM_DOMAIN]:
+    for node in hass_isy_data[ISY994_NODES][FAN]:
         devices.append(ISYFanDevice(node))
 
-    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][PLATFORM_DOMAIN]:
+    for name, status, actions in hass_isy_data[ISY994_PROGRAMS][FAN]:
         devices.append(ISYFanProgram(name, status, actions))
 
-    await migrate_old_unique_ids(hass, PLATFORM_DOMAIN, devices)
+    await migrate_old_unique_ids(hass, FAN, devices)
     async_add_entities(devices)
     async_setup_device_services(hass)
 
