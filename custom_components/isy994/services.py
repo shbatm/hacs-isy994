@@ -286,6 +286,8 @@ def async_setup_services(hass: HomeAssistantType):
             if entity_registry.async_is_registered(entity_id):
                 entity_registry.async_remove(entity_id)
 
+        # DEPRECIATED: Will be removed after PR #35106 is approved
+        # (Clean up device registry if entity registry updates)
         # Remove device registry entry if there are no remaining entities.
         devices_to_check = set(
             device_id
