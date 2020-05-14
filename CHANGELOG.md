@@ -1,6 +1,38 @@
 ## CHANGELOG - HACS Version of ISY994 Component
 
-### [1.4.3] - Bug Fixes and Core Catchup to 0.10x.x
+### [1.5.0] - Merge with Home Assistant Core 0.110.0
+
+- All code changes have been merged back into Core @ v0.110.0.
+
+#### Breaking Changes:
+
+Remove ISY Climate Module support: the ISY Climate Module was retired by UDI on 3/30/2020: UDI Announcement, support has been removed from the module, so any entities based on Climate module nodes will no longer import into Home Assistant. The enable_climate configuration option will need be removed from your YAML configuration file.
+
+Nodes that are “grouped” together in the ISY Admin Console will now be correctly identified and sorted, this will cause additional entities to be added to Home Assistant. If you were using this “group” feature to ignore some sub-devices in Home Assistant, you will now need to use the ignore_string in the name instead.
+
+Sorting of certain devices based on the ISY’s Node Def ID and Insteon Type properties have been corrected to match the ISY’s provided device categories, as well as user feedback of incorrect sorting for specific devices. As a result, some entities that were incorrectly categorized will now appear under a different platform (e.g. switch to binary_sensor, light to switch, etc.)
+
+Both KeypadLinc Secondary Buttons and RemoteLinc2 Buttons have been moved from switch to sensor. This is because these buttons cannot actually be directly controlled via commands sent from the switch platform, doing so results in communication errors from the ISY because the commands are not valid. These devices are being moved to sensor instead of binary_sensor because they report a state in a range from 0 to 255; 0=Off, 255=On according to their last brightness/dimming level sent.
+
+The ISY994 integration now includes a restore_light_state option. In 0.109.0, a change was made to restore a light’s brightness to the previous state when turned on with no brightness parameter. This was, in part, to fix an issue where the light to turn on to full brightness when no parameters were given, regardless of the physical device’s On Level brightness setting. Using the On Level is now supported and is the default behavior. To keep the current behavior and use Home Assistant’s last brightness, set the restore_light_state to True or enable the option in the new config flow options.
+
+The following device node types have changed platforms to correct their categorization:
+
+- “BinaryControl” (SWITCH->BINARY_SENSOR)
+- “BinaryControl_ADV” (SWITCH->BINARY_SENSOR; IOLinc Sensor)
+- “EZIO2x4_Input” (SWITCH->BINARY_SENSOR)
+- “EZRAIN_Input” (SWITCH->BINARY_SENSOR)
+- “OnOffControl” (SWITCH->BINARY_SENSOR)
+- “OnOffControl_ADV” (New; Thermostat Control/Running Sensors)
+- “EZIO2x4_Input_ADV” (SWITCH->SENSOR, Analog input on EZIO).
+- “RemoteLinc2” (LIGHT->SWITCH),
+- “RemoteLinc2_ADV” (LIGHT->SWITCH),
+  - RemoteLincs only report button presses as events, are not controllable and do not accurately report dimmable states.
+- New Insteon Types for BINARY_SENSORS: “7.0.”, “7.13.” (IOLinc/EZIO Sensors)
+- New Insteon Type for LOCKS: “4.64.” added.
+- New Insteon Types for SWITCHES: “0.16.”, “7.3.255.”, “9.10.”
+
+### [1.4.3] - Bug Fixes and Core Catchup to 0.109.0
 
 - Rename BinarySensorDevice to BinarySensorEntity (home-assistant/core#34462)
 - Rename LockDevice to LockEntity (home-assistant/core#34594)

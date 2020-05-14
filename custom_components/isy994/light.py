@@ -9,7 +9,6 @@ from homeassistant.components.light import (
     LightEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_UNKNOWN
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import HomeAssistantType
 
@@ -58,21 +57,16 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     @property
     def is_on(self) -> bool:
         """Get whether the ISY994 light is on."""
-        if self.value == ISY_VALUE_UNKNOWN:
+        if self._node.status == ISY_VALUE_UNKNOWN:
             return False
-        return int(self.value) != 0
+        return int(self._node.status) != 0
 
     @property
     def brightness(self) -> float:
         """Get the brightness of the ISY994 light."""
-        return STATE_UNKNOWN if self.value == ISY_VALUE_UNKNOWN else int(self.value)
-
-    @property
-    def device_state_attributes(self) -> Dict:
-        """Return the light attributes."""
-        attribs = super().device_state_attributes
-        attribs[ATTR_LAST_BRIGHTNESS] = self._last_brightness
-        return attribs
+        if self._node.status == ISY_VALUE_UNKNOWN:
+            return None
+        return int(self._node.status)
 
     def turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 light device."""
@@ -82,8 +76,8 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
 
     def on_update(self, event: object) -> None:
         """Save brightness in the update event from the ISY994 Node."""
-        if self.value not in (0, ISY_VALUE_UNKNOWN):
-            self._last_brightness = self.value
+        if self._node.status not in (0, ISY_VALUE_UNKNOWN):
+            self._last_brightness = self._node.status
         super().on_update(event)
 
     # pylint: disable=arguments-differ
@@ -93,6 +87,13 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
             brightness = self._last_brightness
         if not self._node.turn_on(val=brightness):
             _LOGGER.debug("Unable to turn on light")
+
+    @property
+    def device_state_attributes(self) -> Dict:
+        """Return the light attributes."""
+        attribs = super().device_state_attributes
+        attribs[ATTR_LAST_BRIGHTNESS] = self._last_brightness
+        return attribs
 
     @property
     def supported_features(self):

@@ -17,10 +17,12 @@ from homeassistant.helpers.typing import ConfigType
 from .const import (
     _LOGGER,
     CONF_IGNORE_STRING,
+    CONF_RESTORE_LIGHT_STATE,
     CONF_SENSOR_STRING,
     CONF_TLS_VER,
     CONF_VAR_SENSOR_STRING,
     DEFAULT_IGNORE_STRING,
+    DEFAULT_RESTORE_LIGHT_STATE,
     DEFAULT_SENSOR_STRING,
     DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
@@ -53,6 +55,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_VAR_SENSOR_STRING, default=DEFAULT_VAR_SENSOR_STRING
                 ): cv.string,
+                vol.Required(
+                    CONF_RESTORE_LIGHT_STATE, default=DEFAULT_RESTORE_LIGHT_STATE
+                ): bool,
             }
         )
     },
@@ -204,7 +209,11 @@ def _async_import_options_from_data_if_missing(
 ):
     options = dict(entry.options)
     modified = False
-    for importable_option in [CONF_IGNORE_STRING, CONF_SENSOR_STRING]:
+    for importable_option in [
+        CONF_IGNORE_STRING,
+        CONF_SENSOR_STRING,
+        CONF_RESTORE_LIGHT_STATE,
+    ]:
         if importable_option not in entry.options and importable_option in entry.data:
             options[importable_option] = entry.data[importable_option]
             modified = True
@@ -223,8 +232,8 @@ async def _async_get_or_create_isy_device_in_registry(
         connections={(dr.CONNECTION_NETWORK_MAC, isy.configuration["uuid"])},
         identifiers={(DOMAIN, isy.configuration["uuid"])},
         manufacturer=MANUFACTURER,
-        name=isy.configuration["name"],  # Exposed in PyISY-beta v2.0.0.dev136
-        model=isy.configuration["model"],  # Exposed in PyISY-beta v2.0.0.dev135
+        name=isy.configuration["name"],
+        model=isy.configuration["model"],
         sw_version=isy.configuration["firmware"],
     )
 
