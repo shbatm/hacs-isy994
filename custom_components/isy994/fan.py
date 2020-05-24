@@ -69,17 +69,17 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
             return None
         return self._node.status != 0
 
-    def set_speed(self, speed: str) -> None:
+    async def async_set_speed(self, speed: str) -> None:
         """Send the set speed command to the ISY994 fan device."""
-        self._node.turn_on(val=STATE_TO_VALUE.get(speed, 255))
+        await self._node.turn_on(val=STATE_TO_VALUE.get(speed, 255))
 
-    def turn_on(self, speed: str = None, **kwargs) -> None:
+    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
         """Send the turn on command to the ISY994 fan device."""
-        self.set_speed(speed)
+        await self.set_speed(speed)
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 fan device."""
-        self._node.turn_off()
+        await self._node.turn_off()
 
     @property
     def speed_list(self) -> list:
@@ -105,12 +105,12 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
         """Get if the fan is on."""
         return self._node.status != 0
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Send the turn on command to ISY994 fan program."""
-        if not self._actions.run_then():
+        if not await self._actions.run_then():
             _LOGGER.error("Unable to turn off the fan")
 
-    def turn_on(self, speed: str = None, **kwargs) -> None:
+    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
         """Send the turn off command to ISY994 fan program."""
-        if not self._actions.run_else():
+        if not await self._actions.run_else():
             _LOGGER.error("Unable to turn on the fan")

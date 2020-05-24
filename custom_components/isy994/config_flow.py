@@ -2,14 +2,17 @@
 import logging
 from urllib.parse import urlparse
 
+from aiohttp import CookieJar
+import async_timeout
 from pyisy.configuration import Configuration
-from pyisy.connection import Connection
+from pyisy.connection import Connection, ISYConnectionError, ISYInvalidAuthError
 import voluptuous as vol
 
 from homeassistant import config_entries, core, exceptions
 from homeassistant.components import ssdp
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
+from homeassistant.helpers import aiohttp_client
 
 from .const import (
     CONF_IGNORE_STRING,
@@ -56,51 +59,43 @@ async def validate_input(hass: core.HomeAssistant, data):
     if host.scheme == "http":
         https = False
         port = host.port or 80
+        session = aiohttp_client.async_create_clientsession(
+            hass, verify_ssl=None, cookie_jar=CookieJar(unsafe=True)
+        )
     elif host.scheme == "https":
         https = True
         port = host.port or 443
+        session = aiohttp_client.async_get_clientsession(hass)
     else:
         _LOGGER.error("isy994 host value in configuration is invalid")
         raise InvalidHost
 
     # Connect to ISY controller.
-    isy_conf = await hass.async_add_executor_job(
-        _fetch_isy_configuration,
+    isy_conn = Connection(
         host.hostname,
         port,
         user,
         password,
-        https,
-        tls_version,
-        host.path,
+        use_https=https,
+        tls_ver=tls_version,
+        webroot=host.path,
+        websession=session,
     )
 
+    try:
+        with async_timeout.timeout(30):
+            isy_conf_xml = await isy_conn.test_connection()
+    except ISYInvalidAuthError:
+        raise InvalidAuth
+    except ISYConnectionError:
+        raise CannotConnect
+
+    isy_conf = Configuration(xml=isy_conf_xml)
     if not isy_conf or "name" not in isy_conf or not isy_conf["name"]:
         raise CannotConnect
 
     # Return info that you want to store in the config entry.
     return {"title": f"{isy_conf['name']} ({host.hostname})", "uuid": isy_conf["uuid"]}
-
-
-def _fetch_isy_configuration(
-    address, port, username, password, use_https, tls_ver, webroot
-):
-    """Validate and fetch the configuration from the ISY."""
-    try:
-        isy_conn = Connection(
-            address,
-            port,
-            username,
-            password,
-            use_https,
-            tls_ver,
-            log=_LOGGER,
-            webroot=webroot,
-        )
-    except ValueError as err:
-        raise InvalidAuth(err.args[0])
-
-    return Configuration(log=_LOGGER, xml=isy_conn.get_config())
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

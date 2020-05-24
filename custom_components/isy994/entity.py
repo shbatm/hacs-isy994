@@ -10,6 +10,7 @@ from pyisy.constants import (
 from pyisy.helpers import NodeProperty
 
 from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import Dict
 
@@ -35,10 +36,12 @@ class ISYEntity(Entity):
         if hasattr(self._node, "control_events"):
             self._control_handler = self._node.control_events.subscribe(self.on_control)
 
+    @callback
     def on_update(self, event: object) -> None:
         """Handle the update event from the ISY994 Node."""
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
+    @callback
     def on_control(self, event: NodeProperty) -> None:
         """Handle a control event from the ISY994 Node."""
         event_data = {
@@ -52,7 +55,7 @@ class ISYEntity(Entity):
 
         if event.control not in EVENT_PROPS_IGNORED:
             # New state attributes may be available, update the state.
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
 
         self.hass.bus.fire("isy994_control", event_data)
 
@@ -153,16 +156,16 @@ class ISYNodeEntity(ISYEntity):
         self._attrs.update(attr)
         return self._attrs
 
-    def send_node_command(self, command):
+    async def send_node_command(self, command):
         """Respond to an entity service command call."""
         if not hasattr(self._node, command):
             _LOGGER.error(
                 "Invalid Service Call %s for device %s.", command, self.entity_id
             )
             return
-        getattr(self._node, command)()
+        await getattr(self._node, command)()
 
-    def send_raw_node_command(
+    async def send_raw_node_command(
         self, command, value=None, unit_of_measurement=None, parameters=None
     ):
         """Respond to an entity service raw command call."""
@@ -171,7 +174,7 @@ class ISYNodeEntity(ISYEntity):
                 "Invalid Service Call %s for device %s.", command, self.entity_id
             )
             return
-        self._node.send_cmd(command, value, unit_of_measurement, parameters)
+        await self._node.send_cmd(command, value, unit_of_measurement, parameters)
 
 
 class ISYProgramEntity(ISYEntity):

@@ -183,12 +183,12 @@ def async_setup_services(hass: HomeAssistantType):
                     address,
                     isy.configuration["uuid"],
                 )
-                await hass.async_add_executor_job(isy.query, address)
+                hass.async_create_task(isy.query(address))
                 return
             _LOGGER.debug(
                 "Requesting system query of ISY %s", isy.configuration["uuid"]
             )
-            await hass.async_add_executor_job(isy.query)
+            await isy.query()
 
     async def async_run_network_resource_service_handler(service):
         """Handle a network resource service call."""
@@ -208,7 +208,7 @@ def async_setup_services(hass: HomeAssistantType):
             if name:
                 command = isy.networking.get_by_name(name)
             if command is not None:
-                await hass.async_add_executor_job(command.run)
+                hass.async_create_task(command.run())
                 return
         _LOGGER.error(
             "Could not run network resource command. Not found or enabled on the ISY."
@@ -231,7 +231,7 @@ def async_setup_services(hass: HomeAssistantType):
             if name:
                 program = isy.programs.get_by_name(name)
             if program is not None:
-                await hass.async_add_executor_job(getattr(program, command))
+                hass.async_create_task(getattr(program, command)())
                 return
         _LOGGER.error(
             "Could not send program command. Not found or enabled on the ISY."
@@ -256,7 +256,7 @@ def async_setup_services(hass: HomeAssistantType):
             if address and vtype:
                 variable = isy.variables.vobjs[vtype].get(address)
             if variable is not None:
-                await hass.async_add_executor_job(variable.set_value, value, init)
+                hass.async_create_task(variable.set_value(value, init))
                 return
         _LOGGER.error("Could not set variable value. Not found or enabled on the ISY.")
 
