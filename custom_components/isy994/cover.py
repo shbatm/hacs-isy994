@@ -49,14 +49,14 @@ class ISYCoverEntity(ISYNodeEntity, CoverEntity):
             return None
         return self._node.status == 0
 
-    def open_cover(self, **kwargs) -> None:
+    async def async_open_cover(self, **kwargs) -> None:
         """Send the open cover command to the ISY994 cover device."""
-        if not self._node.turn_on(val=100):
+        if not await self._node.turn_on(val=100):
             _LOGGER.error("Unable to open the cover")
 
-    def close_cover(self, **kwargs) -> None:
+    async def async_close_cover(self, **kwargs) -> None:
         """Send the close cover command to the ISY994 cover device."""
-        if not self._node.turn_off():
+        if not await self._node.turn_off():
             _LOGGER.error("Unable to close the cover")
 
 
@@ -68,12 +68,12 @@ class ISYCoverProgramEntity(ISYProgramEntity, CoverEntity):
         """Get whether the ISY994 cover program is closed."""
         return bool(self._node.status)
 
-    def open_cover(self, **kwargs) -> None:
+    async def async_open_cover(self, **kwargs) -> None:
         """Send the open cover command to the ISY994 cover program."""
-        if not self._actions.run_then():
+        if not await self._actions.run_then():
             _LOGGER.error("Unable to open the cover")
 
-    def close_cover(self, **kwargs) -> None:
+    async def async_close_cover(self, **kwargs) -> None:
         """Send the close cover command to the ISY994 cover program."""
-        if not self._actions.run_else():
+        if not await self._actions.run_else():
             _LOGGER.error("Unable to close the cover")

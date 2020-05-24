@@ -42,14 +42,14 @@ class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):
             return None
         return bool(self._node.status)
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch."""
-        if not self._node.turn_off():
+        if not await self._node.turn_off():
             _LOGGER.debug("Unable to turn off switch.")
 
-    def turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch."""
-        if not self._node.turn_on():
+        if not await self._node.turn_on():
             _LOGGER.debug("Unable to turn on switch.")
 
     @property
@@ -68,14 +68,14 @@ class ISYSwitchProgramEntity(ISYProgramEntity, SwitchEntity):
         """Get whether the ISY994 switch program is on."""
         return bool(self._node.status)
 
-    def turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Send the turn on command to the ISY994 switch program."""
-        if not self._actions.run_then():
+        if not await self._actions.run_then():
             _LOGGER.error("Unable to turn on switch")
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 switch program."""
-        if not self._actions.run_else():
+        if not await self._actions.run_else():
             _LOGGER.error("Unable to turn off switch")
 
     @property

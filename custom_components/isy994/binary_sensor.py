@@ -1,10 +1,12 @@
 """Support for ISY994 binary sensors."""
 from datetime import timedelta
-from typing import Callable, Union
+from typing import Callable, Dict, Optional, Union
 
+from pyisy import ISY
 from pyisy.constants import (
     CMD_OFF,
     CMD_ON,
+    ES_CONNECTED,
     ISY_VALUE_UNKNOWN,
     PROTO_INSTEON,
     PROTO_ZWAVE,
@@ -14,6 +16,7 @@ from pyisy.nodes import Group, Node
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_COLD,
+    DEVICE_CLASS_CONNECTIVITY,
     DEVICE_CLASS_HEAT,
     DEVICE_CLASS_LIGHT,
     DEVICE_CLASS_MOISTURE,
@@ -34,8 +37,11 @@ from .const import (
     BINARY_SENSOR_DEVICE_TYPES_ISY,
     BINARY_SENSOR_DEVICE_TYPES_ZWAVE,
     DOMAIN as ISY994_DOMAIN,
+    EVENTS_SUFFIX,
+    ISY994_ISY,
     ISY994_NODES,
     ISY994_PROGRAMS,
+    MANUFACTURER,
     SUBNODE_CLIMATE_COOL,
     SUBNODE_CLIMATE_HEAT,
     SUBNODE_DUSK_DAWN,
@@ -69,6 +75,7 @@ async def async_setup_entry(
     child_nodes = []
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
+    devices.append(ISYEventsBinarySensorEntity(hass_isy_data[ISY994_ISY]))
     for node in hass_isy_data[ISY994_NODES][BINARY_SENSOR]:
         device_class, device_type = _detect_device_type_and_class(node)
         if node.protocol == PROTO_INSTEON:
@@ -293,6 +300,7 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 # of the sensor until we receive our first ON event.
                 self._computed_state = None
 
+    @callback
     def _negative_node_control_handler(self, event: object) -> None:
         """Handle an "On" control event from the "negative" node."""
         if event.control == CMD_ON:
@@ -301,9 +309,10 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 self.name,
             )
             self._computed_state = False
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
             self._heartbeat()
 
+    @callback
     def _positive_node_control_handler(self, event: object) -> None:
         """Handle On and Off control event coming from the primary node.
 
@@ -317,7 +326,7 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 self.name,
             )
             self._computed_state = True
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
             self._heartbeat()
         if event.control == CMD_OFF:
             _LOGGER.debug(
@@ -325,9 +334,10 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 self.name,
             )
             self._computed_state = False
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
             self._heartbeat()
 
+    @callback
     def on_update(self, event: object) -> None:
         """Primary node status updates.
 
@@ -341,7 +351,7 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
         if self._status_was_unknown and self._computed_state is None:
             self._computed_state = bool(self._node.status)
             self._status_was_unknown = False
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
             self._heartbeat()
 
     @property
@@ -398,6 +408,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
         if event.control in [CMD_ON, CMD_OFF]:
             self.heartbeat()
 
+    @callback
     def heartbeat(self):
         """Mark the device as online, and restart the 25 hour timer.
 
@@ -408,7 +419,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
         """
         self._computed_state = False
         self._restart_timer()
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
     def _restart_timer(self):
         """Restart the 25 hour timer."""
@@ -424,7 +435,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
             """Heartbeat missed; set state to ON to indicate dead battery."""
             self._computed_state = True
             self._heartbeat_timer = None
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
 
         point_in_time = dt_util.utcnow() + timedelta(hours=25)
         _LOGGER.debug(
@@ -477,3 +488,72 @@ class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Get whether the ISY994 binary sensor device is on."""
         return bool(self._node.status)
+
+
+class ISYEventsBinarySensorEntity(BinarySensorEntity):
+    """Representation of an ISY994 Hub device."""
+
+    def __init__(self, isy: ISY) -> None:
+        """Initialize the insteon device."""
+        self._isy = isy
+        self._name = f"{self._isy.configuration['name']} Events"
+        self._uuid = self._isy.configuration["uuid"]
+        self._attrs = {}
+        self._change_handler = None
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to the node change events."""
+        self._change_handler = self._isy.connection_events.subscribe(self.on_update)
+
+    @callback
+    def on_update(self, event: object) -> None:
+        """Handle the update event from the ISY994 Node."""
+        self.async_write_ha_state()
+
+    @property
+    def device_info(self):
+        """Return the device_info of the device."""
+        device_info = {
+            "identifiers": {(ISY994_DOMAIN, f"{self._uuid}{EVENTS_SUFFIX}")},
+            "manufacturer": MANUFACTURER,
+            "name": self._name,
+            "model": self._isy.configuration["model"],
+            "sw_version": self._isy.configuration["firmware"],
+            "via_device": (ISY994_DOMAIN, self._uuid),
+        }
+        return device_info
+
+    @property
+    def unique_id(self) -> str:
+        """Get the unique identifier of the device."""
+        return f"{self._uuid}{EVENTS_SUFFIX}"
+
+    @property
+    def old_unique_id(self) -> str:
+        """Get the old unique identifier of the device."""
+        return None
+
+    @property
+    def name(self) -> str:
+        """Get the name of the device."""
+        return self._name
+
+    @property
+    def should_poll(self) -> bool:
+        """No polling required since we're using the subscription."""
+        return False
+
+    @property
+    def is_on(self) -> Optional[bool]:
+        """Return true if the binary sensor is on."""
+        return self._isy.websocket.status == ES_CONNECTED
+
+    @property
+    def device_class(self) -> str:
+        """Return the class of this device, from component DEVICE_CLASSES."""
+        return DEVICE_CLASS_CONNECTIVITY
+
+    @property
+    def device_state_attributes(self) -> Dict:
+        """Get the state attributes for the device."""
+        return {"last_event": self._isy.websocket.status}
