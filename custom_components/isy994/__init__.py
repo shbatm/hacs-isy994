@@ -5,8 +5,7 @@ from urllib.parse import urlparse
 
 from aiohttp import CookieJar
 import async_timeout
-from pyisy import ISY
-from pyisy.connection import ISYConnectionError, ISYInvalidAuthError
+from pyisy import ISY, ISYConnectionError, ISYInvalidAuthError, ISYResponseParseError
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -17,6 +16,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.typing import ConfigType
@@ -173,14 +173,23 @@ async def async_setup_entry(
     try:
         with async_timeout.timeout(30):
             await isy.initialize()
-    except (ISYInvalidAuthError, ISYConnectionError):
+    except ISYInvalidAuthError as err:
         _LOGGER.error(
-            "Failed to connect to the ISY, please adjust settings and try again."
+            "Invalid credentials for the ISY, please adjust settings and try again: %s",
+            err,
         )
         return False
-
-    # if not isy.connected:
-    #     return False
+    except ISYConnectionError as err:
+        _LOGGER.error(
+            "Failed to connect to the ISY, please adjust settings and try again: %s",
+            err,
+        )
+        return False
+    except ISYResponseParseError:
+        _LOGGER.warning(
+            "Error processing responses from the ISY. Device may be busy, trying again later."
+        )
+        raise ConfigEntryNotReady
 
     _categorize_nodes(hass_isy_data, isy.nodes, ignore_identifier, sensor_identifier)
     _categorize_programs(hass_isy_data, isy.programs)

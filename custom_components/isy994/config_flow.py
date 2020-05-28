@@ -4,8 +4,9 @@ from urllib.parse import urlparse
 
 from aiohttp import CookieJar
 import async_timeout
+from pyisy import ISYConnectionError, ISYInvalidAuthError, ISYResponseParseError
 from pyisy.configuration import Configuration
-from pyisy.connection import Connection, ISYConnectionError, ISYInvalidAuthError
+from pyisy.connection import Connection
 import voluptuous as vol
 
 from homeassistant import config_entries, core, exceptions
@@ -90,7 +91,10 @@ async def validate_input(hass: core.HomeAssistant, data):
     except ISYConnectionError:
         raise CannotConnect
 
-    isy_conf = Configuration(xml=isy_conf_xml)
+    try:
+        isy_conf = Configuration(xml=isy_conf_xml)
+    except ISYResponseParseError:
+        raise CannotConnect
     if not isy_conf or "name" not in isy_conf or not isy_conf["name"]:
         raise CannotConnect
 
