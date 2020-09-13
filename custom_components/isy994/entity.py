@@ -160,7 +160,7 @@ class ISYNodeEntity(ISYEntity):
         """Respond to an entity service command call."""
         if not hasattr(self._node, command):
             _LOGGER.error(
-                "Invalid Service Call %s for device %s.", command, self.entity_id
+                "Invalid Service Call %s for device %s", command, self.entity_id
             )
             return
         await getattr(self._node, command)()
@@ -171,7 +171,7 @@ class ISYNodeEntity(ISYEntity):
         """Respond to an entity service raw command call."""
         if not hasattr(self._node, "send_cmd"):
             _LOGGER.error(
-                "Invalid Service Call %s for device %s.", command, self.entity_id
+                "Invalid Service Call %s for device %s", command, self.entity_id
             )
             return
         await self._node.send_cmd(command, value, unit_of_measurement, parameters)

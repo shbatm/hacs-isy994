@@ -52,7 +52,7 @@ from .const import (
 )
 from .entity import ISYNodeEntity
 from .helpers import convert_isy_value_to_hass, migrate_old_unique_ids
-from .services import async_setup_device_services
+
 
 ISY_SUPPORTED_FEATURES = (
     SUPPORT_FAN_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_TARGET_TEMPERATURE_RANGE
@@ -73,7 +73,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, CLIMATE, entities)
     async_add_entities(entities)
-    async_setup_device_services(hass)
+
 
 
 class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
@@ -133,7 +133,7 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
         # Which state values used depends on the mode property's UOM:
         uom = hvac_mode.uom
         # Handle special case for ISYv4 Firmware:
-        if uom == UOM_ISYV4_NONE:
+        if uom in (UOM_ISYV4_NONE, ""):
             uom = (
                 UOM_HVAC_MODE_INSTEON
                 if self._node.protocol == PROTO_INSTEON

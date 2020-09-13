@@ -24,7 +24,7 @@ from .const import (
 )
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
-from .services import async_setup_device_services
+
 
 
 async def async_setup_entry(
@@ -43,7 +43,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, COVER, devices)
     async_add_entities(devices)
-    async_setup_device_services(hass)
+
 
 
 class ISYCoverEntity(ISYNodeEntity, CoverEntity):
@@ -83,8 +83,8 @@ class ISYCoverEntity(ISYNodeEntity, CoverEntity):
 
     async def async_set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
-        position = kwargs.get(ATTR_POSITION)
-        if position and self._node.uom == UOM_8_BIT_RANGE:
+        position = kwargs[ATTR_POSITION]
+        if self._node.uom == UOM_8_BIT_RANGE:
             position = int(position * 255 / 100)
         if not await self._node.turn_on(val=position):
             _LOGGER.error("Unable to set cover position")

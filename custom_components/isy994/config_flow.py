@@ -86,15 +86,15 @@ async def validate_input(hass: core.HomeAssistant, data):
     try:
         with async_timeout.timeout(30):
             isy_conf_xml = await isy_conn.test_connection()
-    except ISYInvalidAuthError:
-        raise InvalidAuth
-    except ISYConnectionError:
-        raise CannotConnect
+    except ISYInvalidAuthError as error:
+        raise InvalidAuth from error
+    except ISYConnectionError as error:
+        raise CannotConnect from error
 
     try:
         isy_conf = Configuration(xml=isy_conf_xml)
-    except ISYResponseParseError:
-        raise CannotConnect
+    except ISYResponseParseError as error:
+        raise CannotConnect from error
     if not isy_conf or "name" not in isy_conf or not isy_conf["name"]:
         raise CannotConnect
 

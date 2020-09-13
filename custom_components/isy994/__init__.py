@@ -185,11 +185,11 @@ async def async_setup_entry(
             err,
         )
         return False
-    except ISYResponseParseError:
+    except ISYResponseParseError as err:
         _LOGGER.warning(
             "Error processing responses from the ISY. Device may be busy, trying again later."
         )
-        raise ConfigEntryNotReady
+        raise ConfigEntryNotReady from err
 
     _categorize_nodes(hass_isy_data, isy.nodes, ignore_identifier, sensor_identifier)
     _categorize_programs(hass_isy_data, isy.programs)
@@ -209,12 +209,12 @@ async def async_setup_entry(
 
     def _start_auto_update() -> None:
         """Start isy auto update."""
-        _LOGGER.debug("ISY Starting Event Stream and automatic updates.")
+        _LOGGER.debug("ISY Starting Event Stream and automatic updates")
         isy.websocket.start()
 
     def _stop_auto_update(event) -> None:
         """Stop the isy auto update on Home Assistant Shutdown."""
-        _LOGGER.debug("ISY Stopping Event Stream and automatic updates.")
+        _LOGGER.debug("ISY Stopping Event Stream and automatic updates")
         isy.websocket.stop()
 
     await hass.async_add_executor_job(_start_auto_update)
@@ -291,7 +291,7 @@ async def async_unload_entry(
 
     def _stop_auto_update() -> None:
         """Stop the isy auto update."""
-        _LOGGER.debug("ISY Stopping Event Stream and automatic updates.")
+        _LOGGER.debug("ISY Stopping Event Stream and automatic updates")
         isy.websocket.stop()
 
     await hass.async_add_executor_job(_stop_auto_update)
