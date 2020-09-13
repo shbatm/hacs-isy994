@@ -234,9 +234,7 @@ def async_setup_services(hass: HomeAssistantType):
             if program is not None:
                 hass.async_create_task(getattr(program, command)())
                 return
-        _LOGGER.error(
-            "Could not send program command; not found or enabled on the ISY"
-        )
+        _LOGGER.error("Could not send program command; not found or enabled on the ISY")
 
     async def async_set_variable_service_handler(service):
         """Handle a set variable service call."""
@@ -379,6 +377,7 @@ def async_setup_services(hass: HomeAssistantType):
         schema=cv.make_entity_service_schema(SERVICE_SEND_NODE_COMMAND_SCHEMA),
         service_func=_async_send_node_command,
     )
+
 
 @callback
 def async_unload_services(hass: HomeAssistantType):

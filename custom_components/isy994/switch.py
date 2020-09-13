@@ -12,7 +12,6 @@ from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
 
 
-
 async def async_setup_entry(
     hass: HomeAssistantType,
     entry: ConfigEntry,
@@ -29,7 +28,6 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, SWITCH, devices)
     async_add_entities(devices)
-
 
 
 class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):

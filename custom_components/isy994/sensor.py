@@ -22,7 +22,6 @@ from .entity import ISYEntity, ISYNodeEntity
 from .helpers import convert_isy_value_to_hass, migrate_old_unique_ids
 
 
-
 async def async_setup_entry(
     hass: HomeAssistantType,
     entry: ConfigEntry,
@@ -41,7 +40,6 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, SENSOR, devices)
     async_add_entities(devices)
-
 
 
 class ISYSensorEntity(ISYNodeEntity):

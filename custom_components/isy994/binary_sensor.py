@@ -56,7 +56,6 @@ from .const import (
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
 
-
 DEVICE_PARENT_REQUIRED = [
     DEVICE_CLASS_OPENING,
     DEVICE_CLASS_MOISTURE,
@@ -179,7 +178,6 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, BINARY_SENSOR, devices)
     async_add_entities(devices)
-
 
 
 def _detect_device_type_and_class(node: Union[Group, Node]) -> (str, str):
