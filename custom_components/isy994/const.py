@@ -56,6 +56,7 @@ from homeassistant.const import (
     LENGTH_MILES,
     MASS_KILOGRAMS,
     MASS_POUNDS,
+    PERCENTAGE,
     POWER_WATT,
     PRESSURE_INHG,
     SERVICE_LOCK,
@@ -83,7 +84,6 @@ from homeassistant.const import (
     TIME_MONTHS,
     TIME_SECONDS,
     TIME_YEARS,
-    UNIT_PERCENTAGE,
     UV_INDEX,
     VOLT,
     VOLUME_GALLONS,
@@ -167,6 +167,24 @@ UNDO_UPDATE_LISTENER = "undo_update_listener"
 # Used for discovery
 UDN_UUID_PREFIX = "uuid:"
 ISY_URL_POSTFIX = "/desc"
+EVENTS_SUFFIX = "_ISYSUB"
+
+# Special Units of Measure
+UOM_ISYV4_DEGREES = "degrees"
+UOM_ISYV4_NONE = "n/a"
+
+UOM_ISY_CELSIUS = 1
+UOM_ISY_FAHRENHEIT = 2
+
+UOM_8_BIT_RANGE = "100"
+UOM_BARRIER = "97"
+UOM_DOUBLE_TEMP = "101"
+UOM_HVAC_ACTIONS = "66"
+UOM_HVAC_MODE_GENERIC = "67"
+UOM_HVAC_MODE_INSTEON = "98"
+UOM_FAN_MODES = "99"
+UOM_INDEX = "25"
+UOM_ON_OFF = "2"
 
 # Do not use the Home Assistant consts for the states here - we're matching exact API
 # responses, not using them for Home Assistant states
@@ -215,7 +233,7 @@ NODE_FILTERS = {
             "RemoteLinc2_ADV",
         ],
         FILTER_INSTEON_TYPE: ["0.16.", "0.17.", "0.18.", "9.0.", "9.7."],
-        FILTER_ZWAVE_CAT: (["118", "143"] + list(map(str, range(180, 185)))),
+        FILTER_ZWAVE_CAT: (["118", "143"] + list(map(str, range(180, 186)))),
     },
     LOCK: {
         FILTER_UOM: ["11"],
@@ -232,10 +250,10 @@ NODE_FILTERS = {
         FILTER_ZWAVE_CAT: [],
     },
     COVER: {
-        FILTER_UOM: ["97"],
+        FILTER_UOM: [UOM_BARRIER],
         FILTER_STATES: ["open", "closed", "closing", "opening", "stopped"],
-        FILTER_NODE_DEF_ID: [],
-        FILTER_INSTEON_TYPE: [],
+        FILTER_NODE_DEF_ID: ["DimmerMotorSwitch_ADV"],
+        FILTER_INSTEON_TYPE: [TYPE_CATEGORY_COVER],
         FILTER_ZWAVE_CAT: [],
     },
     LIGHT: {
@@ -256,7 +274,7 @@ NODE_FILTERS = {
         FILTER_ZWAVE_CAT: ["109", "119"],
     },
     SWITCH: {
-        FILTER_UOM: ["2", "78"],
+        FILTER_UOM: [UOM_ON_OFF, "78"],
         FILTER_STATES: ["on", "off"],
         FILTER_NODE_DEF_ID: [
             "AlertModuleArmed",
@@ -286,7 +304,7 @@ NODE_FILTERS = {
         FILTER_ZWAVE_CAT: ["121", "122", "123", "137", "141", "147"],
     },
     CLIMATE: {
-        FILTER_UOM: ["2"],
+        FILTER_UOM: [UOM_ON_OFF],
         FILTER_STATES: ["heating", "cooling", "idle", "fan_only", "off"],
         FILTER_NODE_DEF_ID: ["TempLinc", "Thermostat"],
         FILTER_INSTEON_TYPE: ["4.8", TYPE_CATEGORY_CLIMATE],
@@ -294,27 +312,13 @@ NODE_FILTERS = {
     },
 }
 
-UOM_ISYV4_DEGREES = "degrees"
-UOM_ISYV4_NONE = "n/a"
-
-UOM_ISY_CELSIUS = 1
-UOM_ISY_FAHRENHEIT = 2
-
-UOM_DOUBLE_TEMP = "101"
-UOM_HVAC_ACTIONS = "66"
-UOM_HVAC_MODE_GENERIC = "67"
-UOM_HVAC_MODE_INSTEON = "98"
-UOM_FAN_MODES = "99"
-UOM_INDEX = "25"
-UOM_ON_OFF = "2"
-
 UOM_FRIENDLY_NAME = {
     "1": "A",
     "3": f"btu/{TIME_HOURS}",
     "4": TEMP_CELSIUS,
     "5": LENGTH_CENTIMETERS,
-    "6": "ft³",
-    "7": f"ft³/{TIME_MINUTES}",
+    "6": f"{LENGTH_FEET}³",
+    "7": f"{LENGTH_FEET}³/{TIME_MINUTES}",
     "8": "m³",
     "9": TIME_DAYS,
     "10": TIME_DAYS,
@@ -330,7 +334,7 @@ UOM_FRIENDLY_NAME = {
     "22": "%RH",
     "23": PRESSURE_INHG,
     "24": f"{LENGTH_INCHES}/{TIME_HOURS}",
-    UOM_INDEX: "index",  # Index type. Use "node.formatted" for value
+    UOM_INDEX: UOM_INDEX,  # Index type. Use "node.formatted" for value
     "26": TEMP_KELVIN,
     "27": "keyword",
     "28": MASS_KILOGRAMS,
@@ -356,7 +360,7 @@ UOM_FRIENDLY_NAME = {
     "48": SPEED_MILES_PER_HOUR,
     "49": SPEED_METERS_PER_SECOND,
     "50": "Ω",
-    "51": UNIT_PERCENTAGE,
+    "51": PERCENTAGE,
     "52": MASS_POUNDS,
     "53": "pf",
     "54": CONCENTRATION_PARTS_PER_MILLION,
@@ -388,7 +392,7 @@ UOM_FRIENDLY_NAME = {
     "90": FREQUENCY_HERTZ,
     "91": DEGREE,
     "92": f"{DEGREE} South",
-    "100": "",  # Range 0-255, no unit.
+    UOM_8_BIT_RANGE: "",  # Range 0-255, no unit.
     UOM_DOUBLE_TEMP: UOM_DOUBLE_TEMP,
     "102": "kWs",
     "103": "$",
@@ -556,7 +560,7 @@ UOM_TO_STATES = {
         3: "moderately polluted",
         4: "highly polluted",
     },
-    "97": {  # Barrier Status
+    UOM_BARRIER: {  # Barrier Status
         **{
             0: STATE_CLOSED,
             100: STATE_OPEN,

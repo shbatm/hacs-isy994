@@ -20,7 +20,7 @@ from .const import (
 )
 from .entity import ISYNodeEntity
 from .helpers import migrate_old_unique_ids
-from .services import async_setup_device_services, async_setup_light_services
+from .services import async_setup_light_services
 
 ATTR_LAST_BRIGHTNESS = "last_brightness"
 
@@ -41,7 +41,7 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, LIGHT, devices)
     async_add_entities(devices)
-    async_setup_device_services(hass)
+
     async_setup_light_services(hass)
 
 
@@ -68,10 +68,10 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
             return None
         return int(self._node.status)
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 light device."""
         self._last_brightness = self.brightness
-        if not self._node.turn_off():
+        if not await self._node.turn_off():
             _LOGGER.debug("Unable to turn off light")
 
     def on_update(self, event: object) -> None:
@@ -81,11 +81,11 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
         super().on_update(event)
 
     # pylint: disable=arguments-differ
-    def turn_on(self, brightness=None, **kwargs) -> None:
+    async def async_turn_on(self, brightness=None, **kwargs) -> None:
         """Send the turn on command to the ISY994 light device."""
         if self._restore_light_state and brightness is None and self._last_brightness:
             brightness = self._last_brightness
-        if not self._node.turn_on(val=brightness):
+        if not await self._node.turn_on(val=brightness):
             _LOGGER.debug("Unable to turn on light")
 
     @property
@@ -115,10 +115,10 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
         ):
             self._last_brightness = last_state.attributes[ATTR_LAST_BRIGHTNESS]
 
-    def set_on_level(self, value):
+    async def async_set_on_level(self, value):
         """Set the ON Level for a device."""
-        self._node.set_on_level(value)
+        await self._node.set_on_level(value)
 
-    def set_ramp_rate(self, value):
+    async def async_set_ramp_rate(self, value):
         """Set the Ramp Rate for a device."""
-        self._node.set_ramp_rate(value)
+        await self._node.set_ramp_rate(value)

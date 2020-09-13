@@ -1,5 +1,5 @@
 {
   "name": "Universal Devices ISY994",
-  "homeassistant": "0.110.0",
+  "homeassistant": "0.115.0",
   "render_readme": true
 }
