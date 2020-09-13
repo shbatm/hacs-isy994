@@ -187,7 +187,7 @@ async def async_setup_entry(
         return False
     except ISYResponseParseError as err:
         _LOGGER.warning(
-            "Error processing responses from the ISY. Device may be busy, trying again later."
+            "Error processing responses from the ISY; device may be busy, trying again later"
         )
         raise ConfigEntryNotReady from err
 
