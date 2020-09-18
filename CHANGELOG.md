@@ -1,5 +1,9 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0dev13] - Minor Bugfixes
+
+- Bump to PyISY-Beta 3.0.0dev13
+
 ## [3.0.0dev12] - Update to use asynchronous version of PyISY
 
 This update is for testing a new beta branch of PyISY, what will become PyISY Version 3.0.0, in which the communications with the ISY have been completely rewritten to use asynchronous IO methods; ideally making the ISY controls much more responsive when controlling from Home Assistant.
