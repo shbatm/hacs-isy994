@@ -73,7 +73,7 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
 
     async def async_turn_on(self, speed: str = None, **kwargs) -> None:
         """Send the turn on command to the ISY994 fan device."""
-        await self.set_speed(speed)
+        await self.async_set_speed(speed)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 fan device."""

@@ -1,5 +1,9 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0dev15-1] - Bugfix for error while turning on a fan
+
+- Fixes `fan.turn_on` service error due to trying to call the old sync function instead of async.
+
 ## [3.0.0dev15] - Variable Precision, V2.1.0 Changes, Core Catch-up to 0.117.4
 
 The following changes from the Core ISY994 Integration have been included:
