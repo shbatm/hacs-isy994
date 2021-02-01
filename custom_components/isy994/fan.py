@@ -1,4 +1,5 @@
 """Support for ISY994 fans."""
+import math
 from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
@@ -18,19 +19,16 @@ from homeassistant.helpers.typing import HomeAssistantType
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
+from .percentage import (
+    ordered_list_item_to_percentage,
+    percentage_to_ordered_list_item,
+    percentage_to_ranged_value,
+    ranged_value_to_percentage,
+)
 
-VALUE_TO_STATE = {
-    0: SPEED_OFF,
-    63: SPEED_LOW,
-    64: SPEED_LOW,
-    190: SPEED_MEDIUM,
-    191: SPEED_MEDIUM,
-    255: SPEED_HIGH,
-}
+ON_SPEEDS = [SPEED_LOW, SPEED_MEDIUM, SPEED_HIGH]
 
-STATE_TO_VALUE = {}
-for key in VALUE_TO_STATE:
-    STATE_TO_VALUE[VALUE_TO_STATE[key]] = key
+SPEED_RANGE = (1, 255)  # off is not included
 
 
 async def async_setup_entry(
@@ -58,7 +56,19 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
     @property
     def speed(self) -> str:
         """Return the current speed."""
-        return VALUE_TO_STATE.get(self._node.status)
+        pecentage = self.percentage
+        if pecentage is None:
+            return None
+        if pecentage == 0:
+            return SPEED_OFF
+        return percentage_to_ordered_list_item(ON_SPEEDS, self.percentage)
+
+    @property
+    def percentage(self) -> str:
+        """Return the current speed percentage."""
+        if self._node.status == ISY_VALUE_UNKNOWN:
+            return None
+        return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
 
     @property
     def is_on(self) -> bool:
@@ -67,13 +77,34 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
             return None
         return self._node.status != 0
 
+    async def async_set_percentage(self, percentage: int) -> None:
+        """Set node to speed percentage for the ISY994 fan device."""
+        if percentage == 0:
+            await self._node.turn_off()
+            return
+
+        isy_speed = math.ceil(percentage_to_ranged_value(SPEED_RANGE, percentage))
+
+        await self._node.turn_on(val=isy_speed)
+
     async def async_set_speed(self, speed: str) -> None:
         """Send the set speed command to the ISY994 fan device."""
-        await self._node.turn_on(val=STATE_TO_VALUE.get(speed, 255))
+        await self.async_set_percentage(
+            ordered_list_item_to_percentage(ON_SPEEDS, speed)
+        )
 
-    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
+    async def async_turn_on(
+        self,
+        speed: str = None,
+        percentage: int = None,
+        preset_mode: str = None,
+        **kwargs,
+    ) -> None:
         """Send the turn on command to the ISY994 fan device."""
-        await self.async_set_speed(speed)
+        if percentage is not None:
+            await self.async_set_percentage(percentage)
+        else:
+            await self.async_set_speed(speed)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Send the turn off command to the ISY994 fan device."""
@@ -82,7 +113,7 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
     @property
     def speed_list(self) -> list:
         """Get the list of available speeds."""
-        return [SPEED_OFF, SPEED_LOW, SPEED_MEDIUM, SPEED_HIGH]
+        return [SPEED_OFF, *ON_SPEEDS]
 
     @property
     def supported_features(self) -> int:
@@ -96,7 +127,19 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     @property
     def speed(self) -> str:
         """Return the current speed."""
-        return VALUE_TO_STATE.get(self._node.status)
+        pecentage = self.percentage
+        if pecentage is None:
+            return None
+        if pecentage == 0:
+            return SPEED_OFF
+        return percentage_to_ordered_list_item(ON_SPEEDS, self.percentage)
+
+    @property
+    def percentage(self) -> str:
+        """Return the current speed percentage."""
+        if self._node.status == ISY_VALUE_UNKNOWN:
+            return None
+        return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
 
     @property
     def is_on(self) -> bool:
@@ -108,7 +151,13 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
         if not await self._actions.run_then():
             _LOGGER.error("Unable to turn off the fan")
 
-    async def async_turn_on(self, speed: str = None, **kwargs) -> None:
+    async def async_turn_on(
+        self,
+        speed: str = None,
+        percentage: int = None,
+        preset_mode: str = None,
+        **kwargs,
+    ) -> None:
         """Send the turn off command to ISY994 fan program."""
         if not await self._actions.run_else():
             _LOGGER.error("Unable to turn on the fan")
