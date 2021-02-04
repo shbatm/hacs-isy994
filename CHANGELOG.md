@@ -1,5 +1,13 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0dev15-2] - Core Catchup to 2021.2.0
+
+- Update for new fan model (backwards-compatibility) (#78)
+- Update isy994 to use new fan entity model (home-assistant/core#45536)
+- Separate fan speeds into percentages and presets modes (home-assistant/core#45407)
+- Use strings instead of f-strings for constants (home-assistant/core#40619)
+- Add Devcontainer for integration development.
+
 ## [3.0.0dev15-1] - Bugfix for error while turning on a fan
 
 - Fixes `fan.turn_on` service error due to trying to call the old sync function instead of async.
