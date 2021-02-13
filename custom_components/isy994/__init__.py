@@ -184,7 +184,7 @@ async def async_setup_entry(
             "Failed to connect to the ISY, please adjust settings and try again: %s",
             err,
         )
-        return False
+        raise ConfigEntryNotReady from err
     except ISYResponseParseError as err:
         _LOGGER.warning(
             "Error processing responses from the ISY; device may be busy, trying again later"
