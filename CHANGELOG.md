@@ -1,5 +1,13 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0dev16] - Bump PyISY, Minor stability updates
+
+- Bump PyISY-beta to 3.0.0dev16.
+    - Fixes `group_all_on` reporting incorrectly
+    - Removes `hint` and presumptive status updates.
+- Fix incorrect service function names for `set_on_level` and `set_ramp_rate`.
+- Retry config setup on connection failure (#79)
+
 ## [3.0.0dev15-2] - Core Catchup to 2021.2.0
 
 - Update for new fan model (backwards-compatibility) (#78)

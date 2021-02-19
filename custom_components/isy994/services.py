@@ -409,8 +409,8 @@ def async_setup_light_services(hass: HomeAssistantType):
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
-        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, SERVICE_SET_ON_LEVEL
+        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, "async_set_on_level"
     )
     platform.async_register_entity_service(
-        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, SERVICE_SET_RAMP_RATE
+        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, "async_set_ramp_rate"
     )
