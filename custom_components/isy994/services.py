@@ -51,6 +51,7 @@ SERVICE_SEND_RAW_NODE_COMMAND = "send_raw_node_command"
 SERVICE_SEND_NODE_COMMAND = "send_node_command"
 SERVICE_GET_ZWAVE_PARAMETER = "get_zwave_parameter"
 SERVICE_SET_ZWAVE_PARAMETER = "set_zwave_parameter"
+SERVICE_RENAME_NODE = "rename_node"
 
 # Services valid only for dimmable lights.
 SERVICE_SET_ON_LEVEL = "set_on_level"
@@ -121,6 +122,8 @@ SERVICE_SEND_RAW_NODE_COMMAND_SCHEMA = {
 SERVICE_SEND_NODE_COMMAND_SCHEMA = {
     vol.Required(CONF_COMMAND): vol.In(VALID_NODE_COMMANDS)
 }
+
+SERVICE_RENAME_NODE_SCHEMA = {vol.Required(CONF_NAME): cv.string}
 
 SERVICE_GET_ZWAVE_PARAMETER_SCHEMA = {vol.Required(CONF_PARAMETER): vol.Coerce(int)}
 
@@ -413,6 +416,18 @@ def async_setup_services(hass: HomeAssistantType):
         service=SERVICE_SET_ZWAVE_PARAMETER,
         schema=cv.make_entity_service_schema(SERVICE_SET_ZWAVE_PARAMETER_SCHEMA),
         service_func=_async_set_zwave_parameter,
+    )
+
+    async def _async_rename_node(call: ServiceCall):
+        await hass.helpers.service.entity_service_call(
+            async_get_platforms(hass, DOMAIN), SERVICE_RENAME_NODE, call
+        )
+
+    hass.services.async_register(
+        domain=DOMAIN,
+        service=SERVICE_RENAME_NODE,
+        schema=cv.make_entity_service_schema(SERVICE_RENAME_NODE_SCHEMA),
+        service_func=_async_rename_node,
     )
 
 

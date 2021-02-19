@@ -60,6 +60,18 @@ set_zwave_parameter:
     size:
       description: The size of the parameter, either 1, 2, or 4 bytes.
       example: 4
+rename_node:
+  description: >-
+    Rename a node or group (scene) on the ISY994. Note: this will not automatically change the Home Assistant Entity Name or Entity ID to match.
+    The entity name and ID will only be updated after calling `isy994.reload` or restarting Home Assistant, and ONLY IF you have not already customized the
+    name within Home Assistant.
+  fields:
+    entity_id:
+      description: Name of a Home Assistant entity to update the name in the ISY994.
+      example: "light.front_door"
+    name:
+      description: The new name to use within the ISY994.
+      example: "Front Door Light"
 set_on_level:
   description: Send a ISY set_on_level command to a Node.
   fields:

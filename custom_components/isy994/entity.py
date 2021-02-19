@@ -193,6 +193,11 @@ class ISYNodeEntity(ISYEntity):
                 self.entity_id,
             )
         await self._node.set_zwave_parameter(parameter, value, size)
+        await self._node.get_zwave_parameter(parameter)
+
+    async def rename_node(self, name):
+        """Repsond to an entity service command to rename a node on the ISY."""
+        await self._node.rename(name)
 
 
 class ISYProgramEntity(ISYEntity):
