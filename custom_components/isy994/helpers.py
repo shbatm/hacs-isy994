@@ -31,6 +31,7 @@ from .const import (
     FILTER_STATES,
     FILTER_UOM,
     FILTER_ZWAVE_CAT,
+    ISY994_FOLDER_MAPPING,
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
@@ -283,6 +284,10 @@ def _categorize_nodes(
         if ignored:
             # Don't import this node as a device at all
             continue
+
+        path_parts = path.split("/")
+        if len(path_parts) > 2:
+            hass_isy_data[ISY994_FOLDER_MAPPING][node.address] = path_parts[-2]
 
         if hasattr(node, "protocol") and node.protocol == PROTO_GROUP:
             hass_isy_data[ISY994_NODES][ISY_GROUP_PLATFORM].append(node)

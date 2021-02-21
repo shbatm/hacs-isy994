@@ -11,6 +11,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
+    ISY994_FOLDER_MAPPING,
     ISY994_NODES,
     ISY994_VARIABLES,
     UOM_DOUBLE_TEMP,
@@ -34,7 +35,8 @@ async def async_setup_entry(
 
     for node in hass_isy_data[ISY994_NODES][SENSOR]:
         _LOGGER.debug("Loading %s", node.name)
-        devices.append(ISYSensorEntity(node))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        devices.append(ISYSensorEntity(node, folder))
 
     for vname, vobj in hass_isy_data[ISY994_VARIABLES]:
         devices.append(ISYSensorVariableEntity(vname, vobj))
@@ -112,7 +114,7 @@ class ISYSensorVariableEntity(ISYEntity):
 
     def __init__(self, vname: str, vobj: object) -> None:
         """Initialize the ISY994 binary sensor program."""
-        super().__init__(vobj)
+        super().__init__(vobj, None)
         self._name = vname
 
     @property

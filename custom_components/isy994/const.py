@@ -142,6 +142,7 @@ ISY994_ISY = "isy"
 ISY994_NODES = "isy994_nodes"
 ISY994_PROGRAMS = "isy994_programs"
 ISY994_VARIABLES = "isy994_variables"
+ISY994_FOLDER_MAPPING = "isy994_folder_mapping"
 
 FILTER_UOM = "uom"
 FILTER_STATES = "states"

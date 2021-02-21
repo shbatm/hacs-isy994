@@ -7,7 +7,13 @@ from homeassistant.components.switch import DOMAIN as SWITCH, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .const import (
+    _LOGGER,
+    DOMAIN as ISY994_DOMAIN,
+    ISY994_FOLDER_MAPPING,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+)
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
 
@@ -21,7 +27,8 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][SWITCH]:
-        devices.append(ISYSwitchEntity(node))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        devices.append(ISYSwitchEntity(node, folder))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][SWITCH]:
         devices.append(ISYSwitchProgramEntity(name, status, actions))

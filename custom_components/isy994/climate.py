@@ -39,6 +39,7 @@ from .const import (
     DOMAIN as ISY994_DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
+    ISY994_FOLDER_MAPPING,
     ISY994_NODES,
     ISY_HVAC_MODES,
     UOM_FAN_MODES,
@@ -68,7 +69,8 @@ async def async_setup_entry(
 
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     for node in hass_isy_data[ISY994_NODES][CLIMATE]:
-        entities.append(ISYThermostatEntity(node))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        entities.append(ISYThermostatEntity(node, folder))
 
     await migrate_old_unique_ids(hass, CLIMATE, entities)
     async_add_entities(entities)
@@ -77,9 +79,9 @@ async def async_setup_entry(
 class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
     """Representation of an ISY994 thermostat entity."""
 
-    def __init__(self, node) -> None:
+    def __init__(self, node, folder) -> None:
         """Initialize the ISY Thermostat entity."""
-        super().__init__(node)
+        super().__init__(node, folder)
         self._node = node
         self._uom = self._node.uom
         if isinstance(self._uom, list):

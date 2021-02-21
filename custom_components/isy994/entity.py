@@ -22,9 +22,10 @@ class ISYEntity(Entity):
 
     _name: str = None
 
-    def __init__(self, node) -> None:
+    def __init__(self, node, folder) -> None:
         """Initialize the insteon device."""
         self._node = node
+        self._folder = folder
         self._attrs = {}
         self._change_handler = None
         self._control_handler = None
@@ -103,6 +104,8 @@ class ISYEntity(Entity):
                     f"ProductID:{node.zwave_props.product_id}"
                 )
         # Note: sw_version is not exposed by the ISY for the individual devices.
+        if self._folder:
+            device_info["suggested_area"] = self._folder
 
         return device_info
 
@@ -182,7 +185,7 @@ class ISYProgramEntity(ISYEntity):
 
     def __init__(self, name: str, status, actions=None) -> None:
         """Initialize the ISY994 program-based entity."""
-        super().__init__(status)
+        super().__init__(status, None)
         self._name = name
         self._actions = actions
 

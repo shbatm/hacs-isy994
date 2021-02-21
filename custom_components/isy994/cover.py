@@ -17,6 +17,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 from .const import (
     _LOGGER,
     DOMAIN as ISY994_DOMAIN,
+    ISY994_FOLDER_MAPPING,
     ISY994_NODES,
     ISY994_PROGRAMS,
     UOM_8_BIT_RANGE,
@@ -35,7 +36,8 @@ async def async_setup_entry(
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
     devices = []
     for node in hass_isy_data[ISY994_NODES][COVER]:
-        devices.append(ISYCoverEntity(node))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        devices.append(ISYCoverEntity(node, folder))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][COVER]:
         devices.append(ISYCoverProgramEntity(name, status, actions))

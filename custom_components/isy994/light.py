@@ -16,6 +16,7 @@ from .const import (
     _LOGGER,
     CONF_RESTORE_LIGHT_STATE,
     DOMAIN as ISY994_DOMAIN,
+    ISY994_FOLDER_MAPPING,
     ISY994_NODES,
     UOM_PERCENTAGE,
 )
@@ -38,7 +39,8 @@ async def async_setup_entry(
 
     devices = []
     for node in hass_isy_data[ISY994_NODES][LIGHT]:
-        devices.append(ISYLightEntity(node, restore_light_state))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        devices.append(ISYLightEntity(node, folder, restore_light_state))
 
     await migrate_old_unique_ids(hass, LIGHT, devices)
     async_add_entities(devices)
@@ -49,9 +51,9 @@ async def async_setup_entry(
 class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     """Representation of an ISY994 light device."""
 
-    def __init__(self, node, restore_light_state) -> None:
+    def __init__(self, node, folder, restore_light_state) -> None:
         """Initialize the ISY994 light device."""
-        super().__init__(node)
+        super().__init__(node, folder)
         self._last_brightness = None
         self._restore_light_state = restore_light_state
 

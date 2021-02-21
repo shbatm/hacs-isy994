@@ -16,7 +16,13 @@ from homeassistant.components.fan import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
+from .const import (
+    _LOGGER,
+    DOMAIN as ISY994_DOMAIN,
+    ISY994_FOLDER_MAPPING,
+    ISY994_NODES,
+    ISY994_PROGRAMS,
+)
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
 from .percentage import (
@@ -41,7 +47,8 @@ async def async_setup_entry(
     devices = []
 
     for node in hass_isy_data[ISY994_NODES][FAN]:
-        devices.append(ISYFanEntity(node))
+        folder = hass_isy_data[ISY994_FOLDER_MAPPING].get(node.address)
+        devices.append(ISYFanEntity(node, folder))
 
     for name, status, actions in hass_isy_data[ISY994_PROGRAMS][FAN]:
         devices.append(ISYFanProgramEntity(name, status, actions))

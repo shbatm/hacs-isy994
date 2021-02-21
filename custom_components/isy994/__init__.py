@@ -33,6 +33,7 @@ from .const import (
     DEFAULT_SENSOR_STRING,
     DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
+    ISY994_FOLDER_MAPPING,
     ISY994_ISY,
     ISY994_NODES,
     ISY994_PROGRAMS,
@@ -116,6 +117,8 @@ async def async_setup_entry(
 
     hass.data[DOMAIN][entry.entry_id] = {}
     hass_isy_data = hass.data[DOMAIN][entry.entry_id]
+
+    hass_isy_data[ISY994_FOLDER_MAPPING] = {}
 
     hass_isy_data[ISY994_NODES] = {}
     for platform in SUPPORTED_PLATFORMS:
