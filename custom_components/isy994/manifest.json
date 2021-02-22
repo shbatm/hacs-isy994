@@ -2,7 +2,7 @@
   "domain": "isy994",
   "name": "Universal Devices ISY994",
   "documentation": "https://www.home-assistant.io/integrations/isy994",
-  "requirements": ["pyisy-beta==3.0.0dev15"],
+  "requirements": ["pyisy-beta==3.0.0.dev18"],
   "codeowners": ["@bdraco", "@shbatm"],
   "config_flow": true,
   "ssdp": [
@@ -11,5 +11,5 @@
       "deviceType": "urn:udi-com:device:X_Insteon_Lighting_Device:1"
     }
   ],
-  "version": "3.0.0dev16"
+  "version": "3.0.0.dev18"
 }

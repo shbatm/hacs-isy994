@@ -11,6 +11,7 @@ from pyisy.helpers import NodeProperty
 
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import Dict
 
@@ -159,8 +160,8 @@ class ISYNodeEntity(ISYEntity):
     async def send_node_command(self, command):
         """Respond to an entity service command call."""
         if not hasattr(self._node, command):
-            _LOGGER.error(
-                "Invalid Service Call %s for device %s", command, self.entity_id
+            raise HomeAssistantError(
+                f"Invalid service call: {command} for device {self.entity_id}"
             )
             return
         await getattr(self._node, command)()
@@ -170,11 +171,32 @@ class ISYNodeEntity(ISYEntity):
     ):
         """Respond to an entity service raw command call."""
         if not hasattr(self._node, "send_cmd"):
-            _LOGGER.error(
-                "Invalid Service Call %s for device %s", command, self.entity_id
+            raise HomeAssistantError(
+                f"Invalid service call: {command} for device {self.entity_id}"
             )
             return
         await self._node.send_cmd(command, value, unit_of_measurement, parameters)
+
+    async def get_zwave_parameter(self, parameter):
+        """Repsond to an entity service command to request a Z-Wave device parameter from the ISY."""
+        if not hasattr(self._node, "protocol") or self._node.protocol != PROTO_ZWAVE:
+            raise HomeAssistantError(
+                f"Invalid service call: cannot request Z-Wave Parameter for non-Z-Wave device {self.entity_id}"
+            )
+        await self._node.get_zwave_parameter(parameter)
+
+    async def set_zwave_parameter(self, parameter, value, size):
+        """Repsond to an entity service command to set a Z-Wave device parameter via the ISY."""
+        if not hasattr(self._node, "protocol") or self._node.protocol != PROTO_ZWAVE:
+            raise HomeAssistantError(
+                f"Invalid service call: cannot set Z-Wave Parameter for non-Z-Wave device {self.entity_id}"
+            )
+        await self._node.set_zwave_parameter(parameter, value, size)
+        await self._node.get_zwave_parameter(parameter)
+
+    async def rename_node(self, name):
+        """Repsond to an entity service command to rename a node on the ISY."""
+        await self._node.rename(name)
 
 
 class ISYProgramEntity(ISYEntity):
