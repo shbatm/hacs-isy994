@@ -103,6 +103,8 @@ class ISYEntity(Entity):
                     f"ProductTypeID:{node.zwave_props.prod_type_id} "
                     f"ProductID:{node.zwave_props.product_id}"
                 )
+        if hasattr(node, "folder") and node.folder is not None:
+            device_info["suggested_area"] = node.folder
         # Note: sw_version is not exposed by the ISY for the individual devices.
 
         return device_info

@@ -1,11 +1,18 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0.dev19] - Add Suggested Area Support
+
+- Uses the folders on the ISY to suggest the areas for Home Assistant to use for each device.
+
+## [3.0.0.dev18] - Add support for renaming ISY Nodes from Home Assistant services
+
+- Add a `isy994.rename_node` service to update an entities name within the ISY. Note this does not automatically update the name of the entity in Home Assistant. If you call `isy994.reload`, the name will be updated in Home Assistant ONLY IF you have not customized the name previously.
+
 ## [3.0.0.dev17] - Add Z-Wave Parameter Support
 
 - Add the following services to allow setting and getting Z-Wave Device parameters via the ISY.
     - `isy994.get_zwave_parameter` - Call the service with the entity ID and parameter number to retreive. The parameter will be returned as an entity state attribute.
     - `isy994.set_zwave_parameter` - Call the service with the entity ID, parameter number, value, and size in bytes and the ISY will set the parameter.
-- Add a `isy994.rename_node` service to update an entities name within the ISY. Note this does not automatically update the name of the entity in Home Assistant. If you call `isy994.reload`, the name will be updated in Home Assistant ONLY IF you have not customized the name previously.
 
 ## [3.0.0dev16] - Bump PyISY, Minor stability updates
 
