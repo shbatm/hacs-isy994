@@ -25,12 +25,8 @@
     - Integrations i* - m*: Rename HomeAssistantType to HomeAssistant. (home-assistant/core#49586)
     - Reduce config entry setup/unload boilerplate G-J (home-assistant/core#49737)
     - Enable mccabe complexity checks in flake8 (home-assistant/core#49616)
-    - Use AddEntitiesCallback type, pt.2 (home-assistant/core#49921)
-    - Clean up connection classes in integrations H-L (home-assistant/core#49891)
-    - Migrate to async_get_current_platform everywhere (home-assistant/core#50034)
     - Add dhcp discovery support to isy994 (home-assistant/core#50488)
     - Ensure isy994 is only discovered once (home-assistant/core#50577)
-    - Add targets and selectors for services (I-K) (home-assistant/core#50542)
 
 ## [3.0.0.dev19] - Add Suggested Area Support
 
