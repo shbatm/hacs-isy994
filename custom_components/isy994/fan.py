@@ -1,8 +1,9 @@
 """Support for ISY994 fans."""
-import math
-from typing import Callable
+from __future__ import annotations
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
+import math
+
+from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_INSTEON
 
 from homeassistant.components.fan import (
     DOMAIN as FAN,
@@ -20,6 +21,7 @@ from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRA
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .helpers import migrate_old_unique_ids
 from .percentage import (
+    int_states_in_range,
     ordered_list_item_to_percentage,
     percentage_to_ordered_list_item,
     percentage_to_ranged_value,
@@ -34,7 +36,7 @@ SPEED_RANGE = (1, 255)  # off is not included
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list], None],
+    async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up the ISY994 fan platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
@@ -64,11 +66,16 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
         return percentage_to_ordered_list_item(ON_SPEEDS, self.percentage)
 
     @property
-    def percentage(self) -> str:
+    def percentage(self) -> int | None:
         """Return the current speed percentage."""
         if self._node.status == ISY_VALUE_UNKNOWN:
             return None
         return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
+
+    @property
+    def speed_count(self) -> int:
+        """Return the number of speeds the fan supports."""
+        return int_states_in_range(SPEED_RANGE)
 
     @property
     def is_on(self) -> bool:
@@ -135,11 +142,18 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
         return percentage_to_ordered_list_item(ON_SPEEDS, self.percentage)
 
     @property
-    def percentage(self) -> str:
+    def percentage(self) -> int | None:
         """Return the current speed percentage."""
         if self._node.status == ISY_VALUE_UNKNOWN:
             return None
         return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
+
+    @property
+    def speed_count(self) -> int:
+        """Return the number of speeds the fan supports."""
+        if self._node.protocol == PROTO_INSTEON:
+            return 3
+        return int_states_in_range(SPEED_RANGE)
 
     @property
     def is_on(self) -> bool:

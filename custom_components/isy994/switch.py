@@ -1,5 +1,4 @@
 """Support for ISY994 switches."""
-from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 
@@ -15,7 +14,7 @@ from .helpers import migrate_old_unique_ids
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list], None],
+    async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up the ISY994 switch platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]

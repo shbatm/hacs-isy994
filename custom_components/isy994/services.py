@@ -26,8 +26,8 @@ from .const import (
     ISY994_NODES,
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
-    SUPPORTED_PLATFORMS,
-    SUPPORTED_PROGRAM_PLATFORMS,
+    PLATFORMS,
+    PROGRAM_PLATFORMS,
 )
 
 # Common Services for All Platforms:
@@ -173,7 +173,7 @@ SERVICE_RUN_NETWORK_RESOURCE_SCHEMA = vol.All(
 
 
 @callback
-def async_setup_services(hass: HomeAssistant):
+def async_setup_services(hass: HomeAssistant):  # noqa: C901
     """Create and register services for the ISY integration."""
     existing_services = hass.services.async_services().get(DOMAIN)
     if existing_services and any(
@@ -189,7 +189,7 @@ def async_setup_services(hass: HomeAssistant):
 
         for config_entry_id in hass.data[DOMAIN]:
             isy = hass.data[DOMAIN][config_entry_id][ISY994_ISY]
-            if isy_name and not isy_name == isy.configuration["name"]:
+            if isy_name and isy_name != isy.configuration["name"]:
                 continue
             # If an address is provided, make sure we query the correct ISY.
             # Otherwise, query the whole system on all ISY's connected.
@@ -214,7 +214,7 @@ def async_setup_services(hass: HomeAssistant):
 
         for config_entry_id in hass.data[DOMAIN]:
             isy = hass.data[DOMAIN][config_entry_id][ISY994_ISY]
-            if isy_name and not isy_name == isy.configuration["name"]:
+            if isy_name and isy_name != isy.configuration["name"]:
                 continue
             if not hasattr(isy, "networking") or isy.networking is None:
                 continue
@@ -239,7 +239,7 @@ def async_setup_services(hass: HomeAssistant):
 
         for config_entry_id in hass.data[DOMAIN]:
             isy = hass.data[DOMAIN][config_entry_id][ISY994_ISY]
-            if isy_name and not isy_name == isy.configuration["name"]:
+            if isy_name and isy_name != isy.configuration["name"]:
                 continue
             program = None
             if address:
@@ -262,7 +262,7 @@ def async_setup_services(hass: HomeAssistant):
 
         for config_entry_id in hass.data[DOMAIN]:
             isy = hass.data[DOMAIN][config_entry_id][ISY994_ISY]
-            if isy_name and not isy_name == isy.configuration["name"]:
+            if isy_name and isy_name != isy.configuration["name"]:
                 continue
             variable = None
             if name:
@@ -294,12 +294,12 @@ def async_setup_services(hass: HomeAssistant):
             hass_isy_data = hass.data[DOMAIN][config_entry_id]
             uuid = hass_isy_data[ISY994_ISY].configuration["uuid"]
 
-            for platform in SUPPORTED_PLATFORMS:
+            for platform in PLATFORMS:
                 for node in hass_isy_data[ISY994_NODES][platform]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
-            for platform in SUPPORTED_PROGRAM_PLATFORMS:
+            for platform in PROGRAM_PLATFORMS:
                 for _, node, _ in hass_isy_data[ISY994_PROGRAMS][platform]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
@@ -457,7 +457,7 @@ def async_unload_services(hass: HomeAssistant):
 @callback
 def async_setup_light_services(hass: HomeAssistant):
     """Create device-specific services for the ISY Integration."""
-    platform = entity_platform.current_platform.get()
+    platform = entity_platform.async_get_current_platform
 
     platform.async_register_entity_service(
         SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, "async_set_on_level"

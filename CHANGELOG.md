@@ -1,5 +1,37 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.0] - Migrate to released PyISY V3 (non-beta)
+
+- Migrate back to the upstream PyISY project for testing of PyISY V3 (not PyISY-beta package).
+- Remove use of `HomeAssistantType` which was removed in home-assistant/core#49593 (#87)
+- Core Catchup to 2021.5.4:
+    - None optional hass typing in FlowHandler (home-assistant/core#46462)
+    - Implement percentage step sizes for fans (home-assistant/core#46512)
+    - Add suggested area support to isy994 (home-assistant/core#46927)
+    - Update pylint (home-assistant/core#47205)
+    - Fix typing on fan percentage (home-assistant/core#47259)
+    - Uniformize platform setup (home-assistant/core#47101)
+    - Update integrations f-i to override extra_state_attributes() (home-assistant/core#47757)
+    - Update integrations j-o to override extra_state_attributes() (home-assistant/core#47758)
+    - Update typing 09 (home-assistant/core#48059)
+    - Have pylint warn when user visible log messages do not start with capital letter or end with a period (home-assistant/core#48064)
+    - Migrate integrations i-m to extend SensorEntity (home-assistant/core#48213)
+    - Rewrite of not a == b occurances (home-assistant/core#48132)
+    - Merge of nested IF-IF cases - H-J (home-assistant/core#48368)
+    - Update pylint to 2.7.3 (home-assistant/core#48488)
+    - Don't import stdlib typing types from helpers.typing (home-assistant/core#49104)
+    - Add support for IoT class in manifest (home-assistant/core#46935)
+    - Integrations h* - i*: Rename HomeAssistantType to HomeAssistant. (home-assistant/core#49587)
+    - Integrations i* - m*: Rename HomeAssistantType to HomeAssistant. (home-assistant/core#49586)
+    - Reduce config entry setup/unload boilerplate G-J (home-assistant/core#49737)
+    - Enable mccabe complexity checks in flake8 (home-assistant/core#49616)
+    - Use AddEntitiesCallback type, pt.2 (home-assistant/core#49921)
+    - Clean up connection classes in integrations H-L (home-assistant/core#49891)
+    - Migrate to async_get_current_platform everywhere (home-assistant/core#50034)
+    - Add dhcp discovery support to isy994 (home-assistant/core#50488)
+    - Ensure isy994 is only discovered once (home-assistant/core#50577)
+    - Add targets and selectors for services (I-K) (home-assistant/core#50542)
+
 ## [3.0.0.dev19] - Add Suggested Area Support
 
 - Uses the folders on the ISY to suggest the areas for Home Assistant to use for each device.

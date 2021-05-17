@@ -1,5 +1,4 @@
 """Support for ISY994 locks."""
-from typing import Callable
 
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
@@ -17,7 +16,7 @@ VALUE_TO_STATE = {0: False, 100: True}
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list], None],
+    async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up the ISY994 lock platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
