@@ -16,7 +16,7 @@
     - Update typing 09 (home-assistant/core#48059)
     - Have pylint warn when user visible log messages do not start with capital letter or end with a period (home-assistant/core#48064)
     - Migrate integrations i-m to extend SensorEntity (home-assistant/core#48213)
-    - Rewrite of not a == b occurances (home-assistant/core#48132)
+    - Rewrite of not a == b occurrences (home-assistant/core#48132)
     - Merge of nested IF-IF cases - H-J (home-assistant/core#48368)
     - Update pylint to 2.7.3 (home-assistant/core#48488)
     - Don't import stdlib typing types from helpers.typing (home-assistant/core#49104)
@@ -43,7 +43,7 @@
 ## [3.0.0.dev17] - Add Z-Wave Parameter Support
 
 - Add the following services to allow setting and getting Z-Wave Device parameters via the ISY.
-    - `isy994.get_zwave_parameter` - Call the service with the entity ID and parameter number to retreive. The parameter will be returned as an entity state attribute.
+    - `isy994.get_zwave_parameter` - Call the service with the entity ID and parameter number to retrieve. The parameter will be returned as an entity state attribute.
     - `isy994.set_zwave_parameter` - Call the service with the entity ID, parameter number, value, and size in bytes and the ISY will set the parameter.
 
 ## [3.0.0dev16] - Bump PyISY, Minor stability updates

@@ -202,8 +202,7 @@ async def async_setup_entry(
     await _async_get_or_create_isy_device_in_registry(hass, entry, isy)
 
     # Load platforms for the devices in the ISY controller that we support.
-    for platform in PLATFORMS:
-        hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
     def _start_auto_update() -> None:
         """Start isy auto update."""

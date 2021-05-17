@@ -1,13 +1,13 @@
 """Support for ISY994 sensors."""
 from __future__ import annotations
 
-
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.sensor import DOMAIN as SENSOR, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,

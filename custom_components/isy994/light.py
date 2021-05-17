@@ -1,7 +1,6 @@
 """Support for ISY994 lights."""
 from __future__ import annotations
 
-
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.light import (
@@ -11,6 +10,7 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -43,7 +43,6 @@ async def async_setup_entry(
 
     await migrate_old_unique_ids(hass, LIGHT, devices)
     async_add_entities(devices)
-
     async_setup_light_services(hass)
 
 

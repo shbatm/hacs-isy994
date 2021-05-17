@@ -1,0 +1,5 @@
+*.md
+azure-*.yml
+docs/source/_templates/*
+custom_components/*/translations/*.json
+tests/fixtures/*

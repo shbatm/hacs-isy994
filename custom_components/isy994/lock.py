@@ -5,6 +5,7 @@ from pyisy.constants import ISY_VALUE_UNKNOWN
 from homeassistant.components.lock import DOMAIN as LOCK, LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity

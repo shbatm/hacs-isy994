@@ -27,7 +27,7 @@ from .const import (
     DEFAULT_SENSOR_STRING,
     DEFAULT_TLS_VERSION,
     DEFAULT_VAR_SENSOR_STRING,
-    DOMAIN
+    DOMAIN,
     ISY_URL_POSTFIX,
     UDN_UUID_PREFIX,
 )
@@ -155,7 +155,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         friendly_name = discovery_info[HOSTNAME]
         url = f"http://{discovery_info[IP_ADDRESS]}"
         mac = discovery_info[MAC_ADDRESS]
-                isy_mac = (
+        isy_mac = (
             f"{mac[0:2]}:{mac[2:4]}:{mac[4:6]}:{mac[6:8]}:{mac[8:10]}:{mac[10:12]}"
         )
         await self.async_set_unique_id(isy_mac)

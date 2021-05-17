@@ -1,4 +1,5 @@
 """Representation of ISYEntity Types."""
+from __future__ import annotations
 
 from pyisy.constants import (
     COMMAND_FRIENDLY_NAME,
@@ -14,7 +15,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import Entity
 
-from .const import _LOGGER, DOMAIN
+from .const import DOMAIN
 
 
 class ISYEntity(Entity):
