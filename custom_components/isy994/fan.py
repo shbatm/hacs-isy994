@@ -14,7 +14,7 @@ from homeassistant.components.fan import (
     FanEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.core import HomeAssistant
 
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity
@@ -32,7 +32,7 @@ SPEED_RANGE = (1, 255)  # off is not included
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType,
+    hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: Callable[[list], None],
 ) -> bool:
