@@ -7,7 +7,6 @@ from pyisy.constants import ISY_VALUE_UNKNOWN, PROTO_GROUP
 from homeassistant.components.switch import DOMAIN as SWITCH, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 
 from .const import _LOGGER, DOMAIN as ISY994_DOMAIN, ISY994_NODES, ISY994_PROGRAMS
 from .entity import ISYNodeEntity, ISYProgramEntity
@@ -17,7 +16,7 @@ from .helpers import migrate_old_unique_ids
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list[Entity], bool], None],
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 switch platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]

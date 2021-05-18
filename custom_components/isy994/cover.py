@@ -14,7 +14,6 @@ from homeassistant.components.cover import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 
 from .const import (
     _LOGGER,
@@ -31,7 +30,7 @@ from .helpers import migrate_old_unique_ids
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list[Entity], bool], None],
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 cover platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]

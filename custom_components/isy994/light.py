@@ -12,7 +12,6 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -32,7 +31,7 @@ ATTR_LAST_BRIGHTNESS = "last_brightness"
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list[Entity], bool], None],
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 light platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]

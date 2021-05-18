@@ -35,7 +35,6 @@ from homeassistant.const import (
     TEMP_FAHRENHEIT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 
 from .const import (
     _LOGGER,
@@ -64,7 +63,7 @@ ISY_SUPPORTED_FEATURES = (
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: Callable[[list[Entity], bool], None],
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 thermostat platform."""
     entities = []
