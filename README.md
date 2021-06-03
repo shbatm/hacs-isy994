@@ -1,7 +1,9 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 <a href="https://www.buymeacoffee.com/shbatm" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" width="140px" height="30px" ></a>
 
-> :warning: **This integration is for beta testing new features for the ISY994 integration**: Home Assistant Core has been updated to include all features that were added in this component's version 1.x.x. Once you have upgraded to Home Assistant >0.110.0, you may safely remove this integration if you do not wish to beta test the new software.
+## DEPRECIATED ##
+
+> :warning: :warning: **This integration has been depreciated**: Home Assistant Core has been updated to include all features that were added in this component's version 3.0.0devX. Once you have upgraded to Home Assistant >2021.6.0, you may safely remove this integration. Thank you for testing. :warning: :warning:
 
 ## Description
 

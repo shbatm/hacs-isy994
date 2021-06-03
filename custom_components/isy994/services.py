@@ -86,7 +86,7 @@ VALID_PROGRAM_COMMANDS = [
     "enable_run_at_startup",
     "disable_run_at_startup",
 ]
-VALID_PARAMETER_SIZES = ["1", 1, "2", 2, "4", 4]
+VALID_PARAMETER_SIZES = [1, 2, 4]
 
 
 def valid_isy_commands(value: Any) -> str:
@@ -129,7 +129,7 @@ SERVICE_GET_ZWAVE_PARAMETER_SCHEMA = {vol.Required(CONF_PARAMETER): vol.Coerce(i
 SERVICE_SET_ZWAVE_PARAMETER_SCHEMA = {
     vol.Required(CONF_PARAMETER): vol.Coerce(int),
     vol.Required(CONF_VALUE): vol.Coerce(int),
-    vol.Required(CONF_SIZE): vol.In(VALID_PARAMETER_SIZES),
+    vol.Required(CONF_SIZE): vol.All(vol.Coerce(int), vol.In(VALID_PARAMETER_SIZES)),
 }
 
 SERVICE_SET_VARIABLE_SCHEMA = vol.All(
@@ -199,7 +199,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
                     address,
                     isy.configuration["uuid"],
                 )
-                hass.async_create_task(isy.query(address))
+                await isy.query(address)
                 return
             _LOGGER.debug(
                 "Requesting system query of ISY %s", isy.configuration["uuid"]
@@ -224,7 +224,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if name:
                 command = isy.networking.get_by_name(name)
             if command is not None:
-                hass.async_create_task(command.run())
+                await command.run()
                 return
         _LOGGER.error(
             "Could not run network resource command; not found or enabled on the ISY"
@@ -247,7 +247,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if name:
                 program = isy.programs.get_by_name(name)
             if program is not None:
-                hass.async_create_task(getattr(program, command)())
+                await getattr(program, command)()
                 return
         _LOGGER.error("Could not send program command; not found or enabled on the ISY")
 
@@ -270,7 +270,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if address and vtype:
                 variable = isy.variables.vobjs[vtype].get(address)
             if variable is not None:
-                hass.async_create_task(variable.set_value(value, init))
+                await variable.set_value(value, init)
                 return
         _LOGGER.error("Could not set variable value; not found or enabled on the ISY")
 
@@ -371,7 +371,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_send_raw_node_command(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), SERVICE_SEND_RAW_NODE_COMMAND, call
+            async_get_platforms(hass, DOMAIN), "async_send_raw_node_command", call
         )
 
     hass.services.async_register(
@@ -383,7 +383,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_send_node_command(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), SERVICE_SEND_NODE_COMMAND, call
+            async_get_platforms(hass, DOMAIN), "async_send_node_command", call
         )
 
     hass.services.async_register(
@@ -395,7 +395,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_get_zwave_parameter(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), SERVICE_GET_ZWAVE_PARAMETER, call
+            async_get_platforms(hass, DOMAIN), "async_get_zwave_parameter", call
         )
 
     hass.services.async_register(
@@ -407,7 +407,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_set_zwave_parameter(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), SERVICE_SET_ZWAVE_PARAMETER, call
+            async_get_platforms(hass, DOMAIN), "async_set_zwave_parameter", call
         )
 
     hass.services.async_register(
@@ -419,7 +419,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_rename_node(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), SERVICE_RENAME_NODE, call
+            async_get_platforms(hass, DOMAIN), "async_rename_node", call
         )
 
     hass.services.async_register(
@@ -457,7 +457,7 @@ def async_unload_services(hass: HomeAssistant):
 @callback
 def async_setup_light_services(hass: HomeAssistant):
     """Create device-specific services for the ISY Integration."""
-    platform = entity_platform.current_platform.get()
+    platform = entity_platform.async_get_current_platform()
 
     platform.async_register_entity_service(
         SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, "async_set_on_level"

@@ -1,5 +1,14 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.1] - Reconciliation with Core 2021.6.0
+
+### This version is identical to the Home Assistant Core integration @ 2021.6.0
+
+- Use AddEntitiesCallback type, pt.2 (home-assistant/core#49921)
+- Clean up connection classes in integrations H-L (home-assistant/core#49891)
+- Migrate to async_get_current_platform everywhere (home-assistant/core#50034)
+- Add targets and selectors for services (I-K) (home-assistant/core#50542)
+
 ## [3.0.0] - Migrate to released PyISY V3 (non-beta)
 
 - Migrate back to the upstream PyISY project for testing of PyISY V3 (not PyISY-beta package).

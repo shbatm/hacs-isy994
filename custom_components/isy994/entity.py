@@ -32,18 +32,20 @@ class ISYEntity(Entity):
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to the node change events."""
-        self._change_handler = self._node.status_events.subscribe(self.on_update)
+        self._change_handler = self._node.status_events.subscribe(self.async_on_update)
 
         if hasattr(self._node, "control_events"):
-            self._control_handler = self._node.control_events.subscribe(self.on_control)
+            self._control_handler = self._node.control_events.subscribe(
+                self.async_on_control
+            )
 
     @callback
-    def on_update(self, event: object) -> None:
+    def async_on_update(self, event: object) -> None:
         """Handle the update event from the ISY994 Node."""
         self.async_write_ha_state()
 
     @callback
-    def on_control(self, event: NodeProperty) -> None:
+    def async_on_control(self, event: NodeProperty) -> None:
         """Handle a control event from the ISY994 Node."""
         event_data = {
             "entity_id": self.entity_id,
@@ -159,16 +161,15 @@ class ISYNodeEntity(ISYEntity):
         self._attrs.update(attr)
         return self._attrs
 
-    async def send_node_command(self, command):
+    async def async_send_node_command(self, command):
         """Respond to an entity service command call."""
         if not hasattr(self._node, command):
             raise HomeAssistantError(
                 f"Invalid service call: {command} for device {self.entity_id}"
             )
-            return
         await getattr(self._node, command)()
 
-    async def send_raw_node_command(
+    async def async_send_raw_node_command(
         self, command, value=None, unit_of_measurement=None, parameters=None
     ):
         """Respond to an entity service raw command call."""
@@ -176,10 +177,9 @@ class ISYNodeEntity(ISYEntity):
             raise HomeAssistantError(
                 f"Invalid service call: {command} for device {self.entity_id}"
             )
-            return
         await self._node.send_cmd(command, value, unit_of_measurement, parameters)
 
-    async def get_zwave_parameter(self, parameter):
+    async def async_get_zwave_parameter(self, parameter):
         """Repsond to an entity service command to request a Z-Wave device parameter from the ISY."""
         if not hasattr(self._node, "protocol") or self._node.protocol != PROTO_ZWAVE:
             raise HomeAssistantError(
@@ -187,7 +187,7 @@ class ISYNodeEntity(ISYEntity):
             )
         await self._node.get_zwave_parameter(parameter)
 
-    async def set_zwave_parameter(self, parameter, value, size):
+    async def async_set_zwave_parameter(self, parameter, value, size):
         """Repsond to an entity service command to set a Z-Wave device parameter via the ISY."""
         if not hasattr(self._node, "protocol") or self._node.protocol != PROTO_ZWAVE:
             raise HomeAssistantError(
@@ -196,7 +196,7 @@ class ISYNodeEntity(ISYEntity):
         await self._node.set_zwave_parameter(parameter, value, size)
         await self._node.get_zwave_parameter(parameter)
 
-    async def rename_node(self, name):
+    async def async_rename_node(self, name):
         """Repsond to an entity service command to rename a node on the ISY."""
         await self._node.rename(name)
 
