@@ -1,5 +1,9 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
+## [3.0.2] - Increase Initialization Timeout
+
+- Increase the initialization timeout from 30s to 60s for slow connections to ISY.
+
 ## [3.0.1] - Reconciliation with Core 2021.6.0
 
 ### This version is identical to the Home Assistant Core integration @ 2021.6.0

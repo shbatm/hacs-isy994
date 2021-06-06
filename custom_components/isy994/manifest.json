@@ -14,5 +14,5 @@
   ],
   "dhcp": [{ "hostname": "isy*", "macaddress": "0021B9*" }],
   "iot_class": "local_push",
-  "version": "3.0.1"
+  "version": "3.0.2"
 }
