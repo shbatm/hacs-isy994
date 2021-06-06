@@ -171,7 +171,7 @@ async def async_setup_entry(
     )
 
     try:
-        with async_timeout.timeout(30):
+        with async_timeout.timeout(60):
             await isy.initialize()
     except ISYInvalidAuthError as err:
         _LOGGER.error(
