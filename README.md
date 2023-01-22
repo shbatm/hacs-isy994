@@ -2,7 +2,7 @@
 
 <a href="https://www.buymeacoffee.com/shbatm" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" width="140px" height="30px" ></a>
 
-> :warning: **This integration is for beta testing new features for the ISY994 integration**
+> :warning: **This integration is for beta testing new features for the ISY/IoX integration**
 
 ## Description
 

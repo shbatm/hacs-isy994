@@ -276,7 +276,7 @@ def async_unload_services(hass: HomeAssistant) -> None:
     ):
         return
 
-    _LOGGER.info("Unloading ISY994 Services")
+    _LOGGER.info("Unloading ISY Services")
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_PROGRAM_COMMAND)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_RAW_NODE_COMMAND)
     hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_NODE_COMMAND)
