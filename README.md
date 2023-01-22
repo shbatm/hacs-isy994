@@ -30,7 +30,7 @@ Assuming you have the pre-requisites installed from the link above (VSCode, Dock
 2. Clone the repository to your computer.
 3. Open the repository using Visual Studio code.
 4. PyISY Co-Development:
-    - If you are simulatenously making changes to PyISY, this container will mount your local PyISY folder inside this devcontainer. Assuming you have `./hacs-isy994` and `./PyISY` at the same root folder on your computer, they will be mounted at `/workspaces/hacs-isy994` and `/workspaces/PyISY` in the container. Install your local `pyisy` instance with `pip3 install -e /workspaces/PyISY`.
+    - If you are simultaneously making changes to PyISY, this container will mount your local PyISY folder inside this devcontainer. Assuming you have `./hacs-isy994` and `./PyISY` at the same root folder on your computer, they will be mounted at `/workspaces/hacs-isy994` and `/workspaces/PyISY` in the container. Install your local `pyisy` instance with `pip3 install -e /workspaces/PyISY`.
     - If you are not making changes to PyISY or do not have the structure above, remove the `"mounts"` section from `.devcontainer/devcontainer.json`.
 4. When you open this repository with Visual Studio code you are asked to "Reopen in Container", this will start the build of the container.
    - If you don't see this notification, open the command palette and select Remote-Containers: Reopen Folder in Container.

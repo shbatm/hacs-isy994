@@ -1,7 +1,7 @@
 {
-    "system_health": {
-        "info": {
-            "host_reachable": "Afrikanisch"
-        }
+  "system_health": {
+    "info": {
+      "host_reachable": "Afrikanisch"
     }
+  }
 }

@@ -1,10 +1,8 @@
 {
-	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
-	"context": "..",
-	"appPort": [
-		"9123:8123"
-	],
-	"postCreateCommand": "container install",
+  "image": "ghcr.io/ludeeus/devcontainer/integration:stable",
+  "context": "..",
+  "appPort": ["9123:8123"],
+  "postCreateCommand": "container install",
   "extensions": [
     "ms-python.python",
     "github.vscode-pull-request-github",
@@ -31,10 +29,7 @@
         "editor.tabSize": 4,
         "python.pythonPath": "/usr/local/python/bin/python",
         "python.analysis.autoSearchPaths": false,
-        "python.linting.pylintArgs": [
-          "--disable",
-          "import-error"
-        ],
+        "python.linting.pylintArgs": ["--disable", "import-error"],
         "python.formatting.provider": "black",
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,

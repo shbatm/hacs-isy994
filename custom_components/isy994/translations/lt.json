@@ -1,11 +1,11 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "password": "Slapta\u017eodis"
-                }
-            }
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "password": "Slapta\u017eodis"
         }
+      }
     }
+  }
 }

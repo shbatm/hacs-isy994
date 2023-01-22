@@ -1,5 +1,6 @@
 ignore: |
   azure-*.yml
+  .github/*.yml
 rules:
   braces:
     level: error
