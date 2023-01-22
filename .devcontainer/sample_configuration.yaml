@@ -1,6 +1,0 @@
-default_config:
-logger:
-  default: warn
-  logs:
-    pyisy: debug
-    custom_components.isy994: debug

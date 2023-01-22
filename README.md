@@ -1,13 +1,14 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+
 <a href="https://www.buymeacoffee.com/shbatm" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" width="140px" height="30px" ></a>
 
-> :warning: **This integration is for beta testing new features for the ISY994 integration**: Home Assistant Core has been updated to include all features that were added in this component's version 1.x.x. Once you have upgraded to Home Assistant >0.110.0, you may safely remove this integration if you do not wish to beta test the new software.
+> :warning: **This integration is for beta testing new features for the ISY994 integration**
 
 ## Description
 
 This Custom Component is to update the Home Assistant Core [ISY994 component](https://www.home-assistant.io/integrations/isy994/) with new functionality that is currently being tested before migrating to the main integration.
 
-Version 3.x.x uses the beta version of PyISY, in which the communications with the ISY have been completely rewritten to use asynchronous IO methods; ideally making the ISY controls much more responsive when controlling from Home Assistant.
+Version 4.x.x uses the beta version of PyISY, in which the communications with the ISY have been completely rewritten (again); ideally making the ISY controls much more responsive when controlling from Home Assistant.
 
 ### Differences between this version and Home Assistant Core
 
