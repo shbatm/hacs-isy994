@@ -1,5 +1,6 @@
 *.md
+.strict-typing
 azure-*.yml
 docs/source/_templates/*
-custom_components/*/translations/*.json
-tests/fixtures/*
+homeassistant/components/*/translations/*.json
+homeassistant/generated/*

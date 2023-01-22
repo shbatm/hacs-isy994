@@ -1,6 +1,6 @@
 [tool.black]
-target-version = ["py38"]
-exclude = 'generated'
+target-version = ["py39", "py310"]
+extend-exclude = "/generated/"
 
 [tool.isort]
 # https://github.com/PyCQA/isort/wiki/isort-Settings
@@ -16,23 +16,42 @@ forced_separate = [
 ]
 combine_as_imports = true
 
-[tool.pylint.MASTER]
+[tool.pylint.MAIN]
+py-version = "3.9"
 ignore = [
     "tests",
 ]
 # Use a conservative default here; 2 should speed up most setups and not hurt
 # any too bad. Override on command line as appropriate.
 jobs = 2
-init-hook='from pylint.config.find_default_config_files import find_default_config_files; from pathlib import Path; import sys; sys.path.append(str(Path(Path(list(find_default_config_files())[0]).parent, "pylint/plugins")))'
+init-hook = """\
+    from pathlib import Path; \
+    import sys; \
+
+    from pylint.config import find_default_config_files; \
+
+    sys.path.append( \
+        str(Path(next(find_default_config_files())).parent.joinpath('pylint/plugins'))
+    ) \
+    """
 load-plugins = [
+    "pylint.extensions.code_style",
     "pylint.extensions.typing",
-    "pylint_strict_informational",
-    "hass_logger"
+    "hass_constructor",
+    "hass_enforce_type_hints",
+    "hass_imports",
+    "hass_logger",
 ]
 persistent = false
-extension-pkg-whitelist = [
+extension-pkg-allow-list = [
+    "av.audio.stream",
+    "av.stream",
     "ciso8601",
+    "orjson",
     "cv2",
+]
+fail-on = [
+    "I",
 ]
 
 [tool.pylint.BASIC]
@@ -47,7 +66,7 @@ good-names = [
     "j",
     "k",
     "Run",
-    "T",
+    "ip",
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
@@ -64,9 +83,13 @@ good-names = [
 # inconsistent-return-statements - doesn't handle raise
 # too-many-ancestors - it's too strict.
 # wrong-import-order - isort guards this
+# consider-using-f-string - str.format sometimes more readable
+# ---
+# Enable once current issues are fixed:
+# consider-using-namedtuple-or-dataclass (Pylint CodeStyle extension)
+# consider-using-assignment-expr (Pylint CodeStyle extension)
 disable = [
     "format",
-    "abstract-class-little-used",
     "abstract-method",
     "cyclic-import",
     "duplicate-code",
@@ -86,6 +109,9 @@ disable = [
     "too-many-boolean-expressions",
     "unused-argument",
     "wrong-import-order",
+    "consider-using-f-string",
+    "consider-using-namedtuple-or-dataclass",
+    "consider-using-assignment-expr",
 ]
 enable = [
     #"useless-suppression",  # temporarily every now and then to clean them up
@@ -99,6 +125,7 @@ score = false
 ignored-classes = [
     "_CountingAttr",  # for attrs
 ]
+mixin-class-rgx = ".*[Mm]ix[Ii]n"
 
 [tool.pylint.FORMAT]
 expected-line-ending-format = "LF"
@@ -111,8 +138,10 @@ overgeneral-exceptions = [
 ]
 
 [tool.pylint.TYPING]
-py-version = "3.8"
 runtime-typing = false
+
+[tool.pylint.CODE_STYLE]
+max-line-length-suggestions = 72
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -122,3 +151,6 @@ norecursedirs = [
     ".git",
     "testing_config",
 ]
+log_format = "%(asctime)s.%(msecs)03d %(levelname)-8s %(threadName)s %(name)s:%(filename)s:%(lineno)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_mode = "auto"
