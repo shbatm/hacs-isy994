@@ -1,6 +1,8 @@
 # CHANGELOG - HACS Version of ISY994 Component
 
-## [4.0.0dev0] - Initial testing of new PyISY V4
+## [4.0.1] - Bump PyISY-beta to v4.0.0dev1
+
+## [4.0.0] - Initial testing of new PyISY V4 @ v4.0.0dev0
 
 ### Option Changes
 
