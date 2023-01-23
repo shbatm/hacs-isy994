@@ -324,11 +324,11 @@ def _generate_device_info(node: Node) -> DeviceInfo:
     return device_info
 
 
-async def _async_categorize_nodes(
+def _categorize_nodes(
     isy_data: IsyData, nodes: Nodes, ignore_identifier: str, sensor_identifier: str
 ) -> None:
     """Sort the nodes to their proper platforms."""
-    directory = await nodes.get_directory()
+    directory = nodes.get_directory()
     for path, node in directory.items():
         if ignore_identifier in path or node.protocol == Protocol.NODE_FOLDER:
             # Don't import this node as a device at all
@@ -386,9 +386,9 @@ async def _async_categorize_nodes(
         isy_data.nodes[Platform.SENSOR].append(node)
 
 
-async def _async_categorize_programs(isy_data: IsyData, programs: Programs) -> None:
+def _categorize_programs(isy_data: IsyData, programs: Programs) -> None:
     """Categorize the ISY programs."""
-    directory = await programs.get_directory()
+    directory = programs.get_directory()
     for platform in PROGRAM_PLATFORMS:
         folder_name = f"{DEFAULT_PROGRAM_STRING}{platform}/"
         try:

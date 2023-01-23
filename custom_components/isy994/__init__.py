@@ -149,12 +149,12 @@ async def async_setup_entry(
 
     isy_data.root = isy
 
-    await _async_categorize_nodes(
+    _async_categorize_nodes(
         isy_data, isy.nodes, ignore_identifier, sensor_identifier
     )
 
     if enable_programs and isy.programs.loaded:
-        await _async_categorize_programs(isy_data, isy.programs)
+        _async_categorize_programs(isy_data, isy.programs)
 
     if enable_variables and isy.variables.entities:
         _categorize_variables(isy_data, isy.variables, variable_identifier)
