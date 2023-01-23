@@ -7,15 +7,12 @@ from typing import Any
 from pyisy.constants import (
     ATTR_ACTION,
     CMD_BACKLIGHT,
-    DEV_BL_ADDR,
-    DEV_CMD_MEMORY_WRITE,
-    ISY_VALUE_UNKNOWN,
     PROP_ON_LEVEL,
     TAG_ADDRESS,
     UOM_PERCENTAGE,
     NodeChangeAction,
 )
-from pyisy.helpers.events import EventListener, NodeChangedEvent
+from pyisy.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
 from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Node
 from pyisy.variables import Variable
@@ -44,6 +41,7 @@ from homeassistant.util.percentage import (
 )
 
 from .const import (
+    BACKLIGHT_MEMORY_FILTER,
     CONF_VAR_SENSOR_STRING,
     DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
@@ -71,7 +69,6 @@ CONTROL_DESC = {
         native_step=1.0,
     ),
 }
-BACKLIGHT_MEMORY_FILTER = {"memory": DEV_BL_ADDR, "cmd1": DEV_CMD_MEMORY_WRITE}
 
 
 async def async_setup_entry(
@@ -148,7 +145,7 @@ class ISYAuxControlNumberEntity(ISYAuxControlEntity, NumberEntity):
     def native_value(self) -> float | int | None:
         """Return the state of the variable."""
         node_prop: NodeProperty = self._node.aux_properties[self._control]
-        if node_prop.value == ISY_VALUE_UNKNOWN:
+        if node_prop.value is None:
             return None
 
         if (
@@ -268,6 +265,7 @@ class ISYBacklightNumberEntity(ISYAuxControlEntity, RestoreNumber):
             event_filter={
                 TAG_ADDRESS: self._node.address,
                 ATTR_ACTION: NodeChangeAction.DEVICE_MEMORY,
+                ATTR_EVENT_INFO: BACKLIGHT_MEMORY_FILTER,
             },
             key=self.unique_id,
         )
@@ -275,8 +273,6 @@ class ISYBacklightNumberEntity(ISYAuxControlEntity, RestoreNumber):
     @callback
     def async_on_memory_write(self, event: NodeChangedEvent, key: str) -> None:
         """Handle a memory write event from the ISY Node."""
-        if not (BACKLIGHT_MEMORY_FILTER.items() <= event.event_info.items()):
-            return  # This was not a backlight event
         value = ranged_value_to_percentage((0, 127), event.event_info["value"])
         if value == self._attr_native_value:
             return  # Change was from this entity, don't update twice

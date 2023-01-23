@@ -47,11 +47,7 @@ from .const import (
     SCHEME_HTTP,
     SCHEME_HTTPS,
 )
-from .helpers import (
-    _async_categorize_nodes,
-    _async_categorize_programs,
-    _categorize_variables,
-)
+from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
 from .models import IsyData
 from .services import async_setup_services, async_unload_services
 from .util import _async_cleanup_registry_entries
@@ -149,12 +145,10 @@ async def async_setup_entry(
 
     isy_data.root = isy
 
-    _async_categorize_nodes(
-        isy_data, isy.nodes, ignore_identifier, sensor_identifier
-    )
+    _categorize_nodes(isy_data, isy.nodes, ignore_identifier, sensor_identifier)
 
     if enable_programs and isy.programs.loaded:
-        _async_categorize_programs(isy_data, isy.programs)
+        _categorize_programs(isy_data, isy.programs)
 
     if enable_variables and isy.variables.entities:
         _categorize_variables(isy_data, isy.variables, variable_identifier)

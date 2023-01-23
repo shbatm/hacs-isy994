@@ -6,7 +6,6 @@ from typing import cast
 from pyisy.constants import (
     BACKLIGHT_SUPPORT,
     CMD_BACKLIGHT,
-    ISY_VALUE_UNKNOWN,
     PROP_BUSY,
     PROP_COMMS_ERROR,
     PROP_ON_LEVEL,
@@ -458,7 +457,7 @@ def convert_isy_value_to_hass(
     Insteon Thermostats report temperature in 0.5-deg precision as an int
     by sending a value of 2 times the Temp. Correct by dividing by 2 here.
     """
-    if value is None or value == ISY_VALUE_UNKNOWN:
+    if value is None or value is None:
         return None
     if uom in (UOM_DOUBLE_TEMP, UOM_ISYV4_DEGREES):
         return round(float(value) / 2.0, 1)

@@ -3,13 +3,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.constants import (
-    ATTR_ACTION,
-    ISY_VALUE_UNKNOWN,
-    TAG_ADDRESS,
-    NodeChangeAction,
-    Protocol,
-)
+from pyisy.constants import ATTR_ACTION, TAG_ADDRESS, NodeChangeAction, Protocol
 from pyisy.helpers.events import EventListener, NodeChangedEvent
 from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Group, Node
@@ -80,7 +74,7 @@ class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Get whether the ISY device is in the on state."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return bool(self._node.status)
 

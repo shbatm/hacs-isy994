@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
 from pyisy.nodes import Node
 from pyisy.programs import Program
 
@@ -44,7 +43,7 @@ class ISYLockEntity(ISYNodeEntity, LockEntity):
     @property
     def is_locked(self) -> bool | None:
         """Get whether the lock is in locked state."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return VALUE_TO_STATE.get(self._node.status)
 

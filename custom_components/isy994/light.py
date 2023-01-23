@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
 from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Node
 
@@ -60,14 +59,14 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     @property
     def is_on(self) -> bool:
         """Get whether the ISY light is on."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return False
         return int(self._node.status) != 0
 
     @property
     def brightness(self) -> int | None:
         """Get the brightness of the ISY light."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         # Special Case for ISY Z-Wave Devices using % instead of 0-255:
         if self._node.uom == UOM_PERCENTAGE:
@@ -83,7 +82,7 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     @callback
     def async_on_update(self, event: NodeProperty) -> None:
         """Save brightness in the update event from the ISY Node."""
-        if self._node.status not in (0, ISY_VALUE_UNKNOWN):
+        if self._node.status:  # Not 0 or None
             self._last_brightness = self._node.status
             if self._node.uom == UOM_PERCENTAGE:
                 self._last_brightness = round(self._node.status * 255.0 / 100.0)

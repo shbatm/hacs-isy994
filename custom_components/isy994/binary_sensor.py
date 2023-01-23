@@ -243,7 +243,7 @@ class ISYBinarySensorEntity(ISYNodeEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Get whether the ISY binary sensor device is on."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return bool(self._node.status)
 
@@ -278,7 +278,7 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
         super().__init__(node, force_device_class, device_info=device_info)
         self._negative_node: Node | None = None
         self._heartbeat_device: ISYBinarySensorHeartbeat | None = None
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             self._computed_state = unknown_state
             self._status_was_unknown = True
         else:

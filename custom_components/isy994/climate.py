@@ -6,7 +6,6 @@ from typing import Any, cast
 from pyisy.constants import (
     CMD_CLIMATE_FAN_SETTING,
     CMD_CLIMATE_MODE,
-    ISY_VALUE_UNKNOWN,
     PROP_HEAT_COOL_STATE,
     PROP_HUMIDITY,
     PROP_SETPOINT_COOL,
@@ -113,7 +112,7 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
         """Return the current humidity."""
         if not (humidity := self._node.aux_properties.get(PROP_HUMIDITY)):
             return None
-        if humidity.value == ISY_VALUE_UNKNOWN:
+        if humidity.value is None:
             return None
         return int(humidity.value)
 
@@ -121,6 +120,8 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
     def hvac_mode(self) -> HVACMode:
         """Return hvac operation ie. heat, cool mode."""
         if not (hvac_mode := self._node.aux_properties.get(CMD_CLIMATE_MODE)):
+            return HVACMode.OFF
+        if hvac_mode.value is None:
             return HVACMode.OFF
 
         # Which state values used depends on the mode property's UOM:
@@ -140,7 +141,7 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
     def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation if supported."""
         hvac_action = self._node.aux_properties.get(PROP_HEAT_COOL_STATE)
-        if not hvac_action:
+        if not hvac_action or hvac_action.value is None:
             return None
         return cast(
             HVACAction, UOM_TO_STATES[UOM_HVAC_ACTIONS].get(int(hvac_action.value))
@@ -192,7 +193,7 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
     def fan_mode(self) -> str:
         """Return the current fan mode ie. auto, on."""
         fan_mode = self._node.aux_properties.get(CMD_CLIMATE_FAN_SETTING)
-        if not fan_mode:
+        if not fan_mode or fan_mode.value is None:
             return FAN_OFF
         return UOM_TO_STATES[UOM_FAN_MODES].get(int(fan_mode.value), FAN_OFF)
 

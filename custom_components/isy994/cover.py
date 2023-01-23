@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.constants import ISY_VALUE_UNKNOWN
 from pyisy.nodes import Node
 from pyisy.programs import Program
 
@@ -51,7 +50,7 @@ class ISYCoverEntity(ISYNodeEntity, CoverEntity):
     @property
     def current_cover_position(self) -> int | None:
         """Return the current cover position."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         if self._node.uom == UOM_8_BIT_RANGE:
             return round(cast(float, self._node.status) * 100.0 / 255.0)
@@ -60,7 +59,7 @@ class ISYCoverEntity(ISYNodeEntity, CoverEntity):
     @property
     def is_closed(self) -> bool | None:
         """Get whether the ISY cover device is closed."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return bool(self._node.status == 0)
 

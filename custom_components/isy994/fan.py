@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from pyisy.constants import ISY_VALUE_UNKNOWN, Protocol
+from pyisy.constants import Protocol
 from pyisy.nodes import Node
 from pyisy.programs import Program
 
@@ -52,7 +52,7 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
     @property
     def percentage(self) -> int | None:
         """Return the current speed percentage."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
 
@@ -66,7 +66,7 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
     @property
     def is_on(self) -> bool | None:
         """Get if the fan is on."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
         return bool(self._node.status != 0)
 
@@ -102,9 +102,9 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     @property
     def percentage(self) -> int | None:
         """Return the current speed percentage."""
-        if self._node.status == ISY_VALUE_UNKNOWN:
+        if self._node.status is None:
             return None
-        return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
+        return ranged_value_to_percentage(SPEED_RANGE, float(self._node.status))
 
     @property
     def speed_count(self) -> int:

@@ -7,7 +7,6 @@ from pyisy.constants import (
     ATTR_ACTION,
     ATTR_CONTROL,
     COMMAND_FRIENDLY_NAME,
-    ISY_VALUE_UNKNOWN,
     PROP_BATTERY_LEVEL,
     PROP_COMMS_ERROR,
     PROP_ENERGY_MODE,
@@ -180,7 +179,7 @@ class ISYSensorEntity(ISYNodeEntity, SensorEntity):
         if self.target is None:
             return None
 
-        if (value := self.target_value) == ISY_VALUE_UNKNOWN:
+        if (value := self.target_value) is None:
             return None
 
         # Get the translated ISY Unit of Measurement

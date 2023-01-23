@@ -1,7 +1,12 @@
 """Constants for the ISY Platform."""
 import logging
 
-from pyisy.constants import PROP_ON_LEVEL, PROP_RAMP_RATE
+from pyisy.constants import (
+    DEV_BL_ADDR,
+    DEV_CMD_MEMORY_WRITE,
+    PROP_ON_LEVEL,
+    PROP_RAMP_RATE,
+)
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.climate import (
@@ -665,3 +670,5 @@ SCHEME_HTTP = "http"
 HTTP_PORT = 80
 SCHEME_HTTPS = "https"
 HTTPS_PORT = 443
+
+BACKLIGHT_MEMORY_FILTER = {"memory": DEV_BL_ADDR, "cmd1": DEV_CMD_MEMORY_WRITE}
