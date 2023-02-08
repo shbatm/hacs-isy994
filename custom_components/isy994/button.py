@@ -120,7 +120,7 @@ class ISYNodeButtonEntity(ButtonEntity):
         # No status for NetworkResources or ISY Query buttons
         if not isinstance(self._node, Node):
             return
-        self._availability_handler = self._node.isy.nodes.status_events.subscribe(
+        self._availability_handler = self._node.isy.nodes.platform_events.subscribe(
             self.async_on_update,
             event_filter={
                 TAG_ADDRESS: self._node.address,

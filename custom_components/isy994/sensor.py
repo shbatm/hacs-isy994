@@ -4,8 +4,6 @@ from __future__ import annotations
 from typing import Any
 
 from pyisy.constants import (
-    ATTR_ACTION,
-    ATTR_CONTROL,
     COMMAND_FRIENDLY_NAME,
     PROP_BATTERY_LEVEL,
     PROP_COMMS_ERROR,
@@ -16,21 +14,19 @@ from pyisy.constants import (
     PROP_RAMP_RATE,
     PROP_STATUS,
     PROP_TEMPERATURE,
-    TAG_ADDRESS,
-    NodeChangeAction,
 )
-from pyisy.helpers.events import EventListener, NodeChangedEvent
 from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Node
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform, UnitOfTemperature
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -47,7 +43,7 @@ from .entity import ISYNodeEntity
 from .helpers import convert_isy_value_to_hass
 
 # Disable general purpose and redundant sensors by default
-AUX_DISABLED_BY_DEFAULT_MATCH = ["GV", "DO"]
+AUX_DISABLED_BY_DEFAULT_MATCH = ["DO"]
 AUX_DISABLED_BY_DEFAULT_EXACT = {
     PROP_COMMS_ERROR,
     PROP_ENERGY_MODE,
@@ -113,25 +109,75 @@ async def async_setup_entry(
     entities: list[ISYSensorEntity] = []
     devices: dict[str, DeviceInfo] = isy_data.devices
 
-    for node in isy_data.nodes[Platform.SENSOR]:
-        _LOGGER.debug("Loading %s", node.name)
-        entities.append(ISYSensorEntity(node, devices.get(node.primary_node)))
+    entity_list: list[tuple[Node, str]] = [
+        *[(node, PROP_STATUS) for node in isy_data.nodes[Platform.SENSOR]],
+        *isy_data.aux_properties[Platform.SENSOR],
+    ]
 
-    aux_sensors_list = isy_data.aux_properties[Platform.SENSOR]
-    for node, control in aux_sensors_list:
+    def get_native_uom(
+        uom: str | list, node: Node, control: str = PROP_STATUS
+    ) -> tuple[str | None, dict[int, str] | None]:
+        """Get the native UoM and Options Dict for the ISY sensor device."""
+        # Backwards compatibility for ISYv4 Firmware:
+        if isinstance(uom, list):
+            return (UOM_FRIENDLY_NAME.get(uom[0], uom[0]), None)
+        # Special cases for ISY UOM index units:
+        if isy_states := UOM_TO_STATES.get(uom):
+            return (None, isy_states)
+        if (
+            uom == UOM_INDEX
+            and (node_def := node.get_node_server_def()) is not None
+            and (editor := node_def.status_editors.get(control))
+        ):
+            return (None, editor.values)
+        # Handle on/off or unlisted index types
+        if uom in (UOM_ON_OFF, UOM_INDEX):
+            return (None, None)
+        # Assume double-temp matches current Hass unit (no way to confirm)
+        if uom == UOM_DOUBLE_TEMP:
+            return (hass.config.units.temperature_unit, None)
+        return (UOM_FRIENDLY_NAME.get(uom), None)
+
+    for node, control in entity_list:
         _LOGGER.debug("Loading %s %s", node.name, COMMAND_FRIENDLY_NAME.get(control))
         enabled_default = control not in AUX_DISABLED_BY_DEFAULT_EXACT and not any(
             control.startswith(match) for match in AUX_DISABLED_BY_DEFAULT_MATCH
         )
-        entities.append(
-            ISYAuxSensorEntity(
-                node=node,
-                control=control,
-                enabled_default=enabled_default,
-                unique_id=f"{isy_data.uid_base(node)}_{control}",
-                device_info=devices.get(node.primary_node),
-            )
+
+        device_class = ISY_CONTROL_TO_DEVICE_CLASS.get(control)
+        native_uom = None
+        options_dict = None
+        precision = None
+
+        if (prop := node.aux_properties.get(control)) is not None:
+            if prop.uom in (UOM_ON_OFF, UOM_INDEX):
+                device_class = SensorDeviceClass.ENUM
+            native_uom, options_dict = get_native_uom(prop.uom, node, control)
+            if native_uom is not None:
+                precision = prop.precision
+
+        description = SensorEntityDescription(
+            key=f"{node}_{control}",
+            device_class=device_class,
+            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
+            native_unit_of_measurement=native_uom,
+            options=list(options_dict.values()) if options_dict else None,
+            suggested_display_precision=precision,
+            entity_category=ISY_CONTROL_TO_ENTITY_CATEGORY.get(control),
+            entity_registry_enabled_default=enabled_default,
         )
+
+        entity = ISYSensorEntity(
+            node=node,
+            control=control,
+            description=description,
+            unique_id=f"{isy_data.uid_base(node)}_{control}"
+            if control != PROP_STATUS
+            else None,
+            device_info=devices.get(node.primary_node),
+            options_dict=options_dict,
+        )
+        entities.append(entity)
 
     async_add_entities(entities)
 
@@ -139,118 +185,27 @@ async def async_setup_entry(
 class ISYSensorEntity(ISYNodeEntity, SensorEntity):
     """Representation of an ISY sensor device."""
 
-    _node: Node
-
-    @property
-    def target(self) -> Node | NodeProperty | None:
-        """Return target for the sensor."""
-        return self._node
-
-    @property
-    def target_value(self) -> Any:
-        """Return the target value."""
-        return self._node.status
-
-    @property
-    def raw_unit_of_measurement(self) -> dict | str | None:
-        """Get the raw unit of measurement for the ISY sensor device."""
-        if self.target is None:
-            return None
-
-        uom = self.target.uom
-
-        # Backwards compatibility for ISYv4 Firmware:
-        if isinstance(uom, list):
-            return UOM_FRIENDLY_NAME.get(uom[0], uom[0])
-
-        # Special cases for ISY UOM index units:
-        if isy_states := UOM_TO_STATES.get(uom):
-            return isy_states
-
-        if uom in (UOM_ON_OFF, UOM_INDEX):
-            assert isinstance(uom, str)
-            return uom
-
-        return UOM_FRIENDLY_NAME.get(uom)
-
-    @property
-    def native_value(self) -> float | int | str | None:
-        """Get the state of the ISY sensor device."""
-        if self.target is None:
-            return None
-
-        if (value := self.target_value) is None:
-            return None
-
-        # Get the translated ISY Unit of Measurement
-        uom = self.raw_unit_of_measurement
-
-        # Check if this is a known index pair UOM
-        if isinstance(uom, dict):
-            return uom.get(value, value)
-
-        if uom in (UOM_INDEX, UOM_ON_OFF):
-            return self.target.formatted
-
-        # Check if this is an index type and get formatted value
-        if uom == UOM_INDEX and hasattr(self.target, "formatted"):
-            return self.target.formatted
-
-        # Handle ISY precision and rounding
-        value = convert_isy_value_to_hass(value, uom, 0)
-
-        # Convert temperatures to Home Assistant's unit
-        if uom in (UnitOfTemperature.CELSIUS, UnitOfTemperature.FAHRENHEIT):
-            value = self.hass.config.units.temperature(value, uom)
-
-        if value is None:
-            return None
-
-        assert isinstance(value, (int, float))
-        return value
-
-    @property
-    def native_unit_of_measurement(self) -> str | None:
-        """Get the Home Assistant unit of measurement for the device."""
-        raw_units = self.raw_unit_of_measurement
-        # Check if this is a known index pair UOM
-        if isinstance(raw_units, dict) or raw_units in (UOM_ON_OFF, UOM_INDEX):
-            return None
-        if raw_units in (
-            UnitOfTemperature.FAHRENHEIT,
-            UnitOfTemperature.CELSIUS,
-            UOM_DOUBLE_TEMP,
-        ):
-            return self.hass.config.units.temperature_unit
-        return raw_units
-
-
-class ISYAuxSensorEntity(ISYSensorEntity):
-    """Representation of an ISY aux sensor device."""
-
-    _node: Node
-    _change_handler: EventListener
-    _availability_handler: EventListener
+    _options_dict: dict[int, str] | None
+    entity_description: SensorEntityDescription
 
     def __init__(
         self,
         node: Node,
-        control: str,
-        enabled_default: bool,
-        unique_id: str,
+        control: str = PROP_STATUS,
+        unique_id: str | None = None,
+        description: SensorEntityDescription | None = None,
         device_info: DeviceInfo | None = None,
+        options_dict: dict[int, str] | None = None,
     ) -> None:
         """Initialize the ISY aux sensor."""
-        super().__init__(node, device_info=device_info)
-        self._control = control
-        self._attr_entity_registry_enabled_default = enabled_default
-        self._attr_entity_category = ISY_CONTROL_TO_ENTITY_CATEGORY.get(control)
-        self._attr_device_class = ISY_CONTROL_TO_DEVICE_CLASS.get(control)
-        self._attr_state_class = ISY_CONTROL_TO_STATE_CLASS.get(control)
-        self._attr_unique_id = unique_id
-
-        name = COMMAND_FRIENDLY_NAME.get(self._control, self._control)
-        self._attr_name = f"{node.name} {name.replace('_', ' ').title()}"
+        super().__init__(
+            node=node,
+            control=control,
+            unique_id=unique_id,
+            description=description,
+            device_info=device_info,
+        )
+        self._options_dict = options_dict
 
     @property
     def target(self) -> NodeProperty | None:
@@ -265,30 +220,25 @@ class ISYAuxSensorEntity(ISYSensorEntity):
         """Return the target value."""
         return None if self.target is None else self.target.value
 
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to the node control change events.
-
-        Overloads the default ISYNodeEntity updater to only update when
-        this control is changed on the device and prevent duplicate firing
-        of `isy994_control` events.
-        """
-        self._change_handler = self._node.control_events.subscribe(
-            self.async_on_update, event_filter={ATTR_CONTROL: self._control}
-        )
-        self._availability_handler = self._node.isy.nodes.status_events.subscribe(
-            self.async_on_update,
-            event_filter={
-                TAG_ADDRESS: self._node.address,
-                ATTR_ACTION: NodeChangeAction.NODE_ENABLED,
-            },
-        )
-
-    @callback
-    def async_on_update(self, event: NodeProperty | NodeChangedEvent) -> None:
-        """Handle a control event from the ISY Node."""
-        self.async_write_ha_state()
-
     @property
-    def available(self) -> bool:
-        """Return entity availability."""
-        return self._node.enabled
+    def native_value(self) -> float | int | str | None:
+        """Get the state of the ISY sensor device."""
+        if self.target is None or (value := self.target_value) is None:
+            return None
+
+        # Check if this is a known index pair UOM
+        if self._options_dict is not None:
+            return self._options_dict.get(value, value)
+
+        # Check if this is an on/off or unlisted index type and get formatted value
+        if self.native_unit_of_measurement is None and self.target.formatted:
+            return self.target.formatted
+
+        # Handle ISY precision and rounding
+        value = convert_isy_value_to_hass(value, self.target.uom, self.target.precision)
+
+        if value is None:
+            return None
+
+        assert isinstance(value, (int, float))
+        return value

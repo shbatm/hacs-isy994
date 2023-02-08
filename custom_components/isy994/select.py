@@ -27,7 +27,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import _LOGGER, BACKLIGHT_MEMORY_FILTER, DOMAIN, UOM_INDEX
-from .entity import ISYAuxControlEntity
+from .entity import ISYNodeEntity
 from .models import IsyData
 
 
@@ -100,7 +100,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ISYRampRateSelectEntity(ISYAuxControlEntity, SelectEntity):
+class ISYRampRateSelectEntity(ISYNodeEntity, SelectEntity):
     """Representation of a ISY/IoX Aux Control Ramp Rate Select entity."""
 
     @property
@@ -118,7 +118,7 @@ class ISYRampRateSelectEntity(ISYAuxControlEntity, SelectEntity):
         await self._node.set_ramp_rate(RAMP_RATE_OPTIONS.index(option))
 
 
-class ISYAuxControlIndexSelectEntity(ISYAuxControlEntity, SelectEntity):
+class ISYAuxControlIndexSelectEntity(ISYNodeEntity, SelectEntity):
     """Representation of a ISY/IoX Aux Control Index Select entity."""
 
     @property
@@ -141,7 +141,7 @@ class ISYAuxControlIndexSelectEntity(ISYAuxControlEntity, SelectEntity):
         )
 
 
-class ISYBacklightSelectEntity(ISYAuxControlEntity, SelectEntity, RestoreEntity):
+class ISYBacklightSelectEntity(ISYNodeEntity, SelectEntity, RestoreEntity):
     """Representation of a ISY/IoX Backlight Select entity."""
 
     _assumed_state = True  # Backlight values aren't read from device
@@ -155,7 +155,13 @@ class ISYBacklightSelectEntity(ISYAuxControlEntity, SelectEntity, RestoreEntity)
         device_info: DeviceInfo | None,
     ) -> None:
         """Initialize the ISY Backlight Select entity."""
-        super().__init__(node, control, unique_id, description, device_info)
+        super().__init__(
+            node=node,
+            control=control,
+            unique_id=unique_id,
+            description=description,
+            device_info=device_info,
+        )
         self._memory_change_handler: EventListener | None = None
         self._attr_current_option = None
 
@@ -168,7 +174,7 @@ class ISYBacklightSelectEntity(ISYAuxControlEntity, SelectEntity, RestoreEntity)
             self._attr_current_option = last_state.state
 
         # Listen to memory writing events to update state if changed in ISY
-        self._memory_change_handler = self._node.isy.nodes.status_events.subscribe(
+        self._memory_change_handler = self._node.isy.nodes.platform_events.subscribe(
             self.async_on_memory_write,
             event_filter={
                 TAG_ADDRESS: self._node.address,

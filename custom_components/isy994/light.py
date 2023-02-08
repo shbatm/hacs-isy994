@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Node
 
 from homeassistant.components.light import ColorMode, LightEntity
@@ -15,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import _LOGGER, CONF_RESTORE_LIGHT_STATE, DOMAIN, UOM_PERCENTAGE
-from .entity import ISYNodeEntity
+from .entity import ISYNodeEntity, NodeEventType
 
 ATTR_LAST_BRIGHTNESS = "last_brightness"
 
@@ -80,7 +79,7 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
             _LOGGER.debug("Unable to turn off light")
 
     @callback
-    def async_on_update(self, event: NodeProperty) -> None:
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Save brightness in the update event from the ISY Node."""
         if self._node.status:  # Not 0 or None
             self._last_brightness = self._node.status
@@ -88,7 +87,7 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
                 self._last_brightness = round(self._node.status * 255.0 / 100.0)
             else:
                 self._last_brightness = self._node.status
-        super().async_on_update(event)
+        super().async_on_update(event, key)
 
     async def async_turn_on(self, brightness: int | None = None, **kwargs: Any) -> None:
         """Send the turn on command to the ISY light device."""

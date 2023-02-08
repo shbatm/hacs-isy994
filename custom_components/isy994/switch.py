@@ -3,10 +3,8 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.constants import ATTR_ACTION, TAG_ADDRESS, NodeChangeAction, Protocol
-from pyisy.helpers.events import EventListener, NodeChangedEvent
-from pyisy.helpers.models import NodeProperty
 from pyisy.nodes import Group, Node
+from pyisy.nodes.nodebase import NodeBase
 from pyisy.programs import Program
 
 from homeassistant.components.switch import (
@@ -16,13 +14,13 @@ from homeassistant.components.switch import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory, EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .entity import ISYAuxControlEntity, ISYNodeEntity, ISYProgramEntity
+from .entity import ISYGroupEntity, ISYNodeEntity, ISYProgramEntity
 from .models import IsyData
 
 
@@ -32,24 +30,31 @@ async def async_setup_entry(
     """Set up the ISY switch platform."""
     isy_data: IsyData = hass.data[DOMAIN][entry.entry_id]
     entities: list[
-        ISYSwitchProgramEntity | ISYSwitchEntity | ISYEnableSwitchEntity
+        ISYSwitchEntity
+        | ISYGroupSwitchEntity
+        | ISYSwitchProgramEntity
+        | ISYEnableSwitchEntity
     ] = []
     device_info = isy_data.devices
     for node in isy_data.nodes[Platform.SWITCH]:
-        primary = node.primary_node
-        if isinstance(node, Group) and len(node.controllers) == 1:
-            # If Group has only 1 Controller, link to that device instead of the hub
-            controller = cast(Node, isy_data.root.nodes.entities[node.controllers[0]])
-            primary = controller.primary_node
+        entities.append(
+            ISYSwitchEntity(node=node, device_info=device_info.get(node.primary_node))
+        )
 
-        entities.append(ISYSwitchEntity(node, device_info.get(primary)))
+    for group in isy_data.groups:
+        device = None
+        if len(group.controllers) == 1:
+            # If Group has only 1 Controller, link to that device instead of the hub
+            controller = cast(Node, isy_data.root.nodes.entities[group.controllers[0]])
+            device = device_info.get(controller.primary_node)
+        entities.append(ISYGroupSwitchEntity(node=group, device_info=device))
 
     for name, status, actions in isy_data.programs[Platform.SWITCH]:
         entities.append(ISYSwitchProgramEntity(name, status, actions))
 
     for node, control in isy_data.aux_properties[Platform.SWITCH]:
-        # Currently only used for enable switches, will need to be updated for NS support
-        # by making sure control == TAG_ENABLED
+        # Currently only used for enable switches, will need to be updated for
+        # NS support by making sure control == TAG_ENABLED
         description = SwitchEntityDescription(
             key=control,
             device_class=SwitchDeviceClass.SWITCH,
@@ -68,8 +73,10 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):
+class ISYSwitchEntityMixin(SwitchEntity):
     """Representation of an ISY switch device."""
+
+    _node: NodeBase
 
     @property
     def is_on(self) -> bool | None:
@@ -88,18 +95,25 @@ class ISYSwitchEntity(ISYNodeEntity, SwitchEntity):
         if not await self._node.turn_on():
             raise HomeAssistantError(f"Unable to turn on switch {self._node.address}")
 
-    @property
-    def icon(self) -> str | None:
-        """Get the icon for groups."""
-        if hasattr(self._node, "protocol") and self._node.protocol == Protocol.GROUP:
-            return "mdi:google-circles-communities"  # Matches isy scene icon
-        return super().icon
+
+class ISYGroupSwitchEntity(ISYGroupEntity, ISYSwitchEntityMixin):
+    """Representation of an ISY group switch device."""
+
+    _node: Group
+    _attr_icon: str = "mdi:google-circles-communities"
+
+
+class ISYSwitchEntity(ISYNodeEntity, ISYSwitchEntityMixin):
+    """Representation of an ISY switch device."""
+
+    _node: Node
 
 
 class ISYSwitchProgramEntity(ISYProgramEntity, SwitchEntity):
     """A representation of an ISY program switch."""
 
     _actions: Program
+    _attr_icon: str = "mdi:script-text-outline"  # Matches isy program icon
 
     @property
     def is_on(self) -> bool:
@@ -120,16 +134,9 @@ class ISYSwitchProgramEntity(ISYProgramEntity, SwitchEntity):
                 f"Unable to run 'else' clause on program switch {self._actions.address}"
             )
 
-    @property
-    def icon(self) -> str:
-        """Get the icon for programs."""
-        return "mdi:script-text-outline"  # Matches isy program icon
 
-
-class ISYEnableSwitchEntity(ISYAuxControlEntity, SwitchEntity):
+class ISYEnableSwitchEntity(ISYNodeEntity, SwitchEntity):
     """A representation of an ISY enable/disable switch."""
-
-    _change_handler: EventListener
 
     def __init__(
         self,
@@ -148,22 +155,6 @@ class ISYEnableSwitchEntity(ISYAuxControlEntity, SwitchEntity):
             device_info=device_info,
         )
         self._attr_name = description.name  # Override super
-
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to the node control change events."""
-        self._change_handler = self._node.isy.nodes.status_events.subscribe(
-            self.async_on_update,
-            event_filter={
-                TAG_ADDRESS: self._node.address,
-                ATTR_ACTION: NodeChangeAction.NODE_ENABLED,
-            },
-            key=self.unique_id,
-        )
-
-    @callback
-    def async_on_update(self, event: NodeProperty | NodeChangedEvent, key: str) -> None:
-        """Handle a control event from the ISY Node."""
-        self.async_write_ha_state()
 
     @property
     def available(self) -> bool:

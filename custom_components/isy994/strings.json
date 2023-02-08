@@ -36,7 +36,7 @@
     "step": {
       "init": {
         "title": "ISY Options",
-        "description": "Set the options for the ISY Integration: \n • Node Sensor String: Any device or folder that contains 'Node Sensor String' in the name will be treated as a sensor or binary sensor. \n • Ignore String: Any device with 'Ignore String' in the name will be ignored. \n • Variable Sensor String: Any variable that contains 'Variable Sensor String' will be added as a sensor. \n • Restore Light Brightness: If enabled, the previous brightness will be restored when turning on a light instead of the device's built-in On-Level.",
+        "description": "Set the options for the ISY Integration: \n • Node Sensor String: Any device or folder that contains 'Node Sensor String' in the name will be treated as a sensor or binary sensor. \n • Ignore String: Any device with 'Ignore String' in the name will be ignored. \n • Variable Sensor String: Any variable that contains 'Variable Sensor String' will be added as a sensor. \n • Restore Light Brightness: If enabled, the previous brightness will be restored when turning on a light instead of the device's built-in On-Level. \n • Enable Adding Variable, Node Server, Network Resource, or Program Entities: If you don't use any of these features you can disable them to speed up loading times.",
         "data": {
           "sensor_string": "Node Sensor String",
           "ignore_string": "Ignore String",

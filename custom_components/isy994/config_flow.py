@@ -59,7 +59,9 @@ def _data_schema(schema_input: dict[str, str]) -> vol.Schema:
             vol.Required(CONF_HOST, default=schema_input.get(CONF_HOST, "")): str,
             vol.Required(CONF_USERNAME): str,
             vol.Required(CONF_PASSWORD): str,
-            vol.Optional(CONF_TLS_VER, default=DEFAULT_TLS_VERSION): vol.In([1.1, 1.2]),
+            vol.Optional(CONF_TLS_VER, default=DEFAULT_TLS_VERSION): vol.In(
+                [DEFAULT_TLS_VERSION, 1.1, 1.2]
+            ),
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -93,7 +95,7 @@ async def validate_input(
         host,
         user,
         password,
-        tls_version=tls_version,
+        tls_version=tls_version if tls_version != DEFAULT_TLS_VERSION else None,
         websession=session,
     )
 

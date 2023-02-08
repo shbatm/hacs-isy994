@@ -47,7 +47,7 @@ from .const import (
     DOMAIN,
     UOM_8_BIT_RANGE,
 )
-from .entity import ISYAuxControlEntity
+from .entity import ISYNodeEntity
 
 ISY_MAX_SIZE = (2**32) / 2
 ON_RANGE = (1, 255)  # Off is not included
@@ -136,7 +136,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ISYAuxControlNumberEntity(ISYAuxControlEntity, NumberEntity):
+class ISYAuxControlNumberEntity(ISYNodeEntity, NumberEntity):
     """Representation of a ISY/IoX Aux Control Number entity."""
 
     _attr_mode = NumberMode.SLIDER
@@ -232,7 +232,7 @@ class ISYVariableNumberEntity(NumberEntity):
             )
 
 
-class ISYBacklightNumberEntity(ISYAuxControlEntity, RestoreNumber):
+class ISYBacklightNumberEntity(ISYNodeEntity, RestoreNumber):
     """Representation of a ISY/IoX Backlight Number entity."""
 
     _assumed_state = True  # Backlight values aren't read from device
@@ -246,7 +246,13 @@ class ISYBacklightNumberEntity(ISYAuxControlEntity, RestoreNumber):
         device_info: DeviceInfo | None,
     ) -> None:
         """Initialize the ISY Backlight number entity."""
-        super().__init__(node, control, unique_id, description, device_info)
+        super().__init__(
+            node=node,
+            control=control,
+            unique_id=unique_id,
+            description=description,
+            device_info=device_info,
+        )
         self._memory_change_handler: EventListener | None = None
         self._attr_native_value = 0
 
@@ -260,7 +266,7 @@ class ISYBacklightNumberEntity(ISYAuxControlEntity, RestoreNumber):
                 self._attr_native_value = last_number_data.native_value
 
         # Listen to memory writing events to update state if changed in ISY
-        self._memory_change_handler = self._node.isy.nodes.status_events.subscribe(
+        self._memory_change_handler = self._node.isy.nodes.platform_events.subscribe(
             self.async_on_memory_write,
             event_filter={
                 TAG_ADDRESS: self._node.address,

@@ -27,7 +27,9 @@ async def async_setup_entry(
     devices: dict[str, DeviceInfo] = isy_data.devices
     entities: list[ISYLockEntity | ISYLockProgramEntity] = []
     for node in isy_data.nodes[Platform.LOCK]:
-        entities.append(ISYLockEntity(node, devices.get(node.primary_node)))
+        entities.append(
+            ISYLockEntity(node=node, device_info=devices.get(node.primary_node))
+        )
 
     for name, status, actions in isy_data.programs[Platform.LOCK]:
         entities.append(ISYLockProgramEntity(name, status, actions))

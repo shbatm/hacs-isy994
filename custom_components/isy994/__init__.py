@@ -8,6 +8,7 @@ from aiohttp import CookieJar
 import async_timeout
 from pyisy import ISY, ISYResponseParseError
 from pyisy.connection import ISYConnectionError, ISYConnectionInfo, ISYInvalidAuthError
+from pyisy.constants import CONFIG_NETWORKING
 from pyisy.networking import NetworkCommand
 import voluptuous as vol
 
@@ -32,21 +33,18 @@ from .const import (
     CONF_ENABLE_NODESERVERS,
     CONF_ENABLE_PROGRAMS,
     CONF_ENABLE_VARIABLES,
-    CONF_IGNORE_STRING,
     CONF_NETWORK,
-    CONF_SENSOR_STRING,
     CONF_TLS_VER,
     CONF_VAR_SENSOR_STRING,
-    DEFAULT_IGNORE_STRING,
-    DEFAULT_SENSOR_STRING,
+    DEFAULT_TLS_VERSION,
     DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
-    ISY_CONF_NETWORKING,
     MANUFACTURER,
     PLATFORMS,
     SCHEME_HTTP,
     SCHEME_HTTPS,
 )
+from .events import IsyControllerEvents
 from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
 from .models import IsyData
 from .services import async_setup_services, async_unload_services
@@ -80,8 +78,6 @@ async def async_setup_entry(
 
     # Optional
     tls_version = isy_config.get(CONF_TLS_VER)
-    ignore_identifier = isy_options.get(CONF_IGNORE_STRING, DEFAULT_IGNORE_STRING)
-    sensor_identifier = isy_options.get(CONF_SENSOR_STRING, DEFAULT_SENSOR_STRING)
     variable_identifier = isy_options.get(
         CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
     )
@@ -105,7 +101,7 @@ async def async_setup_entry(
         isy_config[CONF_HOST],
         user,
         password,
-        tls_version=tls_version,
+        tls_version=tls_version if tls_version != DEFAULT_TLS_VERSION else None,
         websession=session,
     )
 
@@ -145,7 +141,7 @@ async def async_setup_entry(
 
     isy_data.root = isy
 
-    _categorize_nodes(isy_data, isy.nodes, ignore_identifier, sensor_identifier)
+    _categorize_nodes(isy_data, isy.nodes, isy_options)
 
     if enable_programs and isy.programs.loaded:
         _categorize_programs(isy_data, isy.programs)
@@ -158,7 +154,7 @@ async def async_setup_entry(
 
     if enable_networking and isy.networking.loaded:
         isy_data.devices[CONF_NETWORK] = _create_service_device_info(
-            isy, name=ISY_CONF_NETWORKING, unique_id=CONF_NETWORK
+            isy, name=CONFIG_NETWORKING, unique_id=CONF_NETWORK
         )
         for resource in isy.networking.values():
             assert isinstance(resource, NetworkCommand)
@@ -180,6 +176,7 @@ async def async_setup_entry(
 
     _LOGGER.debug("ISY Starting Event Stream and automatic updates")
     isy.websocket.start()
+    isy_data.controller_events = IsyControllerEvents(hass, isy_data)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     entry.async_on_unload(

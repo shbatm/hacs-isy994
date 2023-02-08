@@ -28,7 +28,8 @@ def _async_cleanup_registry_entries(hass: HomeAssistant, entry_id: str) -> None:
             entity_registry.async_remove(entities[entity])
 
     _LOGGER.debug(
-        ("Cleaning up ISY entities: removed %s extra entities for config entry %s"),
+        ("Cleaning up ISY entities: removed %s extra entities for config entry %s: %s"),
         len(extra_entities),
         entry_id,
+        extra_entities,
     )
