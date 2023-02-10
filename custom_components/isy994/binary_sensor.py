@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from pyisy.constants import (
+from pyisyox.constants import (
     CMD_OFF,
     CMD_ON,
     COMMAND_FRIENDLY_NAME,
@@ -12,8 +12,8 @@ from pyisy.constants import (
     PROP_STATUS,
     Protocol,
 )
-from pyisy.helpers.models import NodeProperty
-from pyisy.nodes import Node
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -533,9 +533,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity, RestoreEntity)
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Get the state attributes for the device."""
-        attr = super().extra_state_attributes
-        attr["parent_entity_id"] = self._parent_device.entity_id
-        return attr
+        return {"parent_entity_id": self._parent_device.entity_id}
 
 
 class ISYBinarySensorProgramEntity(ISYProgramEntity, BinarySensorEntity):

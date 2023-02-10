@@ -1,7 +1,7 @@
 """Constants for the ISY Platform."""
 import logging
 
-from pyisy.constants import (
+from pyisyox.constants import (
     DEV_BL_ADDR,
     DEV_CMD_MEMORY_WRITE,
     PROP_ON_LEVEL,

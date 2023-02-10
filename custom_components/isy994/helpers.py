@@ -4,7 +4,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Any, cast
 
-from pyisy.constants import (
+from pyisyox.constants import (
     BACKLIGHT_SUPPORT,
     CMD_BACKLIGHT,
     PROP_BUSY,
@@ -16,9 +16,9 @@ from pyisy.constants import (
     UOM_INDEX,
     Protocol,
 )
-from pyisy.nodes import Group, Node, Nodes
-from pyisy.programs import Programs
-from pyisy.variables import Variables
+from pyisyox.nodes import Group, Node, Nodes
+from pyisyox.programs import Programs
+from pyisyox.variables import Variables
 
 from homeassistant.const import ATTR_MANUFACTURER, ATTR_MODEL, Platform
 from homeassistant.helpers.entity import DeviceInfo
@@ -370,14 +370,13 @@ def _categorize_nodes(
             isy_data.groups.append(node)
             continue
 
-        if node.protocol in (Protocol.INSTEON, Protocol.NODE_SERVER):
-            for control in node.aux_properties:
-                if control in SKIP_AUX_PROPS:
-                    continue
-                platform = Platform.SENSOR
-                if node.aux_properties[control].uom in BINARY_SENSOR_UOMS:
-                    platform = Platform.BINARY_SENSOR
-                isy_data.aux_properties[platform].append((node, control))
+        for control in node.aux_properties:
+            if control in SKIP_AUX_PROPS:
+                continue
+            platform = Platform.SENSOR
+            if node.aux_properties[control].uom in BINARY_SENSOR_UOMS:
+                platform = Platform.BINARY_SENSOR
+            isy_data.aux_properties[platform].append((node, control))
 
         if sensor_identifier in path or sensor_identifier in node.name:
             # User has specified to treat this as a sensor. First we need to

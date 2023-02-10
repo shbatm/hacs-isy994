@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisy.constants import COMMAND_FRIENDLY_NAME
+from pyisyox.constants import COMMAND_FRIENDLY_NAME
 import voluptuous as vol
 
 from homeassistant.const import (

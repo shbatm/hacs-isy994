@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisy import ISY
+from pyisyox import ISY
 
 from homeassistant.components import system_health
 from homeassistant.config_entries import ConfigEntry

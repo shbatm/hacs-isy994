@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.nodes import Node
+from pyisyox.nodes import Node
 
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.config_entries import ConfigEntry
@@ -102,9 +102,7 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the light attributes."""
-        attribs = super().extra_state_attributes
-        attribs[ATTR_LAST_BRIGHTNESS] = self._last_brightness
-        return attribs
+        return {ATTR_LAST_BRIGHTNESS: self._last_brightness}
 
     async def async_added_to_hass(self) -> None:
         """Restore last_brightness on restart."""

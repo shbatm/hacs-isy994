@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.constants import (
+from pyisyox.constants import (
     CMD_CLIMATE_FAN_SETTING,
     CMD_CLIMATE_MODE,
     PROP_HEAT_COOL_STATE,
@@ -13,7 +13,7 @@ from pyisy.constants import (
     PROP_UOM,
     Protocol,
 )
-from pyisy.nodes import Node
+from pyisyox.nodes import Node
 
 from homeassistant.components.climate import (
     ATTR_TARGET_TEMP_HIGH,

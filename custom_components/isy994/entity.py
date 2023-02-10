@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Union, cast
 
-from pyisy.constants import (
+from pyisyox.constants import (
     ATTR_ACTION,
     ATTR_CONTROL,
     COMMAND_FRIENDLY_NAME,
@@ -12,13 +12,13 @@ from pyisy.constants import (
     NodeChangeAction,
     Protocol,
 )
-from pyisy.helpers.events import EventListener, NodeChangedEvent
-from pyisy.helpers.models import NodeProperty
-from pyisy.node_servers import NodeServerNodeDef
-from pyisy.nodes import Group, Node
-from pyisy.nodes.nodebase import NodeBase
-from pyisy.programs import Program, ProgramDetail
-from pyisy.variables import Variable
+from pyisyox.helpers.events import EventListener, NodeChangedEvent
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.node_servers import NodeDef
+from pyisyox.nodes import Group, Node
+from pyisyox.nodes.nodebase import NodeBase
+from pyisyox.programs import Program, ProgramDetail
+from pyisyox.variables import Variable
 
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
@@ -64,7 +64,7 @@ class ISYEntity(Entity):
         )
 
     @callback
-    def async_on_update(self, event: NodeProperty, key: str) -> None:
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle the update event from the ISY Node."""
         self.async_write_ha_state()
 
@@ -85,7 +85,7 @@ class ISYNodeEntity(ISYEntity):
 
     _node: Node
     _control: str
-    _node_def: NodeServerNodeDef | None = None
+    _node_def: NodeDef | None = None
     _change_handler: EventListener
     _availability_handler: EventListener
 
@@ -105,7 +105,7 @@ class ISYNodeEntity(ISYEntity):
 
         # Determine the entity or device name to use
         name: str | None = None
-        self._node_def = node.get_node_server_def()
+        self._node_def = node.get_node_def()
         if self._node_def is not None:
             name = self._node_def.status_names.get(control)
         elif control != PROP_STATUS:
@@ -144,29 +144,6 @@ class ISYNodeEntity(ISYEntity):
     def available(self) -> bool:
         """Return entity availability."""
         return self._node.enabled
-
-    @property
-    def extra_state_attributes(self) -> dict:
-        """Get the state attributes for the device.
-
-        The 'aux_properties' in the pyisy Node class are combined with the
-        other attributes which have been picked up from the event stream and
-        the combined result are returned as the device state attributes.
-        """
-        attr = {}
-        node = self._node
-        # Insteon and Node Server aux_properties are now their own sensors
-        # TODO Remove this
-        if hasattr(self._node, "aux_properties") and node.protocol not in (
-            Protocol.INSTEON,
-            Protocol.NODE_SERVER,
-        ):
-            for name, value in self._node.aux_properties.items():
-                attr_name = COMMAND_FRIENDLY_NAME.get(name, name)
-                attr[attr_name] = str(value.formatted).lower()
-
-        self._attrs.update(attr)
-        return self._attrs
 
     async def async_send_node_command(self, command: str) -> None:
         """Respond to an entity service command call."""

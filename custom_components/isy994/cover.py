@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.nodes import Node
-from pyisy.programs import Program
+from pyisyox.nodes import Node
+from pyisyox.programs import Program
 
 from homeassistant.components.cover import (
     ATTR_POSITION,

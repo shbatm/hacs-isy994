@@ -4,9 +4,9 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from pyisy.constants import Protocol
-from pyisy.nodes import Node
-from pyisy.programs import Program
+from pyisyox.constants import Protocol
+from pyisyox.nodes import Node
+from pyisyox.programs import Program
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.config_entries import ConfigEntry

@@ -1,7 +1,7 @@
 """Support for ISY select entities."""
 from __future__ import annotations
 
-from pyisy.constants import (
+from pyisyox.constants import (
     ATTR_ACTION,
     BACKLIGHT_INDEX,
     CMD_BACKLIGHT,
@@ -13,9 +13,9 @@ from pyisy.constants import (
     UOM_TO_STATES,
     NodeChangeAction,
 )
-from pyisy.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
-from pyisy.helpers.models import NodeProperty
-from pyisy.nodes import Node
+from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry

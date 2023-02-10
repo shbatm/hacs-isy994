@@ -4,13 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from pyisy import ISY
-from pyisy.constants import Protocol
-from pyisy.helpers.models import EntityStatus, NodeProperty
-from pyisy.networking import NetworkCommand
-from pyisy.nodes import Group, Node
-from pyisy.programs import Program
-from pyisy.variables import Variable
+from pyisyox import ISY
+from pyisyox.constants import Protocol
+from pyisyox.helpers.models import EntityStatus, NodeProperty
+from pyisyox.networking import NetworkCommand
+from pyisyox.nodes import Group, Node
+from pyisyox.programs import Program
+from pyisyox.variables import Variable
 
 from homeassistant.const import Platform
 from homeassistant.helpers.entity import DeviceInfo

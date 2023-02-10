@@ -6,10 +6,14 @@ from urllib.parse import urlparse
 
 from aiohttp import CookieJar
 import async_timeout
-from pyisy import ISY, ISYResponseParseError
-from pyisy.connection import ISYConnectionError, ISYConnectionInfo, ISYInvalidAuthError
-from pyisy.constants import CONFIG_NETWORKING
-from pyisy.networking import NetworkCommand
+from pyisyox import ISY, ISYResponseParseError
+from pyisyox.connection import (
+    ISYConnectionError,
+    ISYConnectionInfo,
+    ISYInvalidAuthError,
+)
+from pyisyox.constants import CONFIG_NETWORKING
+from pyisyox.networking import NetworkCommand
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -82,7 +86,7 @@ async def async_setup_entry(
         CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
     )
     enable_variables = isy_options.get(CONF_ENABLE_VARIABLES, True)
-    enable_nodeservers = isy_options.get(CONF_ENABLE_NODESERVERS, False)
+    enable_nodeservers = isy_options.get(CONF_ENABLE_NODESERVERS, True)
     enable_programs = isy_options.get(CONF_ENABLE_PROGRAMS, True)
     enable_networking = isy_options.get(CONF_ENABLE_NETWORKING, True)
 

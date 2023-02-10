@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from pyisy import ISY
-from pyisy.constants import NodeChangeAction, SystemStatus
-from pyisy.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
+from pyisyox import ISY
+from pyisyox.constants import NodeChangeAction
+from pyisyox.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
 
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.device_registry as dr
@@ -64,10 +64,3 @@ class IsyControllerEvents:
     def program_event_handler(self, event: EntityStatus) -> None:
         """Handle program control event sent from ISY."""
         self.hass.bus.async_fire("isy994_program_event", asdict(event))
-
-    @callback
-    def system_status_handler(self, event: SystemStatus) -> None:
-        """Handle a system status changed event sent ISY class."""
-        _LOGGER.debug("System status changed: %s", event.name.replace("_", " ").title())
-        # Future: this is a logging call for now. Future PR to add support for
-        # a entity representing the hub's current status (busy, safe-mode, idle).
