@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisy.constants import (
+from pyisyox.constants import (
     COMMAND_FRIENDLY_NAME,
     PROP_BATTERY_LEVEL,
     PROP_COMMS_ERROR,
@@ -15,8 +15,8 @@ from pyisy.constants import (
     PROP_STATUS,
     PROP_TEMPERATURE,
 )
-from pyisy.helpers.models import NodeProperty
-from pyisy.nodes import Node
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -53,7 +53,7 @@ AUX_DISABLED_BY_DEFAULT_EXACT = {
     PROP_STATUS,
 }
 
-# Reference pyisy.constants.COMMAND_FRIENDLY_NAME for API details.
+# Reference pyisyox.constants.COMMAND_FRIENDLY_NAME for API details.
 #   Note: "LUMIN"/Illuminance removed, some devices use non-conformant "%" unit
 #         "VOCLVL"/VOC removed, uses qualitative UOM not ug/m^3
 ISY_CONTROL_TO_DEVICE_CLASS = {
@@ -126,7 +126,7 @@ async def async_setup_entry(
             return (None, isy_states)
         if (
             uom == UOM_INDEX
-            and (node_def := node.get_node_server_def()) is not None
+            and (node_def := node.get_node_def()) is not None
             and (editor := node_def.status_editors.get(control))
         ):
             return (None, editor.values)
@@ -159,9 +159,9 @@ async def async_setup_entry(
         description = SensorEntityDescription(
             key=f"{node}_{control}",
             device_class=device_class,
-            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
             native_unit_of_measurement=native_uom,
             options=list(options_dict.values()) if options_dict else None,
+            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
             suggested_display_precision=precision,
             entity_category=ISY_CONTROL_TO_ENTITY_CATEGORY.get(control),
             entity_registry_enabled_default=enabled_default,

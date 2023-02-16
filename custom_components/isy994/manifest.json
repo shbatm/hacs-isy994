@@ -4,7 +4,7 @@
   "integration_type": "hub",
   "documentation": "https://www.home-assistant.io/integrations/isy994",
   "issues": "http://github.com/shbatm/hacs-isy994",
-  "requirements": ["pyisy-beta==4.0.0a4"],
+  "requirements": ["pyisyox==1.0.0a2"],
   "codeowners": ["@bdraco", "@shbatm"],
   "config_flow": true,
   "ssdp": [
@@ -31,6 +31,6 @@
     }
   ],
   "iot_class": "local_push",
-  "loggers": ["pyisy"],
-  "version": "4.0.4"
+  "loggers": ["pyisyox"],
+  "version": "4.0.5"
 }

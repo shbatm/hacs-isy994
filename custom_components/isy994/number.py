@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from pyisy.constants import (
+from pyisyox.constants import (
     ATTR_ACTION,
     CMD_BACKLIGHT,
     PROP_ON_LEVEL,
@@ -12,10 +12,10 @@ from pyisy.constants import (
     UOM_PERCENTAGE,
     NodeChangeAction,
 )
-from pyisy.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
-from pyisy.helpers.models import NodeProperty
-from pyisy.nodes import Node
-from pyisy.variables import Variable
+from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
+from pyisyox.variables import Variable
 
 from homeassistant.components.number import (
     NumberEntity,

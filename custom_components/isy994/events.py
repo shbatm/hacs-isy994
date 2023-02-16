@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from pyisy import ISY
-from pyisy.constants import NodeChangeAction, SystemStatus
-from pyisy.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
+from pyisyox import ISY
+from pyisyox.constants import NodeChangeAction, SystemStatus
+from pyisyox.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
 
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.device_registry as dr

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisy.nodes import Group, Node
-from pyisy.nodes.nodebase import NodeBase
-from pyisy.programs import Program
+from pyisyox.nodes import Group, Node
+from pyisyox.nodes.nodebase import NodeBase
+from pyisyox.programs import Program
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,

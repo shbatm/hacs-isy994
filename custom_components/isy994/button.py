@@ -1,18 +1,18 @@
 """Representation of ISY/IoX buttons."""
 from __future__ import annotations
 
-from pyisy import ISY
-from pyisy.constants import (
+from pyisyox import ISY
+from pyisyox.constants import (
     ATTR_ACTION,
     TAG_ADDRESS,
     TAG_ENABLED,
     NodeChangeAction,
     Protocol,
 )
-from pyisy.helpers.events import EventListener
-from pyisy.helpers.models import NodeProperty
-from pyisy.networking import NetworkCommand
-from pyisy.nodes import Node
+from pyisyox.helpers.events import EventListener
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.networking import NetworkCommand
+from pyisyox.nodes import Node
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry

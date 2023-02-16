@@ -8,8 +8,8 @@ from urllib.parse import urlparse, urlunparse
 
 from aiohttp import CookieJar
 import async_timeout
-from pyisy import ISYResponseParseError
-from pyisy.connection import (
+from pyisyox import ISYResponseParseError
+from pyisyox.connection import (
     Connection,
     ISYConnectionError,
     ISYConnectionInfo,
@@ -325,7 +325,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
         )
         enable_variables = options.get(CONF_ENABLE_VARIABLES, True)
-        enable_nodeservers = options.get(CONF_ENABLE_NODESERVERS, False)
+        enable_nodeservers = options.get(CONF_ENABLE_NODESERVERS, True)
         enable_programs = options.get(CONF_ENABLE_PROGRAMS, True)
         enable_networking = options.get(CONF_ENABLE_NETWORKING, True)
 
