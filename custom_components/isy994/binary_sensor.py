@@ -216,7 +216,7 @@ async def async_setup_entry(
     for node, control in isy_data.aux_properties[Platform.BINARY_SENSOR]:
         _LOGGER.debug("Loading %s %s", node.name, COMMAND_FRIENDLY_NAME.get(control))
         entity = ISYBinarySensorEntity(
-            node=node, control=control, device_info=device_info
+            node=node, control=control, device_info=devices.get(node.primary_node)
         )
     async_add_entities(entities)
 

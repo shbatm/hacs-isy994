@@ -112,7 +112,7 @@ class ISYNodeEntity(ISYEntity):
             name = COMMAND_FRIENDLY_NAME.get(control, control).replace("_", " ").title()
 
         if not node.is_device_root:
-            name = f"{node.name} {name}"
+            name = f"{node.name} {name}" if name else node.name
             self._attr_has_entity_name = False
         else:
             self._attr_has_entity_name = True

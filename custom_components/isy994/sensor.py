@@ -159,9 +159,9 @@ async def async_setup_entry(
         description = SensorEntityDescription(
             key=f"{node}_{control}",
             device_class=device_class,
-            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
             native_unit_of_measurement=native_uom,
             options=list(options_dict.values()) if options_dict else None,
+            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
             suggested_display_precision=precision,
             entity_category=ISY_CONTROL_TO_ENTITY_CATEGORY.get(control),
             entity_registry_enabled_default=enabled_default,
