@@ -10,11 +10,13 @@ from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import _LOGGER, DOMAIN
 from .entity import ISYNodeEntity, ISYProgramEntity
+from .services import async_setup_lock_services
 
 VALUE_TO_STATE = {0: False, 100: True}
 
@@ -35,6 +37,7 @@ async def async_setup_entry(
         entities.append(ISYLockProgramEntity(name, status, actions))
 
     async_add_entities(entities)
+    async_setup_lock_services(hass)
 
 
 class ISYLockEntity(ISYNodeEntity, LockEntity):
@@ -58,6 +61,20 @@ class ISYLockEntity(ISYNodeEntity, LockEntity):
         """Send the unlock command to the ISY device."""
         if not await self._node.secure_unlock():
             _LOGGER.error("Unable to lock device")
+
+    async def async_set_zwave_lock_user_code(self, user_num: int, code: int) -> None:
+        """Set the ON Level for a device."""
+        if not await self._node.set_zwave_lock_code(user_num, code):
+            raise HomeAssistantError(
+                f"Could not set user code {user_num} for {self._node.address}"
+            )
+
+    async def async_delete_zwave_lock_user_code(self, user_num: int) -> None:
+        """Set the Ramp Rate for a device."""
+        if not await self._node.delete_zwave_lock_code(user_num):
+            raise HomeAssistantError(
+                f"Could not delete user code {user_num} for {self._node.address}"
+            )
 
 
 class ISYLockProgramEntity(ISYProgramEntity, LockEntity):

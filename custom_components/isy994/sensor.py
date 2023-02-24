@@ -162,7 +162,7 @@ async def async_setup_entry(
             native_unit_of_measurement=native_uom,
             options=list(options_dict.values()) if options_dict else None,
             state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
-            #suggested_display_precision=precision,  # TODO: uncomment after 2023.3.0 release
+            # suggested_display_precision=precision,  # TODO: uncomment after 2023.3.0 release
             entity_category=ISY_CONTROL_TO_ENTITY_CATEGORY.get(control),
             entity_registry_enabled_default=enabled_default,
         )
