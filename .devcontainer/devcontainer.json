@@ -1,8 +1,9 @@
 {
-  "image": "ghcr.io/ludeeus/devcontainer/integration:stable",
-  "context": "..",
-  "appPort": ["9123:8123"],
-  "postCreateCommand": "container install",
+  "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
+  "postCreateCommand": "scripts/setup",
+  "forwardPorts": [
+      8123
+  ],
   "extensions": [
     "ms-python.python",
     "github.vscode-pull-request-github",
@@ -45,5 +46,6 @@
         "ryanluker.vscode-coverage-gutters"
       ]
     }
-  }
+  },
+  "remoteUser": "vscode"
 }
