@@ -140,7 +140,7 @@ set_zwave_lock_user_code:
       name: Code
       description: The code to set for the user.
       required: true
-      example: 33491663
+      example: 8675309
       selector:
         number:
           min: 1
