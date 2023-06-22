@@ -14,7 +14,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import _LOGGER, DOMAIN
+from .const import DOMAIN
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .services import async_setup_lock_services
 
@@ -55,22 +55,22 @@ class ISYLockEntity(ISYNodeEntity, LockEntity):
     async def async_lock(self, **kwargs: Any) -> None:
         """Send the lock command to the ISY device."""
         if not await self._node.secure_lock():
-            _LOGGER.error("Unable to lock device")
+            raise HomeAssistantError(f"Unable to lock device {self._node.address}")
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Send the unlock command to the ISY device."""
         if not await self._node.secure_unlock():
-            _LOGGER.error("Unable to lock device")
+            raise HomeAssistantError(f"Unable to unlock device {self._node.address}")
 
     async def async_set_zwave_lock_user_code(self, user_num: int, code: int) -> None:
-        """Set the ON Level for a device."""
+        """Set a user lock code for a Z-Wave Lock."""
         if not await self._node.set_zwave_lock_code(user_num, code):
             raise HomeAssistantError(
                 f"Could not set user code {user_num} for {self._node.address}"
             )
 
     async def async_delete_zwave_lock_user_code(self, user_num: int) -> None:
-        """Set the Ramp Rate for a device."""
+        """Delete a user lock code for a Z-Wave Lock."""
         if not await self._node.delete_zwave_lock_code(user_num):
             raise HomeAssistantError(
                 f"Could not delete user code {user_num} for {self._node.address}"
@@ -90,9 +90,9 @@ class ISYLockProgramEntity(ISYProgramEntity, LockEntity):
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the device."""
         if not await self._actions.run_then():
-            _LOGGER.error("Unable to lock device")
+            raise HomeAssistantError(f"Unable to lock device {self._node.address}")
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the device."""
         if not await self._actions.run_else():
-            _LOGGER.error("Unable to unlock device")
+            raise HomeAssistantError(f"Unable to unlock device {self._node.address}")
