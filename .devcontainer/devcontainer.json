@@ -36,7 +36,6 @@
         "files.trimTrailingWhitespace": true
       },
       "extensions": [
-        "GitHub.copilot",
         "github.vscode-pull-request-github",
         "ms-python.python",
         "ms-python.vscode-pylance",

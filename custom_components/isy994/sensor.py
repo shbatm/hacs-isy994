@@ -25,9 +25,9 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -95,8 +95,8 @@ ISY_CONTROL_TO_STATE_CLASS = {
     control: SensorStateClass.MEASUREMENT for control in ISY_CONTROL_TO_DEVICE_CLASS
 }
 ISY_CONTROL_TO_ENTITY_CATEGORY = {
-    PROP_RAMP_RATE: EntityCategory.CONFIG,
-    PROP_ON_LEVEL: EntityCategory.CONFIG,
+    PROP_RAMP_RATE: EntityCategory.DIAGNOSTIC,
+    PROP_ON_LEVEL: EntityCategory.DIAGNOSTIC,
     PROP_COMMS_ERROR: EntityCategory.DIAGNOSTIC,
 }
 
@@ -147,14 +147,13 @@ async def async_setup_entry(
         device_class = ISY_CONTROL_TO_DEVICE_CLASS.get(control)
         native_uom = None
         options_dict = None
-        precision = None
 
         if (prop := node.aux_properties.get(control)) is not None:
             if prop.uom in (UOM_ON_OFF, UOM_INDEX):
                 device_class = SensorDeviceClass.ENUM
             native_uom, options_dict = get_native_uom(prop.uom, node, control)
             if native_uom is not None:
-                precision = prop.precision
+                pass
 
         description = SensorEntityDescription(
             key=f"{node}_{control}",
@@ -240,5 +239,5 @@ class ISYSensorEntity(ISYNodeEntity, SensorEntity):
         if value is None:
             return None
 
-        assert isinstance(value, (int, float))
+        assert isinstance(value, int | float)
         return value
