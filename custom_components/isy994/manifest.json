@@ -25,12 +25,12 @@
   "issue_tracker": "http://github.com/shbatm/hacs-isy994/issues",
   "loggers": ["pyisyox"],
   "name": "Universal Devices ISY/IoX",
-  "requirements": ["pyisyox==1.0.0a7"],
+  "requirements": ["pyisyox==1.0.0a8"],
   "ssdp": [
     {
       "deviceType": "urn:udi-com:device:X_Insteon_Lighting_Device:1",
       "manufacturer": "Universal Devices Inc."
     }
   ],
-  "version": "4.0.12"
+  "version": "4.0.13"
 }
