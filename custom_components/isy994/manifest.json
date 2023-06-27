@@ -1,4 +1,6 @@
 {
+  "domain": "isy994",
+  "name": "Universal Devices ISY/IoX",
   "codeowners": ["@bdraco", "@shbatm"],
   "config_flow": true,
   "dhcp": [
@@ -19,12 +21,10 @@
     }
   ],
   "documentation": "https://www.home-assistant.io/integrations/isy994",
-  "domain": "isy994",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "http://github.com/shbatm/hacs-isy994/issues",
   "loggers": ["pyisyox"],
-  "name": "Universal Devices ISY/IoX",
   "requirements": ["pyisyox==1.0.0a9"],
   "ssdp": [
     {
