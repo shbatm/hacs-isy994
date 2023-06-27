@@ -159,7 +159,7 @@ async def async_setup_entry(
                 device_class = SensorDeviceClass.ENUM
                 state_class = None
             native_uom, options_dict = get_native_uom(prop.uom, node, control)
-            if native_uom is None and not device_class == SensorDeviceClass.ENUM:
+            if native_uom is None and device_class != SensorDeviceClass.ENUM:
                 # Unknown UOMs will cause errors with device classes expecting numeric values
                 # they will use the ISY formatted value and may or may not have a unit embedded.
                 # this should only apply for new UoM that have not been added to PyISYOX yet.
