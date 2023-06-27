@@ -92,7 +92,12 @@ ISY_CONTROL_TO_DEVICE_CLASS = {
     "WINDCH": SensorDeviceClass.TEMPERATURE,
 }
 ISY_CONTROL_TO_STATE_CLASS = {
-    control: SensorStateClass.MEASUREMENT for control in ISY_CONTROL_TO_DEVICE_CLASS
+    control: (
+        SensorStateClass.MEASUREMENT
+        if control != "TPW"
+        else SensorStateClass.TOTAL_INCREASING
+    )
+    for control in ISY_CONTROL_TO_DEVICE_CLASS
 }
 ISY_CONTROL_TO_ENTITY_CATEGORY = {
     PROP_RAMP_RATE: EntityCategory.DIAGNOSTIC,
@@ -145,23 +150,28 @@ async def async_setup_entry(
         )
 
         device_class = ISY_CONTROL_TO_DEVICE_CLASS.get(control)
+        state_class = ISY_CONTROL_TO_STATE_CLASS.get(control)
         native_uom = None
         options_dict = None
 
         if (prop := node.aux_properties.get(control)) is not None:
             if prop.uom in (UOM_ON_OFF, UOM_INDEX):
                 device_class = SensorDeviceClass.ENUM
+                state_class = None
             native_uom, options_dict = get_native_uom(prop.uom, node, control)
-            if native_uom is not None:
-                pass
+            if native_uom is None and not device_class == SensorDeviceClass.ENUM:
+                # Unknown UOMs will cause errors with device classes expecting numeric values
+                # they will use the ISY formatted value and may or may not have a unit embedded.
+                # this should only apply for new UoM that have not been added to PyISYOX yet.
+                device_class = None
+                state_class = None
 
         description = SensorEntityDescription(
             key=f"{node}_{control}",
             device_class=device_class,
             native_unit_of_measurement=native_uom,
             options=list(options_dict.values()) if options_dict else None,
-            state_class=ISY_CONTROL_TO_STATE_CLASS.get(control),
-            # suggested_display_precision=precision,  # TODO: uncomment after 2023.3.0 release
+            state_class=state_class,
             entity_category=ISY_CONTROL_TO_ENTITY_CATEGORY.get(control),
             entity_registry_enabled_default=enabled_default,
         )
