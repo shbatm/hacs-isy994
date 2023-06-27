@@ -93,7 +93,7 @@ def _check_for_node_server_def(isy_data: IsyData, node: Node) -> bool:
     Node Servers can provide their own definitions of devices so we
     test what they support if advanced configuration is enabled.
     """
-    # TODO Move sorting here to check for binary_sensor, sensor, switch
+    # FUTURE: Move sorting here to check for binary_sensor, sensor, switch
     return False
 
 
