@@ -39,9 +39,7 @@ from .const import (
     CONF_ENABLE_VARIABLES,
     CONF_NETWORK,
     CONF_TLS_VER,
-    CONF_VAR_SENSOR_STRING,
     DEFAULT_TLS_VERSION,
-    DEFAULT_VAR_SENSOR_STRING,
     DOMAIN,
     MANUFACTURER,
     PLATFORMS,
@@ -82,13 +80,10 @@ async def async_setup_entry(
 
     # Optional
     tls_version = isy_config.get(CONF_TLS_VER)
-    variable_identifier = isy_options.get(
-        CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING
-    )
     enable_variables = isy_options.get(CONF_ENABLE_VARIABLES, True)
     enable_nodeservers = isy_options.get(CONF_ENABLE_NODESERVERS, True)
     enable_programs = isy_options.get(CONF_ENABLE_PROGRAMS, True)
-    enable_networking = isy_options.get(CONF_ENABLE_NETWORKING, True)
+    enable_networking = isy_options.get(CONF_ENABLE_NETWORKING, False)
 
     if host.scheme == SCHEME_HTTP:
         session = aiohttp_client.async_create_clientsession(
@@ -151,7 +146,7 @@ async def async_setup_entry(
         _categorize_programs(isy_data, isy.programs)
 
     if enable_variables and isy.variables.entities:
-        _categorize_variables(isy_data, isy.variables, variable_identifier)
+        _categorize_variables(isy_data, isy.variables)
         isy_data.devices[CONF_VARIABLES] = _create_service_device_info(
             isy, name=CONF_VARIABLES.title(), unique_id=CONF_VARIABLES
         )

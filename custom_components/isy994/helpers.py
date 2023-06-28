@@ -448,9 +448,7 @@ def _categorize_programs(isy_data: IsyData, programs: Programs) -> None:
             isy_data.programs[platform].append(entity)
 
 
-def _categorize_variables(
-    isy_data: IsyData, variables: Variables, identifier: str
-) -> None:
+def _categorize_variables(isy_data: IsyData, variables: Variables) -> None:
     """Gather the ISY Variables to be added as sensors."""
     try:
         if not (variables.loaded and variables.entities):
