@@ -33,11 +33,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     _LOGGER,
     DOMAIN,
+    POWER_VOLT_AMPERE_REACTIVE,
     UOM_DOUBLE_TEMP,
     UOM_FRIENDLY_NAME,
     UOM_INDEX,
     UOM_ON_OFF,
     UOM_TO_STATES,
+    UnitOfApparentPower,
 )
 from .entity import ISYNodeEntity
 from .helpers import convert_isy_value_to_hass
@@ -53,6 +55,9 @@ AUX_DISABLED_BY_DEFAULT_EXACT = {
     PROP_STATUS,
 }
 
+PROP_CURRENT_POWER = "CPW"
+PROP_TOTAL_POWER = "TPW"
+
 # Reference pyisyox.constants.COMMAND_FRIENDLY_NAME for API details.
 #   Note: "LUMIN"/Illuminance removed, some devices use non-conformant "%" unit
 #         "VOCLVL"/VOC removed, uses qualitative UOM not ug/m^3
@@ -63,7 +68,7 @@ ISY_CONTROL_TO_DEVICE_CLASS = {
     "BARPRES": SensorDeviceClass.ATMOSPHERIC_PRESSURE,
     "CC": SensorDeviceClass.CURRENT,
     "CO2LVL": SensorDeviceClass.CO2,
-    "CPW": SensorDeviceClass.POWER,
+    PROP_CURRENT_POWER: SensorDeviceClass.POWER,
     "CV": SensorDeviceClass.VOLTAGE,
     "DEWPT": SensorDeviceClass.TEMPERATURE,
     "DISTANC": SensorDeviceClass.DISTANCE,
@@ -83,7 +88,7 @@ ISY_CONTROL_TO_DEVICE_CLASS = {
     "SPEED": SensorDeviceClass.SPEED,
     "TEMPEXH": SensorDeviceClass.TEMPERATURE,
     "TEMPOUT": SensorDeviceClass.TEMPERATURE,
-    "TPW": SensorDeviceClass.ENERGY,
+    PROP_TOTAL_POWER: SensorDeviceClass.ENERGY,
     "WATERP": SensorDeviceClass.PRESSURE,
     "WATERT": SensorDeviceClass.TEMPERATURE,
     "WATERTB": SensorDeviceClass.TEMPERATURE,
@@ -94,7 +99,7 @@ ISY_CONTROL_TO_DEVICE_CLASS = {
 ISY_CONTROL_TO_STATE_CLASS = {
     control: (
         SensorStateClass.MEASUREMENT
-        if control != "TPW"
+        if control != PROP_TOTAL_POWER
         else SensorStateClass.TOTAL_INCREASING
     )
     for control in ISY_CONTROL_TO_DEVICE_CLASS
@@ -165,6 +170,13 @@ async def async_setup_entry(
                 # this should only apply for new UoM that have not been added to PyISYOX yet.
                 device_class = None
                 state_class = None
+
+            # QUIRK: ISY does not differentiate between real, apparent, or reactive power:
+            if control == PROP_CURRENT_POWER:
+                if native_uom == UnitOfApparentPower.VOLT_AMPERE:
+                    device_class = SensorDeviceClass.APPARENT_POWER
+                elif native_uom == POWER_VOLT_AMPERE_REACTIVE:
+                    device_class = SensorDeviceClass.REACTIVE_POWER
 
         description = SensorEntityDescription(
             key=f"{node}_{control}",

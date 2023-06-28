@@ -41,13 +41,7 @@ from homeassistant.util.percentage import (
     ranged_value_to_percentage,
 )
 
-from .const import (
-    BACKLIGHT_MEMORY_FILTER,
-    CONF_VAR_SENSOR_STRING,
-    DEFAULT_VAR_SENSOR_STRING,
-    DOMAIN,
-    UOM_8_BIT_RANGE,
-)
+from .const import BACKLIGHT_MEMORY_FILTER, DOMAIN, UOM_8_BIT_RANGE
 from .entity import ISYNodeEntity
 
 ISY_MAX_SIZE = (2**32) / 2
@@ -83,7 +77,6 @@ async def async_setup_entry(
     entities: list[
         ISYVariableNumberEntity | ISYAuxControlNumberEntity | ISYBacklightNumberEntity
     ] = []
-    var_id = config_entry.options.get(CONF_VAR_SENSOR_STRING, DEFAULT_VAR_SENSOR_STRING)
 
     for node in isy_data.variables[Platform.NUMBER]:
         step = 10 ** (-1 * node.precision)
@@ -91,7 +84,7 @@ async def async_setup_entry(
         description = NumberEntityDescription(
             key=node.address,
             name=node.name,
-            entity_registry_enabled_default=var_id in node.name,
+            entity_registry_enabled_default=False,
             native_unit_of_measurement=None,
             native_step=step,
             native_min_value=-min_max,
