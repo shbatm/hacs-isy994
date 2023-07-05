@@ -163,13 +163,20 @@ async def async_setup_entry(
             if prop.uom in (UOM_ON_OFF, UOM_INDEX):
                 device_class = SensorDeviceClass.ENUM
                 state_class = None
+
+            # Lookup native units and options list if it has one
             native_uom, options_dict = get_native_uom(prop.uom, node, control)
+
             if native_uom is None and device_class != SensorDeviceClass.ENUM:
-                # Unknown UOMs will cause errors with device classes expecting numeric values
-                # they will use the ISY formatted value and may or may not have a unit embedded.
-                # this should only apply for new UoM that have not been added to PyISYOX yet.
-                device_class = None
-                state_class = None
+                if options_dict is not None:
+                    # This is an ISY Enum-type Sensor with an Options List, force Enum Class
+                    device_class = SensorDeviceClass.ENUM
+                else:
+                    # Unknown UOMs will cause errors with device classes expecting numeric values
+                    # they will use the ISY formatted value and may or may not have a unit embedded.
+                    # this should only apply for new UoM that have not been added to PyISYOX yet.
+                    device_class = None
+                    state_class = None
 
             # QUIRK: ISY does not differentiate between real, apparent, or reactive power:
             if control == PROP_CURRENT_POWER:
