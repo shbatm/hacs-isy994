@@ -126,27 +126,31 @@ async def async_setup_entry(
 
     def get_native_uom(
         uom: str | list, node: Node, control: str = PROP_STATUS
-    ) -> tuple[str | None, dict[int, str] | None]:
-        """Get the native UoM and Options Dict for the ISY sensor device."""
+    ) -> tuple[str | None, dict[int, str] | None, bool]:
+        """Get the native UoM and Options Dict for the ISY sensor device.
+
+        Returns a tuple of the Native UOM, the Options List if it exists,
+        and whether or not the UOM is enumerated.
+        """
         # Backwards compatibility for ISYv4 Firmware:
         if isinstance(uom, list):
-            return (UOM_FRIENDLY_NAME.get(uom[0], uom[0]), None)
+            return (UOM_FRIENDLY_NAME.get(uom[0], uom[0]), None, False)
         # Special cases for ISY UOM index units:
         if isy_states := UOM_TO_STATES.get(uom):
-            return (None, isy_states)
+            return (None, isy_states, True)
         if (
             uom == UOM_INDEX
             and (node_def := node.get_node_def()) is not None
             and (editor := node_def.status_editors.get(control))
         ):
-            return (None, editor.values)
+            return (None, editor.values, True)
         # Handle on/off or unlisted index types
         if uom in (UOM_ON_OFF, UOM_INDEX):
-            return (None, None)
+            return (None, None, True)
         # Assume double-temp matches current Hass unit (no way to confirm)
         if uom == UOM_DOUBLE_TEMP:
-            return (hass.config.units.temperature_unit, None)
-        return (UOM_FRIENDLY_NAME.get(uom), None)
+            return (hass.config.units.temperature_unit, None, False)
+        return (UOM_FRIENDLY_NAME.get(uom), None, False)
 
     for node, control in entity_list:
         _LOGGER.debug("Loading %s %s", node.name, COMMAND_FRIENDLY_NAME.get(control))
@@ -160,23 +164,19 @@ async def async_setup_entry(
         options_dict = None
 
         if (prop := node.aux_properties.get(control)) is not None:
-            if prop.uom in (UOM_ON_OFF, UOM_INDEX):
+            # Lookup native units and options list if it has one
+            native_uom, options_dict, is_enum = get_native_uom(prop.uom, node, control)
+
+            if is_enum:
+                # This is an ISY Enum-type Sensor with an Options List, force Enum Class
                 device_class = SensorDeviceClass.ENUM
                 state_class = None
-
-            # Lookup native units and options list if it has one
-            native_uom, options_dict = get_native_uom(prop.uom, node, control)
-
-            if native_uom is None and device_class != SensorDeviceClass.ENUM:
-                if options_dict is not None:
-                    # This is an ISY Enum-type Sensor with an Options List, force Enum Class
-                    device_class = SensorDeviceClass.ENUM
-                else:
-                    # Unknown UOMs will cause errors with device classes expecting numeric values
-                    # they will use the ISY formatted value and may or may not have a unit embedded.
-                    # this should only apply for new UoM that have not been added to PyISYOX yet.
-                    device_class = None
-                    state_class = None
+            elif native_uom is None:
+                # Unknown UOMs will cause errors with device classes expecting numeric values
+                # they will use the ISY formatted value and may or may not have a unit embedded.
+                # this should only apply for new UoM that have not been added to PyISYOX yet.
+                device_class = None
+                state_class = None
 
             # QUIRK: ISY does not differentiate between real, apparent, or reactive power:
             if control == PROP_CURRENT_POWER:
