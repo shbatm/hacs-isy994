@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, TypeAlias, cast
 
 from pyisyox.constants import (
     ATTR_ACTION,
@@ -29,8 +29,8 @@ from homeassistant.util.dt import as_local
 
 from .const import DOMAIN
 
-NodeType = Node | Group | NodeBase | Program | Variable
-NodeEventType = NodeProperty | NodeChangedEvent
+NodeType: TypeAlias = Node | Group | NodeBase | Program | Variable
+NodeEventType: TypeAlias = NodeProperty | NodeChangedEvent
 
 
 class ISYEntity(Entity):

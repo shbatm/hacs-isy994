@@ -1,4 +1,23 @@
 [MASTER]
-# Minimal pylintrc to avoid noisy failures in pre-commit for this repo.
+# Minimal pylintrc to satisfy pre-commit pylint hook.
+ignore=tests
+
+[MESSAGES CONTROL]
+# Disable conventions that are noisy for this project.
 disable=
-    all
+    missing-docstring,
+    invalid-name,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    too-many-branches,
+    unused-argument,
+    too-many-statements,
+    superfluous-parens,
+    too-many-lines,
+    line-too-long,
+    useless-return,
+    too-many-public-methods,
+    too-many-arguments,
+    duplicate-code,
+    too-many-return-statements,
+    too-many-positional-arguments
