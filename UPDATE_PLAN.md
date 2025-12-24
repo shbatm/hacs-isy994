@@ -22,6 +22,11 @@ This document outlines the changes needed to bring this HACS component up to cur
 | **Medium** | FlowResult → ConfigFlowResult | ✅ Complete |
 | **Low** | EntityDescription consistency | ✅ N/A (single entity type in light.py) |
 | **Low** | Service icons (icons.json) | ✅ Complete |
+| **Core Sync** | OptionsFlowWithReload pattern | ✅ Complete |
+| **Core Sync** | Move services to async_setup | ✅ Complete |
+| **Core Sync** | LockState enum | ✅ Complete |
+| **Core Sync** | UnitOfReactivePower constant | ✅ Complete |
+| **Core Sync** | Fan TURN_ON/TURN_OFF features | ✅ Complete |
 
 **All planned modernization items are complete.**
 
@@ -351,6 +356,86 @@ Recommended order of implementation:
 4. **Phase 4 - Low priority enhancements**
    - EntityDescription consistency
    - Icon range support
+
+---
+
+## Core Integration Sync (July 2023 - December 2024)
+
+Changes ported from Home Assistant Core isy994 integration:
+
+### 1. OptionsFlowWithReload Pattern
+
+**Core commit:** c22f65bd870
+
+**Files affected:** `config_flow.py`, `__init__.py`
+
+**Changes:**
+- Changed `OptionsFlowHandler` to inherit from `OptionsFlowWithConfigEntry` instead of `OptionsFlow`
+- Removed manual `entry.add_update_listener()` call from `async_setup_entry()`
+- Removed `_async_update_listener()` function
+
+This pattern automatically reloads the config entry when options are saved, eliminating manual update listener management.
+
+---
+
+### 2. Move Services to async_setup
+
+**Core commits:** bbda1761bf0, 7427db70aae
+
+**Files affected:** `__init__.py`, `services.py`
+
+**Changes:**
+- Added `async_setup()` function that calls `async_setup_services()`
+- Removed `async_setup_services()` call from `async_setup_entry()`
+- Removed `async_unload_services()` call from `async_unload_entry()`
+- Removed `async_unload_services()` function entirely from `services.py`
+
+Services are now registered once when the integration loads, not per config entry. They are not unloaded since they can serve multiple config entries.
+
+---
+
+### 3. LockState Enum
+
+**Core commit:** 93aade6e8e4
+
+**Files affected:** `const.py`
+
+**Changes:**
+- Import `LockState` from `homeassistant.components.lock`
+- Replace `STATE_LOCKED` → `LockState.LOCKED`
+- Replace `STATE_UNLOCKED` → `LockState.UNLOCKED`
+- Update `UOM_TO_STATES` type hint to `dict[str, dict[int, str | LockState]]`
+
+This uses the proper enum type for lock states instead of string constants.
+
+---
+
+### 4. UnitOfReactivePower Constant
+
+**Core commit:** 3e53cc175f7
+
+**Files affected:** `const.py`
+
+**Changes:**
+- Import `UnitOfReactivePower` from `homeassistant.const`
+- Replace `POWER_VOLT_AMPERE_REACTIVE` → `UnitOfReactivePower.VOLT_AMPERE_REACTIVE`
+
+The deprecated `POWER_VOLT_AMPERE_REACTIVE` constant was replaced with the new enum-based constant.
+
+---
+
+### 5. Fan Feature Flags
+
+**Core commits:** ca4c617d4be, ee6be6bfd60
+
+**Files affected:** `fan.py`
+
+**Changes:**
+- Added `FanEntityFeature.TURN_OFF | FanEntityFeature.TURN_ON` to supported features
+- `ISYFanEntity` now has: `SET_SPEED | TURN_OFF | TURN_ON`
+- `ISYFanProgramEntity` now has: `TURN_OFF | TURN_ON`
+
+These feature flags are required for Home Assistant 2024.8+ to properly report fan capabilities.
 
 ---
 

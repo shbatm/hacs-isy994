@@ -47,13 +47,19 @@ from .const import (
 from .events import IsyControllerEvents
 from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
 from .models import IsyConfigEntry, IsyData
-from .services import async_setup_services, async_unload_services
+from .services import async_setup_services
 from .util import _async_cleanup_registry_entries
 
 CONFIG_SCHEMA = vol.Schema(
     cv.deprecated(DOMAIN),
     extra=vol.ALLOW_EXTRA,
 )
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the ISY 994 integration."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: IsyConfigEntry) -> bool:
@@ -168,22 +174,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: IsyConfigEntry) -> bool:
     isy.websocket.start()
     isy_data.controller_events = IsyControllerEvents(hass, isy_data)
 
-    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_auto_update)
     )
 
-    # Register Integration-wide Services:
-    async_setup_services(hass)
-
     return True
-
-
-async def _async_update_listener(
-    hass: HomeAssistant, entry: IsyConfigEntry
-) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 @callback
@@ -230,8 +225,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: IsyConfigEntry) -> bool
 
     _LOGGER.debug("ISY Stopping Event Stream and automatic updates")
     isy.websocket.stop()
-
-    async_unload_services(hass)
 
     return unload_ok
 

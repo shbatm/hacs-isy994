@@ -50,7 +50,11 @@ async def async_setup_entry(
 class ISYFanEntity(ISYNodeEntity, FanEntity):
     """Representation of an ISY fan device."""
 
-    _attr_supported_features = FanEntityFeature.SET_SPEED
+    _attr_supported_features = (
+        FanEntityFeature.SET_SPEED
+        | FanEntityFeature.TURN_OFF
+        | FanEntityFeature.TURN_ON
+    )
     _node: Node
 
     @property
@@ -101,6 +105,7 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
 class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     """Representation of an ISY fan program."""
 
+    _attr_supported_features = FanEntityFeature.TURN_OFF | FanEntityFeature.TURN_ON
     _actions: Program
 
     @property

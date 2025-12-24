@@ -289,22 +289,3 @@ def async_setup_lock_services(hass: HomeAssistant) -> None:
     )
 
 
-@callback
-def async_unload_services(hass: HomeAssistant) -> None:
-    """Unload services for the ISY integration."""
-    if hass.config_entries.async_entries(DOMAIN):
-        # There is still another config entry for this domain, don't remove services.
-        return
-
-    existing_services = hass.services.async_services().get(DOMAIN)
-    if not existing_services or not any(
-        service in INTEGRATION_SERVICES for service in existing_services
-    ):
-        return
-
-    _LOGGER.info("Unloading ISY994 Services")
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_PROGRAM_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_RAW_NODE_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_NODE_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_GET_ZWAVE_PARAMETER)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SET_ZWAVE_PARAMETER)

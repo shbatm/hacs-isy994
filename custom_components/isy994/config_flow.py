@@ -300,7 +300,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlowWithConfigEntry):
     """Handle a option flow for ISY/IoX."""
 
     async def async_step_init(
