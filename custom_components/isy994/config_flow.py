@@ -127,7 +127,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the ISY/IoX config flow."""
         self.discovered_conf: dict[str, str] = {}
-        self._existing_entry: config_entries.ConfigEntry | None = None
 
     @staticmethod
     @callback
@@ -135,7 +134,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -251,9 +250,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = self.discovered_conf
         return await self.async_step_user()
 
-    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> config_entries.ConfigFlowResult:
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> config_entries.ConfigFlowResult:
         """Handle reauth."""
-        self._existing_entry = await self.async_set_unique_id(self.context["unique_id"])
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
@@ -261,8 +261,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.ConfigFlowResult:
         """Handle reauth input."""
         errors = {}
-        assert self._existing_entry is not None
-        existing_entry = self._existing_entry
+        existing_entry = self._get_reauth_entry()
         existing_data = existing_entry.data
         if user_input is not None:
             new_data = {
@@ -303,10 +302,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for ISY/IoX."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
