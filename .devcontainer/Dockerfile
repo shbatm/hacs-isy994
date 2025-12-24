@@ -26,12 +26,12 @@ RUN apt-get update && \
 # This avoids bootstrapping pip at container runtime which can hit PEP 668 issues
 RUN mkdir -p /workspaces/hacs-isy994 \
   && python3 -m venv /workspaces/hacs-isy994/.venv \
-  && /workspaces/hacs-isy994/.venv/bin/python -m pip install -U pip setuptools wheel || true
+  && /workspaces/hacs-isy994/.venv/bin/python -m pip install -U pip "setuptools>=70.0" wheel || true
 
 # Also create a prebuilt venv in /opt/venv to copy into the workspace at runtime
 RUN python3 -m venv /opt/venv \
-  && /opt/venv/bin/python -m pip install -U pip setuptools wheel || true
+  && /opt/venv/bin/python -m pip install -U pip "setuptools>=70.0" wheel || true
 
-# Make sure the venvs are writable by the non-root 'vscode' user so the container
+# Make sure the venvs and workspace directories are writable by the non-root 'vscode' user so the container
 # user can install packages into them during postCreate/setup (avoids permission errors).
-RUN chown -R vscode:vscode /opt/venv /workspaces/hacs-isy994/.venv || true
+RUN chown -R vscode:vscode /opt/venv /workspaces/hacs-isy994/.venv /workspaces || true

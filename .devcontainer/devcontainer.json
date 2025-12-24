@@ -9,7 +9,7 @@
 	"mounts": [
 		"source=${localWorkspaceFolder}/../pyisyox,target=/workspaces/pyisyox,type=bind,consistency=cached"
 	],
-	"postCreateCommand": "bash .devcontainer/scripts/setup_ha_test_env.sh || (for req in $(jq -c -r '.requirements | .[]' custom_components/isy994/manifest.json); do python3 -m pip install $req; done); if [ ! -d \".homeassistant\" ] || [ ! -f \".homeassistant/configuration.yaml\" ]; then bash .devcontainer/scripts/setup_homeassistant_runtime.sh; else echo '.homeassistant exists, skipping runtime setup'; fi",
+	"postCreateCommand": "bash .devcontainer/scripts/setup_ha_test_env.sh && bash .devcontainer/scripts/setup_homeassistant_runtime.sh || exit 1",
 	"customizations": {
 		"vscode": {
 			"extensions": [

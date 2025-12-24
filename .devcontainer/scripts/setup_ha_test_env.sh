@@ -5,8 +5,8 @@ set -euo pipefail
 VENV="/opt/venv"
 WORKSPACE_DIR="/workspaces/hacs-isy994"
 PYISYOX_DIR="/workspaces/pyisyox"
-WHEEL_DIR="/workspaces/.wheels"
-PIP_CACHE_DIR="/workspaces/.cache/pip"
+WHEEL_DIR="${WORKSPACE_DIR}/.wheels"
+PIP_CACHE_DIR="${WORKSPACE_DIR}/.cache/pip"
 
 if [ ! -x "${VENV}/bin/python" ]; then
     echo "Error: expected venv at ${VENV} but python not found. Ensure the image provides /opt/venv"
@@ -19,8 +19,8 @@ mkdir -p "${WHEEL_DIR}" "${PIP_CACHE_DIR}"
 
 VENV_PYTHON="${VENV}/bin/python"
 
-echo "Updating pip and wheel..."
-${VENV_PYTHON} -m pip install -U pip setuptools wheel
+echo "Updating pip, setuptools, and wheel..."
+${VENV_PYTHON} -m pip install -U pip "setuptools>=70.0" wheel
 
 echo "Building/pulling wheelhouse for Home Assistant (may take a while first run)..."
 set +e
@@ -58,4 +58,6 @@ fi
 echo "Ensuring pytest and Home Assistant test dependencies..."
 ${VENV_PYTHON} -m pip install -U pytest pytest-asyncio pytest-homeassistant-custom-component
 
-echo "Setup complete. Activate the venv with: source ${VENV}/bin/activate"
+echo "Setup complete."
+echo "To activate the venv in terminal, run: source ${VENV}/bin/activate"
+echo "Or configure Python path in VS Code to: ${VENV}/bin/python"
