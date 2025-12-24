@@ -13,8 +13,16 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
-        "github.vscode-pull-request-github",
         "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "esbenp.prettier-vscode",
+        "github.vscode-pull-request-github",
+        "streetsidesoftware.code-spell-checker",
+        "njpwerner.autodocstring",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "matangover.mypy",
+        "charliermarsh.ruff",
         "ryanluker.vscode-coverage-gutters"
       ],
       "settings": {
@@ -27,7 +35,11 @@
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
-        "files.trimTrailingWhitespace": true
+        "files.trimTrailingWhitespace": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "python.linting.mypyEnabled": true,
+        "python.linting.pycodestyleEnabled": false,
+        "python.linting.pydocstyleEnabled": true
       }
     }
   }

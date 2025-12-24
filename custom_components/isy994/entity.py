@@ -1,7 +1,7 @@
 """Representation of ISYEntity Types."""
 from __future__ import annotations
 
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from pyisyox.constants import (
     ATTR_ACTION,
@@ -28,8 +28,8 @@ from homeassistant.util.dt import as_local
 
 from .const import DOMAIN
 
-NodeType = Union[Node, Group, NodeBase, Program, Variable]
-NodeEventType = Union[NodeProperty, NodeChangedEvent]
+NodeType = Node | Group | NodeBase | Program | Variable
+NodeEventType = NodeProperty | NodeChangedEvent
 
 
 class ISYEntity(Entity):

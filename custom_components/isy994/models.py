@@ -1,10 +1,10 @@
 """The ISY/IoX integration data models."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from pyisyox import ISY
 from pyisyox.constants import Protocol
 from pyisyox.helpers.models import EntityStatus, NodeProperty
@@ -13,6 +13,7 @@ from pyisyox.nodes import Group, Node
 from pyisyox.programs import Program
 from pyisyox.variables import Variable
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.helpers.entity import DeviceInfo
 
@@ -62,13 +63,15 @@ class IsyData:
 
     def uid_base(
         self,
-        node: Node
-        | Group
-        | Variable
-        | Program
-        | NetworkCommand
-        | NodeProperty
-        | EntityStatus,
+        node: (
+            Node
+            | Group
+            | Variable
+            | Program
+            | NetworkCommand
+            | NodeProperty
+            | EntityStatus
+        ),
     ) -> str:
         """Return the unique id base string for a given node."""
         if isinstance(node, NetworkCommand):
@@ -133,4 +136,4 @@ class IsyData:
         return current_unique_ids
 
 
-type IsyConfigEntry = ConfigEntry[IsyData]
+IsyConfigEntry = ConfigEntry[IsyData]

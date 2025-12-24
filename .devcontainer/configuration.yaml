@@ -5,6 +5,5 @@ logger:
   logs:
     pyisyox: debug
     custom_components.isy994: debug
-
 # If you need to debug uncomment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 # debugpy:
