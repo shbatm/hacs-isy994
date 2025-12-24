@@ -1,29 +1,66 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Run Home Assistant on port 9123",
-      "type": "shell",
-      "command": "container start",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Home Assistant configuration against /config",
-      "type": "shell",
-      "command": "container check",
-      "problemMatcher": []
-    },
-    {
-      "label": "Upgrade Home Assistant to latest dev",
-      "type": "shell",
-      "command": "container install",
-      "problemMatcher": []
-    },
-    {
-      "label": "Install a specific version of Home Assistant",
-      "type": "shell",
-      "command": "container set-version",
-      "problemMatcher": []
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Home Assistant on port 9123",
+            "type": "shell",
+            "command": "bash scripts/develop",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Start Home Assistant (devcontainer)",
+            "type": "shell",
+            "command": "/bin/bash",
+            "args": [
+                "-lc",
+                "(if [ -x /opt/venv/bin/hass ]; then /opt/venv/bin/hass -c /workspaces/hacs-isy994/.homeassistant; else python3 -m homeassistant --config /workspaces/hacs-isy994/.homeassistant; fi)"
+            ],
+            "problemMatcher": [],
+            "isBackground": false,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Stop Home Assistant (kill)",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-lc",
+                "pkill -f 'homeassistant' || true"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Home Assistant (with project venv)",
+            "type": "shell",
+            "command": "/bin/bash",
+            "args": [
+                "-lc",
+                "if [ -f .venv/bin/activate ]; then source .venv/bin/activate; elif [ -f /opt/venv/bin/activate ]; then source /opt/venv/bin/activate; fi && if [ -x \".venv/bin/hass\" ]; then .venv/bin/hass -c /workspaces/hacs-isy994/.homeassistant; elif [ -x /opt/venv/bin/hass ]; then /opt/venv/bin/hass -c /workspaces/hacs-isy994/.homeassistant; else python3 -m homeassistant --config /workspaces/hacs-isy994/.homeassistant; fi"
+            ],
+            "problemMatcher": [],
+            "isBackground": false,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Run pytest",
+            "type": "shell",
+            "command": "pytest",
+            "args": ["tests/"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
 }
