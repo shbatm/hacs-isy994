@@ -20,8 +20,10 @@ This document outlines the changes needed to bring this HACS component up to cur
 | **Medium** | Type hint improvements | ✅ Complete (existing hints adequate) |
 | **Medium** | Options flow constructor | ✅ Complete |
 | **Medium** | FlowResult → ConfigFlowResult | ✅ Complete |
-| **Low** | EntityDescription consistency | ⏳ Pending |
-| **Low** | Icon range support | ⏳ Pending |
+| **Low** | EntityDescription consistency | ✅ N/A (single entity type in light.py) |
+| **Low** | Service icons (icons.json) | ✅ Complete |
+
+**All planned modernization items are complete.**
 
 ---
 
