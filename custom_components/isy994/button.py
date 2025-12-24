@@ -20,7 +20,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_NETWORK
+from .const import CONF_NETWORK, DOMAIN
 from .models import IsyConfigEntry
 
 

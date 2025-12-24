@@ -24,14 +24,13 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory, Platform
+from homeassistant.const import EntityCategory, Platform, UnitOfReactivePower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
-    POWER_VOLT_AMPERE_REACTIVE,
     UOM_DOUBLE_TEMP,
     UOM_FRIENDLY_NAME,
     UOM_INDEX,
@@ -183,7 +182,7 @@ async def async_setup_entry(
             if control == PROP_CURRENT_POWER:
                 if native_uom == UnitOfApparentPower.VOLT_AMPERE:
                     device_class = SensorDeviceClass.APPARENT_POWER
-                elif native_uom == POWER_VOLT_AMPERE_REACTIVE:
+                elif native_uom == UnitOfReactivePower.VOLT_AMPERE_REACTIVE:
                     device_class = SensorDeviceClass.REACTIVE_POWER
 
         description = SensorEntityDescription(
