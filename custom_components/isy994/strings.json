@@ -22,21 +22,21 @@
       }
     },
     "error": {
-      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
       "unknown": "[%key:common::config_flow::error::unknown%]",
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
       "invalid_host": "The host entry was not in full URL format, e.g., {sample_ip}"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "ISY Options",
-        "description": "Set the options for the ISY Integration: \n • Node Sensor String: Any device or folder that contains 'Node Sensor String' in the name will be treated as a sensor or binary sensor. \n • Ignore String: Any device with 'Ignore String' in the name will be ignored. \n • Variable Sensor String: Any variable that contains 'Variable Sensor String' will be added as a sensor. \n • Restore Light Brightness: If enabled, the previous brightness will be restored when turning on a light instead of the device's built-in On-Level. \n • Enable Adding Variable, Node Server, Network Resource, or Program Entities: If you don't use any of these features you can disable them to speed up loading times.",
+        "description": "Set the options for the ISY integration: \n \u2022 Node Sensor String: Any device or folder that contains 'Node Sensor String' in the name will be treated as a sensor or binary sensor. \n \u2022 Ignore String: Any device with 'Ignore String' in the name will be ignored. \n \u2022 Variable Sensor String: Any variable that contains 'Variable Sensor String' will be added as a sensor. \n \u2022 Restore Light Brightness: If enabled, the previous brightness will be restored when turning on a light instead of the device's built-in On-Level. \n \u2022 Enable Adding Variable, Node Server, Network Resource, or Program Entities: If you don't use any of these features you can disable them to speed up loading times.",
         "data": {
           "sensor_string": "Node Sensor String",
           "ignore_string": "Ignore String",
@@ -61,11 +61,11 @@
   "services": {
     "send_raw_node_command": {
       "name": "Send raw node command",
-      "description": "Sends a \"raw\" ISY REST Device Command to a Node using its Home Assistant Entity ID.",
+      "description": "Sends a \"raw\" ISY REST device command to a node using its Home Assistant entity ID.",
       "fields": {
         "command": {
           "name": "Command",
-          "description": "The ISY REST Command to be sent to the device."
+          "description": "The ISY REST command to be sent to the device."
         },
         "value": {
           "name": "Value",
@@ -77,13 +77,13 @@
         },
         "unit_of_measurement": {
           "name": "Unit of measurement",
-          "description": "The ISY Unit of Measurement (UOM) to send with the command, if required."
+          "description": "The ISY unit of measurement (UOM) to send with the command, if required."
         }
       }
     },
     "send_node_command": {
       "name": "Send node command",
-      "description": "Sends a command to an ISY Device using its Home Assistant entity ID. Valid commands are: beep, brighten, dim, disable, enable, fade_down, fade_stop, fade_up, fast_off, fast_on, and query.",
+      "description": "Sends a command to an ISY device using its Home Assistant entity ID. Valid commands are: beep, brighten, dim, disable, enable, fade_down, fade_stop, fade_up, fast_off, fast_on, and query.",
       "fields": {
         "command": {
           "name": "Command",
@@ -93,7 +93,7 @@
     },
     "get_zwave_parameter": {
       "name": "Get Z-Wave parameter",
-      "description": "Requests a Z-Wave Device parameter via the ISY. The parameter value will be returned as a entity extra state attribute with the name \"ZW_#\" where \"#\" is the parameter number.",
+      "description": "Requests a Z-Wave device parameter via the ISY. The parameter value will be returned as an entity extra state attribute with the name \"ZW_#\" where \"#\" is the parameter number.",
       "fields": {
         "parameter": {
           "name": "Parameter",
@@ -103,7 +103,7 @@
     },
     "set_zwave_parameter": {
       "name": "Set Z-Wave parameter",
-      "description": "Updates a Z-Wave Device parameter via the ISY. The parameter value will also be returned as a entity extra state attribute with the name \"ZW_#\" where \"#\" is the parameter number.",
+      "description": "Updates a Z-Wave device parameter via the ISY. The parameter value will also be returned as an entity extra state attribute with the name \"ZW_#\" where \"#\" is the parameter number.",
       "fields": {
         "parameter": {
           "name": "Parameter",
@@ -121,7 +121,7 @@
     },
     "set_zwave_lock_user_code": {
       "name": "Set Z-Wave lock user code",
-      "description": "Sets a Z-Wave Lock User Code via the ISY.",
+      "description": "Sets a user code for a Z-Wave lock via the ISY.",
       "fields": {
         "user_num": {
           "name": "User number",
@@ -135,7 +135,7 @@
     },
     "delete_zwave_lock_user_code": {
       "name": "Delete Z-Wave lock user code",
-      "description": "Deletes a Z-Wave Lock User Code via the ISY.",
+      "description": "Deletes a user code for a Z-Wave lock via the ISY.",
       "fields": {
         "user_num": {
           "name": "User number",
@@ -145,7 +145,7 @@
     },
     "rename_node": {
       "name": "Rename node on ISY",
-      "description": "Renames a node or group (scene) on the ISY. Note: this will not automatically change the Home Assistant Entity Name or Entity ID to match. The entity name and ID will only be updated after calling `isy994.reload` or restarting Home Assistant, and ONLY IF you have not already customized the name within Home Assistant.",
+      "description": "Renames a node or group (scene) on the ISY. Note: this will not automatically change the Home Assistant entity name or entity ID to match. The entity name and ID will only be updated after reloading the integration or restarting Home Assistant, and ONLY IF you have not already customized the name within Home Assistant.",
       "fields": {
         "name": {
           "name": "New name",
@@ -167,7 +167,7 @@
         },
         "command": {
           "name": "Command",
-          "description": "The ISY Program Command to be sent."
+          "description": "The ISY program command to be sent."
         },
         "isy": {
           "name": "ISY",
