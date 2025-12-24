@@ -7,25 +7,26 @@ from pyisyox.nodes import Node
 from pyisyox.programs import Program
 
 from homeassistant.components.lock import LockEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .entity import ISYNodeEntity, ISYProgramEntity
+from .models import IsyConfigEntry
 from .services import async_setup_lock_services
 
 VALUE_TO_STATE = {0: False, 100: True}
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY lock platform."""
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     devices: dict[str, DeviceInfo] = isy_data.devices
     entities: list[ISYLockEntity | ISYLockProgramEntity] = []
     for node in isy_data.nodes[Platform.LOCK]:

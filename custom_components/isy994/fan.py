@@ -9,7 +9,6 @@ from pyisyox.nodes import Node
 from pyisyox.programs import Program
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
@@ -20,17 +19,20 @@ from homeassistant.util.percentage import (
     ranged_value_to_percentage,
 )
 
-from .const import _LOGGER, DOMAIN
+from .const import _LOGGER
 from .entity import ISYNodeEntity, ISYProgramEntity
+from .models import IsyConfigEntry
 
 SPEED_RANGE = (1, 255)  # off is not included
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY fan platform."""
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     devices: dict[str, DeviceInfo] = isy_data.devices
     entities: list[ISYFanEntity | ISYFanProgramEntity] = []
 

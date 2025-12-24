@@ -63,6 +63,10 @@ class ISYEntity(Entity):
             self.async_on_update, key=self.unique_id
         )
 
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from node events."""
+        self._change_handler.unsubscribe()
+
     @callback
     def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle the update event from the ISY Node."""
@@ -134,6 +138,11 @@ class ISYNodeEntity(ISYEntity):
             },
             key=self.unique_id,
         )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from node events."""
+        self._change_handler.unsubscribe()
+        self._availability_handler.unsubscribe()
 
     @callback
     def async_on_update(self, event: NodeEventType, key: str) -> None:

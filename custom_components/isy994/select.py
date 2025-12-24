@@ -18,7 +18,6 @@ from pyisyox.helpers.models import NodeProperty
 from pyisyox.nodes import Node
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
@@ -32,9 +31,9 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import _LOGGER, BACKLIGHT_MEMORY_FILTER, DOMAIN, UOM_INDEX
+from .const import _LOGGER, BACKLIGHT_MEMORY_FILTER, UOM_INDEX
 from .entity import ISYNodeEntity
-from .models import IsyData
+from .models import IsyConfigEntry
 
 
 def time_string(i: float) -> str:
@@ -49,11 +48,11 @@ RAMP_RATE_OPTIONS = [time_string(rate) for rate in INSTEON_RAMP_RATES.values()]
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: IsyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ISY/IoX select entities from config entry."""
-    isy_data: IsyData = hass.data[DOMAIN][config_entry.entry_id]
+    isy_data = config_entry.runtime_data
     device_info = isy_data.devices
     entities: list[
         ISYAuxControlIndexSelectEntity

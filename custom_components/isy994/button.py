@@ -15,22 +15,22 @@ from pyisyox.networking import NetworkCommand
 from pyisyox.nodes import Node
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_NETWORK, DOMAIN
+from .const import CONF_NETWORK
+from .models import IsyConfigEntry
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: IsyConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ISY/IoX button from config entry."""
-    isy_data = hass.data[DOMAIN][config_entry.entry_id]
+    isy_data = config_entry.runtime_data
     isy: ISY = isy_data.root
     device_info = isy_data.devices
     entities: list[

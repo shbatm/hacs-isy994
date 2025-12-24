@@ -189,8 +189,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
         command = service.data[CONF_COMMAND]
         isy_name = service.data.get(CONF_ISY)
 
-        for config_entry_id in hass.data[DOMAIN]:
-            isy_data = hass.data[DOMAIN][config_entry_id]
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            isy_data = entry.runtime_data
             isy = isy_data.root
             if isy_name and isy_name != isy.config.name:
                 continue
@@ -292,7 +292,7 @@ def async_setup_lock_services(hass: HomeAssistant) -> None:
 @callback
 def async_unload_services(hass: HomeAssistant) -> None:
     """Unload services for the ISY integration."""
-    if hass.data[DOMAIN]:
+    if hass.config_entries.async_entries(DOMAIN):
         # There is still another config entry for this domain, don't remove services.
         return
 

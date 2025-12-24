@@ -19,7 +19,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON, Platform
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
@@ -32,7 +31,6 @@ from .const import (
     _LOGGER,
     BINARY_SENSOR_DEVICE_TYPES_ISY,
     BINARY_SENSOR_DEVICE_TYPES_ZWAVE,
-    DOMAIN,
     SUBNODE_CLIMATE_COOL,
     SUBNODE_CLIMATE_HEAT,
     SUBNODE_DUSK_DAWN,
@@ -45,6 +43,7 @@ from .const import (
     TYPE_INSTEON_MOTION,
 )
 from .entity import ISYNodeEntity, ISYProgramEntity, NodeEventType
+from .models import IsyConfigEntry
 
 DEVICE_PARENT_REQUIRED = [
     BinarySensorDeviceClass.OPENING,
@@ -54,7 +53,9 @@ DEVICE_PARENT_REQUIRED = [
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY binary sensor platform."""
     entities: list[
@@ -80,7 +81,7 @@ async def async_setup_entry(
         | ISYBinarySensorProgramEntity
     )
 
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     devices: dict[str, DeviceInfo] = isy_data.devices
     for node in isy_data.nodes[Platform.BINARY_SENSOR]:
         assert isinstance(node, Node)

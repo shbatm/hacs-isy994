@@ -11,22 +11,24 @@ from homeassistant.components.cover import (
     CoverEntity,
     CoverEntityFeature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, UOM_8_BIT_RANGE
+from .const import UOM_8_BIT_RANGE
 from .entity import ISYNodeEntity, ISYProgramEntity
+from .models import IsyConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY cover platform."""
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     entities: list[ISYCoverEntity | ISYCoverProgramEntity] = []
     devices: dict[str, DeviceInfo] = isy_data.devices
     for node in isy_data.nodes[Platform.COVER]:
