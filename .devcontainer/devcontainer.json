@@ -6,7 +6,7 @@
   "appPort": ["9123:8123"],
   "mounts": [
     "source=${localWorkspaceFolder}/../pyisyox,target=/workspaces/pyisyox,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly"
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly"
   ],
   "postCreateCommand": "bash .devcontainer/scripts/setup_ha_test_env.sh && bash .devcontainer/scripts/setup_homeassistant_runtime.sh || exit 1",
   "customizations": {
