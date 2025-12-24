@@ -1,4 +1,5 @@
 """Config flow for Universal Devices ISY/IoX integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -205,7 +206,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         raise AbortFlow("already_configured")
 
-    async def async_step_dhcp(self, discovery_info: DhcpServiceInfo) -> config_entries.ConfigFlowResult:
+    async def async_step_dhcp(
+        self, discovery_info: DhcpServiceInfo
+    ) -> config_entries.ConfigFlowResult:
         """Handle a discovered ISY/IoX device via dhcp."""
         friendly_name = discovery_info.hostname
         if friendly_name.startswith("polisy") or friendly_name.startswith("eisy"):
@@ -226,7 +229,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = self.discovered_conf
         return await self.async_step_user()
 
-    async def async_step_ssdp(self, discovery_info: SsdpServiceInfo) -> config_entries.ConfigFlowResult:
+    async def async_step_ssdp(
+        self, discovery_info: SsdpServiceInfo
+    ) -> config_entries.ConfigFlowResult:
         """Handle a discovered ISY/IoX Device."""
         friendly_name = discovery_info.upnp[ssdp.ATTR_UPNP_FRIENDLY_NAME]
         url = discovery_info.ssdp_location

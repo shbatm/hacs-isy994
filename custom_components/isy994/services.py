@@ -1,4 +1,5 @@
 """ISY Services and Commands."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -287,5 +288,3 @@ def async_setup_lock_services(hass: HomeAssistant) -> None:
         SERVICE_DELETE_USER_CODE_SCHEMA,
         "async_delete_zwave_lock_user_code",
     )
-
-

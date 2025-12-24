@@ -56,10 +56,14 @@ repos:
         entry: script/run-in-env.sh mypy
         language: script
         require_serial: true
-        files: ^custom_components/isy994/.*\.py$
+        # Disabled by default for this integration until pyisyox is installed
+        # in the environment used by pre-commit. Set to a non-matching pattern
+        # so the hook is present but skipped during runs.
+        files: ^$
       - id: pylint
         name: pylint
         entry: script/run-in-env.sh pylint --rcfile=.pylintrc
         language: script
         require_serial: true
-        files: ^custom_components/isy994/.*\.py$
+        # Disabled by default (see mypy note above).
+        files: ^$

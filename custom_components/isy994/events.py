@@ -1,4 +1,5 @@
 """The ISY/IoX integration event handler class models."""
+
 from __future__ import annotations
 
 from dataclasses import asdict

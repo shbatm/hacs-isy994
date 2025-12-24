@@ -1,4 +1,5 @@
 """Support for ISY select entities."""
+
 from __future__ import annotations
 
 from pyisyox.constants import (
@@ -39,7 +40,7 @@ from .models import IsyConfigEntry
 def time_string(i: float) -> str:
     """Return a formatted ramp rate time string."""
     if i >= 60.0:
-        return f"{(i/60.0):.1f} {UnitOfTime.MINUTES}"
+        return f"{(i / 60.0):.1f} {UnitOfTime.MINUTES}"
     return f"{i} {UnitOfTime.SECONDS}"
 
 

@@ -1,4 +1,5 @@
 """ISY utils."""
+
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant, callback
@@ -14,7 +15,9 @@ def _async_cleanup_registry_entries(hass: HomeAssistant, entry: IsyConfigEntry) 
     entity_registry = er.async_get(hass)
     isy_data = entry.runtime_data
 
-    existing_entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    existing_entries = er.async_entries_for_config_entry(
+        entity_registry, entry.entry_id
+    )
     entities = {
         (entity.domain, entity.unique_id): entity.entity_id
         for entity in existing_entries

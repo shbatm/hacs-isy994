@@ -1,4 +1,5 @@
 """Constants for the ISY Platform."""
+
 import logging
 
 from pyisyox.constants import (
