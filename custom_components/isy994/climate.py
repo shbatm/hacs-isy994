@@ -1,4 +1,5 @@
 """Support for Insteon Thermostats via ISY Platform."""
+
 from __future__ import annotations
 
 from typing import Any, cast
@@ -26,7 +27,6 @@ from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_TENTHS,
@@ -39,7 +39,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
-    DOMAIN,
     HA_FAN_TO_ISY,
     HA_HVAC_TO_ISY,
     ISY_HVAC_MODES,
@@ -54,15 +53,18 @@ from .const import (
 )
 from .entity import ISYNodeEntity
 from .helpers import convert_isy_value_to_hass
+from .models import IsyConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY thermostat platform."""
     entities = []
 
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     devices: dict[str, DeviceInfo] = isy_data.devices
     for node in isy_data.nodes[Platform.CLIMATE]:
         entities.append(ISYThermostatEntity(node, devices.get(node.primary_node)))
@@ -80,7 +82,12 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
         ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+        | ClimateEntityFeature.TURN_OFF
+        | ClimateEntityFeature.TURN_ON
     )
+    _attr_target_temperature_step = 1.0
+    _attr_fan_modes = [FAN_AUTO, FAN_ON]
+    _enable_turn_on_off_backwards_compatibility = False
 
     def __init__(self, node: Node, device_info: DeviceInfo | None = None) -> None:
         """Initialize the ISY Thermostat entity."""

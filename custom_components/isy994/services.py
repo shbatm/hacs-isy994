@@ -1,4 +1,5 @@
 """ISY Services and Commands."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -189,8 +190,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
         command = service.data[CONF_COMMAND]
         isy_name = service.data.get(CONF_ISY)
 
-        for config_entry_id in hass.data[DOMAIN]:
-            isy_data = hass.data[DOMAIN][config_entry_id]
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            isy_data = entry.runtime_data
             isy = isy_data.root
             if isy_name and isy_name != isy.config.name:
                 continue
@@ -287,24 +288,3 @@ def async_setup_lock_services(hass: HomeAssistant) -> None:
         SERVICE_DELETE_USER_CODE_SCHEMA,
         "async_delete_zwave_lock_user_code",
     )
-
-
-@callback
-def async_unload_services(hass: HomeAssistant) -> None:
-    """Unload services for the ISY integration."""
-    if hass.data[DOMAIN]:
-        # There is still another config entry for this domain, don't remove services.
-        return
-
-    existing_services = hass.services.async_services().get(DOMAIN)
-    if not existing_services or not any(
-        service in INTEGRATION_SERVICES for service in existing_services
-    ):
-        return
-
-    _LOGGER.info("Unloading ISY994 Services")
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_PROGRAM_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_RAW_NODE_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SEND_NODE_COMMAND)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_GET_ZWAVE_PARAMETER)
-    hass.services.async_remove(domain=DOMAIN, service=SERVICE_SET_ZWAVE_PARAMETER)

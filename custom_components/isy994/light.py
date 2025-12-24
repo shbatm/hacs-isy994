@@ -1,4 +1,5 @@
 """Support for ISY lights."""
+
 from __future__ import annotations
 
 from typing import Any, cast
@@ -6,24 +7,26 @@ from typing import Any, cast
 from pyisyox.nodes import Node
 
 from homeassistant.components.light import ColorMode, LightEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import _LOGGER, CONF_RESTORE_LIGHT_STATE, DOMAIN, UOM_PERCENTAGE
+from .const import _LOGGER, CONF_RESTORE_LIGHT_STATE, UOM_PERCENTAGE
 from .entity import ISYNodeEntity, NodeEventType
+from .models import IsyConfigEntry
 
 ATTR_LAST_BRIGHTNESS = "last_brightness"
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY light platform."""
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     devices: dict[str, DeviceInfo] = isy_data.devices
     isy_options = entry.options
     restore_light_state = isy_options.get(CONF_RESTORE_LIGHT_STATE, False)

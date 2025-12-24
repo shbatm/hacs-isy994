@@ -1,4 +1,5 @@
 """Support for ISY switches."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,16 +14,14 @@ from homeassistant.components.switch import (
     SwitchEntity,
     SwitchEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .entity import ISYGroupEntity, ISYNodeEntity, ISYProgramEntity
-from .models import IsyData
+from .models import IsyConfigEntry
 
 
 @dataclass
@@ -35,10 +34,12 @@ class ISYSwitchEntityDescription(SwitchEntityDescription):
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY switch platform."""
-    isy_data: IsyData = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     entities: list[
         ISYSwitchEntity
         | ISYGroupSwitchEntity

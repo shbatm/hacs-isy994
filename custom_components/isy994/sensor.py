@@ -1,4 +1,5 @@
 """Support for ISY sensors."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -24,16 +25,13 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, Platform
+from homeassistant.const import EntityCategory, Platform, UnitOfReactivePower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
-    DOMAIN,
-    POWER_VOLT_AMPERE_REACTIVE,
     UOM_DOUBLE_TEMP,
     UOM_FRIENDLY_NAME,
     UOM_INDEX,
@@ -43,6 +41,7 @@ from .const import (
 )
 from .entity import ISYNodeEntity
 from .helpers import convert_isy_value_to_hass
+from .models import IsyConfigEntry
 
 # Disable general purpose and redundant sensors by default
 AUX_DISABLED_BY_DEFAULT_MATCH = ["DO"]
@@ -112,10 +111,12 @@ ISY_CONTROL_TO_ENTITY_CATEGORY = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: IsyConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the ISY sensor platform."""
-    isy_data = hass.data[DOMAIN][entry.entry_id]
+    isy_data = entry.runtime_data
     entities: list[ISYSensorEntity] = []
     devices: dict[str, DeviceInfo] = isy_data.devices
 
@@ -182,7 +183,7 @@ async def async_setup_entry(
             if control == PROP_CURRENT_POWER:
                 if native_uom == UnitOfApparentPower.VOLT_AMPERE:
                     device_class = SensorDeviceClass.APPARENT_POWER
-                elif native_uom == POWER_VOLT_AMPERE_REACTIVE:
+                elif native_uom == UnitOfReactivePower.VOLT_AMPERE_REACTIVE:
                     device_class = SensorDeviceClass.REACTIVE_POWER
 
         description = SensorEntityDescription(

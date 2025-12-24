@@ -1,48 +1,46 @@
 {
-  "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
-  "postCreateCommand": "scripts/setup",
-  "forwardPorts": [8123],
-  "extensions": [
-    "ms-python.python",
-    "github.vscode-pull-request-github",
-    "ryanluker.vscode-coverage-gutters",
-    "ms-python.vscode-pylance",
-    "GitHub.copilot"
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "appPort": ["9123:8123"],
+  "mounts": [
+    "source=${localWorkspaceFolder}/../pyisyox,target=/workspaces/pyisyox,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly"
   ],
+  "postCreateCommand": "bash .devcontainer/scripts/setup_ha_test_env.sh && bash .devcontainer/scripts/setup_homeassistant_runtime.sh || exit 1",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "esbenp.prettier-vscode",
+        "github.vscode-pull-request-github",
+        "streetsidesoftware.code-spell-checker",
+        "njpwerner.autodocstring",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "matangover.mypy",
+        "charliermarsh.ruff",
+        "ryanluker.vscode-coverage-gutters"
+      ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
         "files.eol": "\n",
         "editor.tabSize": 4,
-        "python.pythonPath": "/usr/local/python/bin/python",
-        "python.analysis.autoSearchPaths": false,
-        "python.linting.pylintArgs": ["--disable", "import-error"],
+        "python.pythonPath": "/usr/bin/python3",
+        "python.linting.pylintEnabled": true,
+        "python.linting.enabled": true,
         "python.formatting.provider": "black",
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
-        "files.trimTrailingWhitespace": true
-      },
-      "extensions": [
-        "github.vscode-pull-request-github",
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "ms-vscode.makefile-tools",
-        "ryanluker.vscode-coverage-gutters"
-      ]
+        "files.trimTrailingWhitespace": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "python.linting.mypyEnabled": true,
+        "python.linting.pycodestyleEnabled": false,
+        "python.linting.pydocstyleEnabled": true
+      }
     }
-  },
-  "remoteUser": "vscode"
+  }
 }

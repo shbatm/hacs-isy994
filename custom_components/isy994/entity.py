@@ -1,7 +1,8 @@
 """Representation of ISYEntity Types."""
+
 from __future__ import annotations
 
-from typing import Any, Union, cast
+from typing import Any, TypeAlias, cast
 
 from pyisyox.constants import (
     ATTR_ACTION,
@@ -28,8 +29,8 @@ from homeassistant.util.dt import as_local
 
 from .const import DOMAIN
 
-NodeType = Union[Node, Group, NodeBase, Program, Variable]
-NodeEventType = Union[NodeProperty, NodeChangedEvent]
+NodeType: TypeAlias = Node | Group | NodeBase | Program | Variable
+NodeEventType: TypeAlias = NodeProperty | NodeChangedEvent
 
 
 class ISYEntity(Entity):
@@ -62,6 +63,10 @@ class ISYEntity(Entity):
         self._change_handler = self._node.status_events.subscribe(
             self.async_on_update, key=self.unique_id
         )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from node events."""
+        self._change_handler.unsubscribe()
 
     @callback
     def async_on_update(self, event: NodeEventType, key: str) -> None:
@@ -134,6 +139,11 @@ class ISYNodeEntity(ISYEntity):
             },
             key=self.unique_id,
         )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from node events."""
+        self._change_handler.unsubscribe()
+        self._availability_handler.unsubscribe()
 
     @callback
     def async_on_update(self, event: NodeEventType, key: str) -> None:
