@@ -254,6 +254,21 @@ Key PyISYoX concepts:
 - `NetworkCommand`: Network resource command
 - Event system: All entities emit events via `EventEmitter` for real-time updates
 
+**Understanding PyISYoX Connection Flow**: For a detailed explanation of how PyISYoX establishes connections, loads platforms, and sets up event streams, see [../pyisyox/docs/connection-flow.md](../pyisyox/docs/connection-flow.md). This document covers:
+- The complete sequence of REST API endpoint calls during initialization
+- How platforms load in parallel (nodes, programs, variables, etc.)
+- WebSocket vs TCP event stream setup and lifecycle
+- Connection limits, retry logic, and error handling
+- Essential for debugging initialization issues or understanding performance
+
+**Understanding Entity Creation Flow**: For a comprehensive explanation of how this integration categorizes ISY nodes and creates Home Assistant entities, see [docs/entity-creation-flow.md](docs/entity-creation-flow.md). This document covers:
+- The 5-phase entity creation process (setup, node categorization, program categorization, variable categorization, platform entity creation)
+- Node categorization detection methods (node_def_id, Insteon type, Z-Wave category, UOM, etc.) in priority order
+- How ISY programs become Home Assistant entities using folder structure
+- Special case handling for multi-node devices (FanLinc, thermostats, IOLinc)
+- Filter system architecture and how to extend it for new device types
+- Essential for understanding how ISY devices map to HA platforms
+
 ### Co-Development with PyISYoX
 
 When working on features that span both repositories:
