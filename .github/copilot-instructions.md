@@ -30,6 +30,19 @@ This file gives concise, actionable guidance for AI coding agents working in the
   - Update tests in both `pyisyox` and `hacs-isy994` to reflect new behavior.
   - Install the local `pyisyox` into the integration dev environment via `pip install -e ../pyisyox` (devcontainer README covers this exact setup).
   - Keep a clear separation: networking and parsing lives in `pyisyox`; Home Assistant glue (entity lifecycle, registry, devices) stays in `hacs-isy994`.
+- **Understanding PyISYoX connection flow**: See [pyisyox/docs/connection-flow.md](../../pyisyox/docs/connection-flow.md) for a detailed explanation of:
+  - The complete sequence of REST API endpoint calls during `isy.initialize()`
+  - How platforms load in parallel (nodes, programs, variables, etc.)
+  - WebSocket vs TCP event stream setup and lifecycle
+  - Connection limits, retry logic, and error handling
+  - This is essential for debugging initialization issues or understanding performance characteristics.
+- **Understanding Entity Creation Flow**: See [../docs/entity-creation-flow.md](../docs/entity-creation-flow.md) for comprehensive documentation on:
+  - The 5-phase entity creation process from ISY connection to Home Assistant entities
+  - Node categorization methods and filter system (node_def_id, Insteon type, Z-Wave category, UOM, states)
+  - How ISY programs map to HA entities via folder structure (`HA.{platform}/Name/status` + `actions`)
+  - Special case handling for complex devices (FanLinc light, thermostat subnodes, IOLinc relay)
+  - How to extend `NODE_FILTERS` in `const.py` for new device types
+  - Critical for understanding `helpers._categorize_nodes()` logic and why order matters
 
 **Common edits and examples**
 - To add a new platform entity type: add classification logic in `helpers._categorize_nodes`, add device info in `_generate_device_info`, then add platform module under `custom_components/isy994/<platform>.py` and list it in `PLATFORMS`.
