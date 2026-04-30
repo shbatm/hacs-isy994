@@ -7,7 +7,7 @@ from typing import Any
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.percentage import (
@@ -20,7 +20,7 @@ from pyisyox.nodes import Node
 from pyisyox.programs import Program
 
 from .const import _LOGGER
-from .entity import ISYNodeEntity, ISYProgramEntity
+from .entity import ISYNodeEntity, ISYProgramEntity, NodeEventType
 from .models import IsyConfigEntry
 
 SPEED_RANGE = (1, 255)  # off is not included
@@ -57,26 +57,33 @@ class ISYFanEntity(ISYNodeEntity, FanEntity):
     )
     _node: Node
 
-    @property
-    def percentage(self) -> int | None:
-        """Return the current speed percentage."""
-        if self._node.status is None:
-            return None
-        return ranged_value_to_percentage(SPEED_RANGE, self._node.status)
+    def __init__(self, node: Node, device_info: DeviceInfo | None = None) -> None:
+        """Initialize the ISY fan entity."""
+        super().__init__(node=node, device_info=device_info)
+        self._attr_speed_count = (
+            3 if node.protocol == Protocol.INSTEON else int_states_in_range(SPEED_RANGE)
+        )
 
-    @property
-    def speed_count(self) -> int:
-        """Return the number of speeds the fan supports."""
-        if self._node.protocol == Protocol.INSTEON:
-            return 3
-        return int_states_in_range(SPEED_RANGE)
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to events and set initial state."""
+        await super().async_added_to_hass()
+        self._update_fan_attrs()
 
-    @property
-    def is_on(self) -> bool | None:
-        """Get if the fan is on."""
+    def _update_fan_attrs(self) -> None:
         if self._node.status is None:
-            return None
-        return bool(self._node.status != 0)
+            self._attr_is_on = None
+            self._attr_percentage = None
+        else:
+            self._attr_is_on = bool(self._node.status != 0)
+            self._attr_percentage = ranged_value_to_percentage(
+                SPEED_RANGE, self._node.status
+            )
+
+    @callback
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
+        """Handle a control event from the ISY Node."""
+        self._update_fan_attrs()
+        super().async_on_update(event, key)
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set node to speed percentage for the ISY fan device."""
@@ -106,24 +113,29 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     """Representation of an ISY fan program."""
 
     _attr_supported_features = FanEntityFeature.TURN_OFF | FanEntityFeature.TURN_ON
+    _attr_speed_count = int_states_in_range(SPEED_RANGE)
     _actions: Program
 
-    @property
-    def percentage(self) -> int | None:
-        """Return the current speed percentage."""
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to events and set initial state."""
+        await super().async_added_to_hass()
+        self._update_fan_attrs()
+
+    def _update_fan_attrs(self) -> None:
         if self._node.status is None:
-            return None
-        return ranged_value_to_percentage(SPEED_RANGE, float(self._node.status))
+            self._attr_is_on = None
+            self._attr_percentage = None
+        else:
+            self._attr_is_on = bool(self._node.status != 0)
+            self._attr_percentage = ranged_value_to_percentage(
+                SPEED_RANGE, float(self._node.status)
+            )
 
-    @property
-    def speed_count(self) -> int:
-        """Return the number of speeds the fan supports."""
-        return int_states_in_range(SPEED_RANGE)
-
-    @property
-    def is_on(self) -> bool:
-        """Get if the fan is on."""
-        return bool(self._node.status != 0)
+    @callback
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
+        """Handle the update event from the ISY Node."""
+        self._update_fan_attrs()
+        super().async_on_update(event, key)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Send the turn on command to ISY fan program."""

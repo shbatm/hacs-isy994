@@ -11,7 +11,7 @@ from homeassistant.components.switch import (
     SwitchEntityDescription,
 )
 from homeassistant.const import EntityCategory, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -19,7 +19,7 @@ from pyisyox.nodes import Group, Node
 from pyisyox.nodes.nodebase import NodeBase
 from pyisyox.programs import Program
 
-from .entity import ISYGroupEntity, ISYNodeEntity, ISYProgramEntity
+from .entity import ISYGroupEntity, ISYNodeEntity, ISYProgramEntity, NodeEventType
 from .models import IsyConfigEntry
 
 
@@ -165,11 +165,13 @@ class ISYEnableSwitchEntity(ISYNodeEntity, SwitchEntity):
             device_info=device_info,
         )
         self._attr_name = description.name  # Override super
+        # Always available; must follow super().__init__ which sets node.enabled
+        self._attr_available = True
 
-    @property
-    def available(self) -> bool:
-        """Return entity availability."""
-        return True  # Enable switch is always available
+    @callback
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
+        """Handle a control event — availability is always True for enable switches."""
+        self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool | None:
