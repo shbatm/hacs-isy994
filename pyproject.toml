@@ -1,175 +1,94 @@
-[tool.black]
-target-version = ["py39", "py310"]
-extend-exclude = "/generated/"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".git", "testing_config"]
 
-[tool.isort]
-# https://github.com/PyCQA/isort/wiki/isort-Settings
-profile = "black"
-# will group `import x` and `from x import` of the same module.
-force_sort_within_sections = true
-known_first_party = [
-    "homeassistant",
-    "tests",
-]
-forced_separate = [
-    "tests",
-]
-combine_as_imports = true
-
-[tool.pylint.MAIN]
-py-version = "3.10"
-ignore = [
-    "tests",
-]
-# Use a conservative default here; 2 should speed up most setups and not hurt
-# any too bad. Override on command line as appropriate.
-jobs = 2
-
-load-plugins = [
-    "pylint.extensions.code_style",
-    "pylint.extensions.typing",
-]
-persistent = false
-extension-pkg-allow-list = []
-fail-on = [
-    "I",
-]
-
-[tool.pylint.BASIC]
-class-const-naming-style = "any"
-good-names = [
-    "_",
-    "ev",
-    "ex",
-    "fp",
-    "i",
-    "id",
-    "j",
-    "k",
-    "Run",
-    "ip",
-    "ws",
-    "st",
-    "ts",
-    "tx",
-    "rx",
-]
-
-[tool.pylint."MESSAGES CONTROL"]
-# Reasons disabled:
-# format - handled by black
-# locally-disabled - it spams too much
-# duplicate-code - unavoidable
-# cyclic-import - doesn't test if both import on load
-# abstract-class-little-used - prevents from setting right foundation
-# unused-argument - generic callbacks and setup methods create a lot of warnings
-# too-many-* - are not enforced for the sake of readability
-# too-few-* - same as too-many-*
-# abstract-method - with intro of async there are always methods missing
-# inconsistent-return-statements - doesn't handle raise
-# too-many-ancestors - it's too strict.
-# wrong-import-order - isort guards this
-# consider-using-f-string - str.format sometimes more readable
-# ---
-# Enable once current issues are fixed:
-# consider-using-namedtuple-or-dataclass (Pylint CodeStyle extension)
-# consider-using-assignment-expr (Pylint CodeStyle extension)
-disable = [
-    "format",
-    "abstract-method",
-    "cyclic-import",
-    "duplicate-code",
-    "inconsistent-return-statements",
-    "locally-disabled",
-    "not-context-manager",
-    "too-few-public-methods",
-    "too-many-ancestors",
-    "too-many-arguments",
-    "too-many-branches",
-    "too-many-instance-attributes",
-    "too-many-lines",
-    "too-many-locals",
-    "too-many-public-methods",
-    "too-many-return-statements",
-    "too-many-statements",
-    "too-many-boolean-expressions",
-    "unused-argument",
-    "wrong-import-order",
-    "consider-using-f-string",
-    "consider-using-namedtuple-or-dataclass",
-    "consider-using-assignment-expr",
-]
-enable = [
-    #"useless-suppression",  # temporarily every now and then to clean them up
-    "use-symbolic-message-instead",
-]
-
-[tool.pylint.REPORTS]
-score = false
-
-[tool.pylint.TYPECHECK]
-ignored-classes = [
-    "_CountingAttr",  # for attrs
-]
-mixin-class-rgx = ".*[Mm]ix[Ii]n"
-
-[tool.pylint.FORMAT]
-expected-line-ending-format = "LF"
-
-[tool.pylint.EXCEPTIONS]
-overgeneral-exceptions = [
-    "builtins.BaseException",
-    "builtins.Exception",
-]
-
-[tool.pylint.TYPING]
-runtime-typing = true
-
-[tool.pylint.CODE_STYLE]
-max-line-length-suggestions = 72
-
+[tool.codespell]
+ignore-words-list = "hass,isy,nid,dof,dfof,don,dfon,automic,automicus,batlvl,homeassistant,colorlog,nd,anull,enull,additionals,alle,alot,ba,bre,bund,datas,dur,ether,farenheit,falsy,fo,haa,hist,iam,iff,iif,incomfort,ines,ist,lightsensor,mut,nam,pres,pullrequests,referer,resset,rime,ser,serie,sur,te,technik,ue,uint,unsecure,visability,wan,wanna,withing,zar,ETo,ETO,THIRDPARTY,bootup"
+skip = "./.*,*.csv,*.json"
+quiet-level = 2
 
 [tool.ruff]
+required-version = ">=0.15.12"
 target-version = "py310"
+line-length = 88
 
-select = [
-    "C",  # complexity
-    "D",  # docstrings
-    "E",  # pycodestyle
-    "F",  # pyflakes/autoflake
-    "PGH004",  # Use specific rule codes when using noqa
-    "PLC0414", # Useless import alias. Import alias does not rename original package.
-    "SIM105", # Use contextlib.suppress({exception}) instead of try-except-pass
-    "SIM117", # Merge with-statements that use the same scope
-    "SIM300", # Yoda conditions. Use 'age == 42' instead of '42 == age'.
-    "SIM401", # Use get from dict with default instead of an if block
-    "T20",  # flake8-print
-    "TRY004", # Prefer TypeError exception for invalid type
-    "UP",  # pyupgrade
-    "W",  # pycodestyle
-]
-
+[tool.ruff.lint]
 ignore = [
-    "D202",  # No blank lines allowed after function docstring
-    "D203",  # 1 blank line required before class docstring
-    "D213",  # Multi-line docstring summary should start at the second line
-    "D404",  # First word of the docstring should not be This
-    "D406",  # Section name should end with a newline
-    "D407",  # Section name underlining
-    "D411",  # Missing blank line before section
-    "E501",  # line too long
-    "E731",  # do not assign a lambda expression, use a def
+    "S101",    # use of assert
+    "TID252",  # skip
+    "SLF001",  # design choice
+    "SIM110",  # this is slower
+    "S318",    # intentional
+    "TRY003",  # nice to have
+    "PLR2004", # too many to fix right now
+    "PLR0913", # ship has sail on this one
+    "PLR0911", # ship has sail on this one
+    "PLR0912", # hard to fix without a major refactor
+    "PLR0915", # hard to fix without a major refactor
+    "PYI034",  # enable when we drop Py3.10
+    "RUF003",  # probably not worth fixing
+    "SIM105",  # this is slower
+]
+select = [
+    "ASYNC", # async rules
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "S",     # flake8-bandit
+    "F",     # pyflakes
+    "E",     # pycodestyle
+    "W",     # pycodestyle
+    "UP",    # pyupgrade
+    "I",     # isort
+    "RUF",   # ruff specific
+    "FLY",   # flynt
+    "G",     # flake8-logging-format
+    "PERF",  # Perflint
+    "PGH",   # pygrep-hooks
+    "PIE",   # flake8-pie
+    "PL",    # pylint
+    "PT",    # flake8-pytest-style
+    "PTH",   # flake8-pathlib
+    "PYI",   # flake8-pyi
+    "RET",   # flake8-return
+    "RSE",   # flake8-raise
+    "SIM",   # flake8-simplify
+    "SLF",   # flake8-self
+    "SLOT",  # flake8-slots
+    "T100",  # Trace found: {name} used
+    "T20",   # flake8-print
+    "TID",   # Tidy imports
+    "TRY",   # tryceratops
 ]
 
-[tool.ruff.flake8-pytest-style]
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "S101",
+    "SLF001",
+    "PLR2004",
+    "PT011",
+    "PT006",
+    "PGH003",
+    "PT007",
+    "PT027",
+    "PLW0603",
+    "PLR0915",
+    "FLY002",
+    "PT018",
+    "PLR0124",
+    "SIM202",
+    "PT012",
+    "TID252",
+    "PLR0913",
+    "SIM102",
+    "SIM108",
+    "T201",
+    "PT004",
+]
+
+[tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
-
-[tool.ruff.per-file-ignores]
-# Match Case syntax not yet supported by ruff
-"pyisyox/events/router.py" = ["E999"]
-
-# Allow for main entry & scripts to write to stdout
-"pyisyox/__main__.py" = ["T201"]
-
-[tool.ruff.mccabe]
-max-complexity = 25

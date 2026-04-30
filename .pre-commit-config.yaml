@@ -1,13 +1,15 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.0
+    rev: v0.15.12
     hooks:
       - id: ruff-check
-        args: ["--fix"]
+        args:
+          - --fix
       - id: ruff-format
         files: ^((custom_components|tests)/.+)?[^/]+\.py$
+
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         additional_dependencies:
@@ -15,16 +17,10 @@ repos:
         args:
           - --toml
           - pyproject.toml
-          - --ignore-words-list=additionals,alle,alot,ba,bre,bund,datas,dof,dur,ether,farenheit,falsy,fo,haa,hass,hist,iam,iff,iif,incomfort,ines,ist,lightsensor,mut,nam,nd,pres,pullrequests,referer,resset,rime,ser,serie,sur,te,technik,ue,uint,unsecure,visability,wan,wanna,withing,zar,ETo,ETO,THIRDPARTY,bootup
-          - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
         exclude_types: [csv, json]
-        exclude: ^tests/fixtures/|homeassistant/generated/
+        exclude: ^tests/fixtures/
 
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -36,8 +32,9 @@ repos:
         args:
           - --branch=dev
           - --branch=main
+
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.37.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
 
@@ -47,7 +44,7 @@ repos:
       - id: prettier
         additional_dependencies:
           - prettier@3.6.2
-          - prettier-plugin-sort-json@4.1.1
+          - prettier-plugin-sort-json@4.2.0
 
   - repo: local
     hooks:
