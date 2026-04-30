@@ -600,14 +600,12 @@ UOM_TO_STATES: dict[str, dict[int, str | LockState]] = {
         4: "highly polluted",
     },
     UOM_BARRIER: {  # Barrier Status
-
-            0: STATE_CLOSED,
-            100: STATE_OPEN,
-            101: STATE_UNKNOWN,
-            102: "stopped",
-            103: STATE_CLOSING,
-            104: STATE_OPENING
-        ,
+        0: STATE_CLOSED,
+        100: STATE_OPEN,
+        101: STATE_UNKNOWN,
+        102: "stopped",
+        103: STATE_CLOSING,
+        104: STATE_OPENING,
         **{
             b: f"{b} %" for a, b in enumerate(list(range(1, 100)))
         },  # 1-99 are percentage open
