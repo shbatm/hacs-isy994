@@ -10,7 +10,12 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory, Platform, UnitOfReactivePower
+from homeassistant.const import (
+    EntityCategory,
+    Platform,
+    UnitOfReactivePower,
+    UnitOfVolumeFlowRate,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -31,6 +36,7 @@ from pyisyox.nodes import Node
 
 from .const import (
     _LOGGER,
+    TOTAL_INCREASING_DEVICE_CLASSES,
     UOM_DOUBLE_TEMP,
     UOM_FRIENDLY_NAME,
     UOM_INDEX,
@@ -56,6 +62,73 @@ AUX_DISABLED_BY_DEFAULT_EXACT = {
 PROP_CURRENT_POWER = "CPW"
 PROP_TOTAL_POWER = "TPW"
 
+
+def _check_volume_flow_rate_uom(
+    device_class: SensorDeviceClass | None,
+    uom: str | list[str] | None,
+) -> SensorDeviceClass | None:
+    """Check if the volume flow rate unit is supported."""
+    if device_class != SensorDeviceClass.VOLUME_FLOW_RATE:
+        return device_class
+    # Backwards compatibility for ISYv4 firmware which may return a list.
+    if isinstance(uom, list):
+        uom = uom[0] if uom else None
+    if uom is not None and UOM_FRIENDLY_NAME.get(uom) in UnitOfVolumeFlowRate:
+        return device_class
+    return None
+
+
+UOM_TO_DEVICE_CLASS = {
+    "1": SensorDeviceClass.CURRENT,
+    "3": SensorDeviceClass.POWER,
+    "4": SensorDeviceClass.TEMPERATURE,
+    "7": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "12": SensorDeviceClass.SOUND_PRESSURE,
+    "13": SensorDeviceClass.SOUND_PRESSURE,
+    "17": SensorDeviceClass.TEMPERATURE,
+    "23": SensorDeviceClass.ATMOSPHERIC_PRESSURE,
+    "24": SensorDeviceClass.PRECIPITATION_INTENSITY,
+    "26": SensorDeviceClass.TEMPERATURE,
+    "28": SensorDeviceClass.WEIGHT,
+    "29": SensorDeviceClass.VOLTAGE,
+    "30": SensorDeviceClass.POWER,
+    "31": SensorDeviceClass.PRESSURE,
+    "32": SensorDeviceClass.SPEED,
+    "33": SensorDeviceClass.ENERGY,
+    "35": SensorDeviceClass.WATER,
+    "39": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "40": SensorDeviceClass.SPEED,
+    "41": SensorDeviceClass.CURRENT,
+    "43": SensorDeviceClass.VOLTAGE,
+    "46": SensorDeviceClass.PRECIPITATION_INTENSITY,
+    "48": SensorDeviceClass.SPEED,
+    "49": SensorDeviceClass.SPEED,
+    "52": SensorDeviceClass.WEIGHT,
+    "54": SensorDeviceClass.CO2,
+    "69": SensorDeviceClass.WATER,
+    "72": SensorDeviceClass.VOLTAGE,
+    "73": SensorDeviceClass.POWER,
+    "74": SensorDeviceClass.IRRADIANCE,
+    "82": SensorDeviceClass.DISTANCE,
+    "83": SensorDeviceClass.DISTANCE,
+    "90": SensorDeviceClass.FREQUENCY,
+    "105": SensorDeviceClass.DISTANCE,
+    "106": SensorDeviceClass.PRECIPITATION_INTENSITY,
+    "116": SensorDeviceClass.DISTANCE,
+    "117": SensorDeviceClass.PRESSURE,
+    "118": SensorDeviceClass.ATMOSPHERIC_PRESSURE,
+    "119": SensorDeviceClass.ENERGY,
+    "120": SensorDeviceClass.PRECIPITATION_INTENSITY,
+    "127": SensorDeviceClass.PRESSURE,
+    "130": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "131": SensorDeviceClass.SIGNAL_STRENGTH,
+    "133": SensorDeviceClass.FREQUENCY,
+    "138": SensorDeviceClass.PRESSURE,
+    "142": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "143": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "144": SensorDeviceClass.VOLUME_FLOW_RATE,
+}
+
 # Reference pyisyox.constants.COMMAND_FRIENDLY_NAME for API details.
 #   Note: "LUMIN"/Illuminance removed, some devices use non-conformant "%" unit
 #         "VOCLVL"/VOC removed, uses qualitative UOM not ug/m^3
@@ -72,6 +145,7 @@ ISY_CONTROL_TO_DEVICE_CLASS = {
     "DISTANC": SensorDeviceClass.DISTANCE,
     "ETO": SensorDeviceClass.PRECIPITATION_INTENSITY,
     "FATM": SensorDeviceClass.WEIGHT,
+    "FLOW": SensorDeviceClass.VOLUME_FLOW_RATE,
     "FREQ": SensorDeviceClass.FREQUENCY,
     "MUSCLEM": SensorDeviceClass.WEIGHT,
     "PF": SensorDeviceClass.POWER_FACTOR,
@@ -159,7 +233,6 @@ async def async_setup_entry(
         )
 
         device_class = ISY_CONTROL_TO_DEVICE_CLASS.get(control)
-        state_class = ISY_CONTROL_TO_STATE_CLASS.get(control)
         native_uom = None
         options_dict = None
 
@@ -167,15 +240,20 @@ async def async_setup_entry(
             # Lookup native units and options list if it has one
             native_uom, options_dict, is_enum = get_native_uom(prop.uom, node, control)
 
+            raw_uom = prop.uom[0] if isinstance(prop.uom, list) else prop.uom
+
+            if device_class is None:
+                device_class = UOM_TO_DEVICE_CLASS.get(raw_uom)
+
+            device_class = _check_volume_flow_rate_uom(device_class, prop.uom)
+
             if is_enum:
                 # This is an ISY Enum-type Sensor with an Options List, force Enum Class
                 device_class = SensorDeviceClass.ENUM
-                state_class = None
             elif native_uom is None:
                 # Unknown UOMs cause errors with numeric device classes;
                 # use ISY formatted value. Only for UoMs not yet in PyISYOX.
                 device_class = None
-                state_class = None
 
             # QUIRK: ISY does not differentiate real, apparent, or reactive power:
             if control == PROP_CURRENT_POWER:
@@ -183,6 +261,15 @@ async def async_setup_entry(
                     device_class = SensorDeviceClass.APPARENT_POWER
                 elif native_uom == UnitOfReactivePower.VOLT_AMPERE_REACTIVE:
                     device_class = SensorDeviceClass.REACTIVE_POWER
+
+        if device_class == SensorDeviceClass.ENUM:
+            state_class = None
+        elif device_class in TOTAL_INCREASING_DEVICE_CLASSES:
+            state_class = SensorStateClass.TOTAL_INCREASING
+        elif device_class is not None:
+            state_class = SensorStateClass.MEASUREMENT
+        else:
+            state_class = None
 
         description = SensorEntityDescription(
             key=f"{node}_{control}",
