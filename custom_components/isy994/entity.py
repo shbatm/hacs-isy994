@@ -122,6 +122,7 @@ class ISYNodeEntity(ISYEntity):
             self._attr_has_entity_name = True
 
         self._attr_name = name
+        self._attr_available = node.enabled
 
     async def async_added_to_hass(self) -> None:
         """Subscribe to the node control change events."""
@@ -147,12 +148,8 @@ class ISYNodeEntity(ISYEntity):
     @callback
     def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle a control event from the ISY Node."""
+        self._attr_available = self._node.enabled
         self.async_write_ha_state()
-
-    @property
-    def available(self) -> bool:
-        """Return entity availability."""
-        return self._node.enabled
 
     async def async_send_node_command(self, command: str) -> None:
         """Respond to an entity service command call."""

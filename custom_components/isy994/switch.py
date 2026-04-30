@@ -148,6 +148,8 @@ class ISYSwitchProgramEntity(ISYProgramEntity, SwitchEntity):
 class ISYEnableSwitchEntity(ISYNodeEntity, SwitchEntity):
     """A representation of an ISY enable/disable switch."""
 
+    _attr_available = True  # enable switch is always available
+
     def __init__(
         self,
         node: Node,
@@ -165,11 +167,6 @@ class ISYEnableSwitchEntity(ISYNodeEntity, SwitchEntity):
             device_info=device_info,
         )
         self._attr_name = description.name  # Override super
-
-    @property
-    def available(self) -> bool:
-        """Return entity availability."""
-        return True  # Enable switch is always available
 
     @property
     def is_on(self) -> bool | None:

@@ -161,11 +161,6 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
         )
 
     @property
-    def target_temperature_step(self) -> float | None:
-        """Return the supported step of target temperature."""
-        return 1.0
-
-    @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         if self.hvac_mode == HVACMode.COOL:
@@ -189,11 +184,6 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
         if not target:
             return None
         return convert_isy_value_to_hass(target.value, target.uom, target.precision, 1)
-
-    @property
-    def fan_modes(self) -> list[str]:
-        """Return the list of available fan modes."""
-        return [FAN_AUTO, FAN_ON]
 
     @property
     def fan_mode(self) -> str:

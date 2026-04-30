@@ -6,14 +6,14 @@ from typing import Any
 
 from homeassistant.components.lock import LockEntity
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyisyox.nodes import Node
 from pyisyox.programs import Program
 
-from .entity import ISYNodeEntity, ISYProgramEntity
+from .entity import ISYNodeEntity, ISYProgramEntity, NodeEventType
 from .models import IsyConfigEntry
 from .services import async_setup_lock_services
 
@@ -46,12 +46,22 @@ class ISYLockEntity(ISYNodeEntity, LockEntity):
 
     _node: Node
 
-    @property
-    def is_locked(self) -> bool | None:
-        """Get whether the lock is in locked state."""
-        if self._node.status is None:
-            return None
-        return VALUE_TO_STATE.get(self._node.status)
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to events and set initial state."""
+        await super().async_added_to_hass()
+        status = self._node.status
+        self._attr_is_locked = (
+            VALUE_TO_STATE.get(status) if status is not None else None
+        )
+
+    @callback
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
+        """Handle a control event from the ISY Node."""
+        status = self._node.status
+        self._attr_is_locked = (
+            VALUE_TO_STATE.get(status) if status is not None else None
+        )
+        super().async_on_update(event, key)
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Send the lock command to the ISY device."""
@@ -83,10 +93,16 @@ class ISYLockProgramEntity(ISYProgramEntity, LockEntity):
 
     _actions: Program
 
-    @property
-    def is_locked(self) -> bool:
-        """Return true if the device is locked."""
-        return bool(self._node.status)
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to events and set initial state."""
+        await super().async_added_to_hass()
+        self._attr_is_locked = bool(self._node.status)
+
+    @callback
+    def async_on_update(self, event: NodeEventType, key: str) -> None:
+        """Handle the update event from the ISY Node."""
+        self._attr_is_locked = bool(self._node.status)
+        self.async_write_ha_state()
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the device."""
