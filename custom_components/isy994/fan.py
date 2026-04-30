@@ -5,10 +5,6 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from pyisyox.constants import Protocol
-from pyisyox.nodes import Node
-from pyisyox.programs import Program
-
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -19,6 +15,9 @@ from homeassistant.util.percentage import (
     percentage_to_ranged_value,
     ranged_value_to_percentage,
 )
+from pyisyox.constants import Protocol
+from pyisyox.nodes import Node
+from pyisyox.programs import Program
 
 from .const import _LOGGER
 from .entity import ISYNodeEntity, ISYProgramEntity

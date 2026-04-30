@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisyox.nodes import Node
-from pyisyox.programs import Program
-
 from homeassistant.components.cover import (
     ATTR_POSITION,
     CoverEntity,
@@ -17,6 +14,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from pyisyox.nodes import Node
+from pyisyox.programs import Program
 
 from .const import UOM_8_BIT_RANGE
 from .entity import ISYNodeEntity, ISYProgramEntity

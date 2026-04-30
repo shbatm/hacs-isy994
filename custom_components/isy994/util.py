@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.entity_registry as er
+from homeassistant.core import HomeAssistant, callback
 
 from .const import _LOGGER
 from .models import IsyConfigEntry

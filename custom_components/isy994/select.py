@@ -2,22 +2,6 @@
 
 from __future__ import annotations
 
-from pyisyox.constants import (
-    ATTR_ACTION,
-    BACKLIGHT_INDEX,
-    CMD_BACKLIGHT,
-    COMMAND_FRIENDLY_NAME,
-    INSTEON_RAMP_RATES,
-    PROP_RAMP_RATE,
-    TAG_ADDRESS,
-    UOM_INDEX as ISY_UOM_INDEX,
-    UOM_TO_STATES,
-    NodeChangeAction,
-)
-from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
-from pyisyox.helpers.models import NodeProperty
-from pyisyox.nodes import Node
-
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import (
     STATE_UNAVAILABLE,
@@ -31,6 +15,23 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
+from pyisyox.constants import (
+    ATTR_ACTION,
+    BACKLIGHT_INDEX,
+    CMD_BACKLIGHT,
+    COMMAND_FRIENDLY_NAME,
+    INSTEON_RAMP_RATES,
+    PROP_RAMP_RATE,
+    TAG_ADDRESS,
+    UOM_TO_STATES,
+    NodeChangeAction,
+)
+from pyisyox.constants import (
+    UOM_INDEX as ISY_UOM_INDEX,
+)
+from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
 
 from .const import _LOGGER, BACKLIGHT_MEMORY_FILTER, UOM_INDEX
 from .entity import ISYNodeEntity
@@ -71,9 +72,10 @@ async def async_setup_entry(
             options = RAMP_RATE_OPTIONS
         elif control == CMD_BACKLIGHT:
             options = BACKLIGHT_INDEX
-        elif (uom := node.aux_properties[control].uom) == UOM_INDEX:
-            if options_dict := UOM_TO_STATES.get(uom):
-                options = list(options_dict.values())
+        elif (uom := node.aux_properties[control].uom) == UOM_INDEX and (
+            options_dict := UOM_TO_STATES.get(uom)
+        ):
+            options = list(options_dict.values())
 
         description = SelectEntityDescription(
             key=f"{node.address}_{control}",

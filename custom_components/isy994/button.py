@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from homeassistant.components.button import ButtonEntity
+from homeassistant.const import EntityCategory, Platform
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyisyox import ISY
 from pyisyox.constants import (
     ATTR_ACTION,
@@ -14,12 +19,6 @@ from pyisyox.helpers.events import EventListener
 from pyisyox.helpers.models import NodeProperty
 from pyisyox.networking import NetworkCommand
 from pyisyox.nodes import Node
-
-from homeassistant.components.button import ButtonEntity
-from homeassistant.const import EntityCategory, Platform
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_NETWORK, DOMAIN
 from .models import IsyConfigEntry

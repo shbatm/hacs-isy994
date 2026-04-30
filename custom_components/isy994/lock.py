@@ -4,15 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisyox.nodes import Node
-from pyisyox.programs import Program
-
 from homeassistant.components.lock import LockEntity
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from pyisyox.nodes import Node
+from pyisyox.programs import Program
 
 from .entity import ISYNodeEntity, ISYProgramEntity
 from .models import IsyConfigEntry

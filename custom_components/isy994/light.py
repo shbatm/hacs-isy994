@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from pyisyox.nodes import Node
-
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
+from pyisyox.nodes import Node
 
 from .const import _LOGGER, CONF_RESTORE_LIGHT_STATE, UOM_PERCENTAGE
 from .entity import ISYNodeEntity, NodeEventType
@@ -116,7 +115,6 @@ class ISYLightEntity(ISYNodeEntity, LightEntity, RestoreEntity):
             return
 
         if (
-            ATTR_LAST_BRIGHTNESS in last_state.attributes
-            and last_state.attributes[ATTR_LAST_BRIGHTNESS]
+            last_state.attributes.get(ATTR_LAST_BRIGHTNESS)
         ):
             self._last_brightness = last_state.attributes[ATTR_LAST_BRIGHTNESS]

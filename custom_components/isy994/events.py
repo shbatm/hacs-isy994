@@ -4,13 +4,12 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
+import homeassistant.helpers.device_registry as dr
+import homeassistant.helpers.entity_registry as er
+from homeassistant.core import HomeAssistant, callback
 from pyisyox import ISY
 from pyisyox.constants import NodeChangeAction, SystemStatus
 from pyisyox.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
-
-from homeassistant.core import HomeAssistant, callback
-import homeassistant.helpers.device_registry as dr
-import homeassistant.helpers.entity_registry as er
 
 from .const import _LOGGER, DOMAIN
 from .models import IsyData
@@ -53,7 +52,8 @@ class IsyControllerEvents:
     def node_change_handler(self, event: NodeChangedEvent) -> None:
         """Handle a node changed event sent from Nodes class."""
         _LOGGER.debug(
-            "ISY updated configuration: Address %s Changed: %s %s. Integration should be reloaded to pick up new changes",
+            "ISY updated configuration: Address %s Changed: %s %s."
+            " Integration should be reloaded to pick up new changes",
             event.address,
             NodeChangeAction(event.action).name.replace("_", " ").title(),
             event.event_info if event.event_info else "",

@@ -5,10 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from pyisyox.nodes import Group, Node
-from pyisyox.nodes.nodebase import NodeBase
-from pyisyox.programs import Program
-
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
@@ -19,6 +15,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from pyisyox.nodes import Group, Node
+from pyisyox.nodes.nodebase import NodeBase
+from pyisyox.programs import Program
 
 from .entity import ISYGroupEntity, ISYNodeEntity, ISYProgramEntity
 from .models import IsyConfigEntry
