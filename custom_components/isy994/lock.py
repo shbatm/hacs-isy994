@@ -102,7 +102,7 @@ class ISYLockProgramEntity(ISYProgramEntity, LockEntity):
     def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle the update event from the ISY Node."""
         self._attr_is_locked = bool(self._node.status)
-        self.async_write_ha_state()
+        super().async_on_update(event, key)
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the device."""

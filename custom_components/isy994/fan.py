@@ -135,7 +135,7 @@ class ISYFanProgramEntity(ISYProgramEntity, FanEntity):
     def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle the update event from the ISY Node."""
         self._update_fan_attrs()
-        self.async_write_ha_state()
+        super().async_on_update(event, key)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Send the turn on command to ISY fan program."""

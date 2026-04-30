@@ -113,7 +113,7 @@ class ISYCoverProgramEntity(ISYProgramEntity, CoverEntity):
     def async_on_update(self, event: NodeEventType, key: str) -> None:
         """Handle the update event from the ISY Node."""
         self._attr_is_closed = bool(self._node.status)
-        self.async_write_ha_state()
+        super().async_on_update(event, key)
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Send the open cover command to the ISY cover program."""
