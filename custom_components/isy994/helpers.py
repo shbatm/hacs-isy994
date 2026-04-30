@@ -5,6 +5,8 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Any, cast
 
+from homeassistant.const import ATTR_MANUFACTURER, ATTR_MODEL, Platform
+from homeassistant.helpers.entity import DeviceInfo
 from pyisyox.constants import (
     BACKLIGHT_SUPPORT,
     CMD_BACKLIGHT,
@@ -20,9 +22,6 @@ from pyisyox.constants import (
 from pyisyox.nodes import Group, Node, Nodes
 from pyisyox.programs import Programs
 from pyisyox.variables import Variables
-
-from homeassistant.const import ATTR_MANUFACTURER, ATTR_MODEL, Platform
-from homeassistant.helpers.entity import DeviceInfo
 
 from .const import (
     _LOGGER,
@@ -280,15 +279,14 @@ def _is_sensor_a_binary_sensor(isy_data: IsyData, node: Node) -> bool:
         uom_list=BINARY_SENSOR_UOMS,
     ):
         return True
-    if _check_for_states_in_uom(
-        isy_data,
-        node,
-        single_platform=Platform.BINARY_SENSOR,
-        states_list=BINARY_SENSOR_ISY_STATES,
-    ):
-        return True
-
-    return False
+    return bool(
+        _check_for_states_in_uom(
+            isy_data,
+            node,
+            single_platform=Platform.BINARY_SENSOR,
+            states_list=BINARY_SENSOR_ISY_STATES,
+        )
+    )
 
 
 def _add_backlight_if_supported(isy_data: IsyData, node: Node) -> None:
@@ -463,7 +461,7 @@ def _categorize_variables(isy_data: IsyData, variables: Variables) -> None:
 
 
 def convert_isy_value_to_hass(
-    value: int | float | None,
+    value: float | None,
     uom: str | list | None,
     precision: int | str,
     fallback_precision: int | None = None,

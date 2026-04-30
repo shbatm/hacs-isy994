@@ -4,6 +4,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
+from homeassistant.const import EntityCategory, Platform, UnitOfReactivePower
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyisyox.constants import (
     COMMAND_FRIENDLY_NAME,
     PROP_BATTERY_LEVEL,
@@ -18,17 +28,6 @@ from pyisyox.constants import (
 )
 from pyisyox.helpers.models import NodeProperty
 from pyisyox.nodes import Node
-
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorEntityDescription,
-    SensorStateClass,
-)
-from homeassistant.const import EntityCategory, Platform, UnitOfReactivePower
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
@@ -173,13 +172,12 @@ async def async_setup_entry(
                 device_class = SensorDeviceClass.ENUM
                 state_class = None
             elif native_uom is None:
-                # Unknown UOMs will cause errors with device classes expecting numeric values
-                # they will use the ISY formatted value and may or may not have a unit embedded.
-                # this should only apply for new UoM that have not been added to PyISYOX yet.
+                # Unknown UOMs cause errors with numeric device classes;
+                # use ISY formatted value. Only for UoMs not yet in PyISYOX.
                 device_class = None
                 state_class = None
 
-            # QUIRK: ISY does not differentiate between real, apparent, or reactive power:
+            # QUIRK: ISY does not differentiate real, apparent, or reactive power:
             if control == PROP_CURRENT_POWER:
                 if native_uom == UnitOfApparentPower.VOLT_AMPERE:
                     device_class = SensorDeviceClass.APPARENT_POWER

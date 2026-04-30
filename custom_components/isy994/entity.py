@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias, cast
 
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
+from homeassistant.util.dt import as_local
 from pyisyox.constants import (
     ATTR_ACTION,
     ATTR_CONTROL,
@@ -20,12 +25,6 @@ from pyisyox.nodes import Group, Node
 from pyisyox.nodes.nodebase import NodeBase
 from pyisyox.programs import Program, ProgramDetail
 from pyisyox.variables import Variable
-
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import callback
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
-from homeassistant.util.dt import as_local
 
 from .const import DOMAIN
 
@@ -178,7 +177,7 @@ class ISYNodeEntity(ISYEntity):
         await self._node.send_cmd(command, value, unit_of_measurement, parameters)
 
     async def async_get_zwave_parameter(self, parameter: int) -> None:
-        """Respond to an entity service command to request a Z-Wave device parameter from the ISY."""
+        """Respond to service: request a Z-Wave device parameter from ISY."""
         if self._node.protocol != Protocol.ZWAVE:
             raise HomeAssistantError(
                 "Invalid service call: cannot request Z-Wave Parameter for non-Z-Wave"
@@ -189,7 +188,7 @@ class ISYNodeEntity(ISYEntity):
     async def async_set_zwave_parameter(
         self, parameter: int, value: int, size: int
     ) -> None:
-        """Respond to an entity service command to set a Z-Wave device parameter via the ISY."""
+        """Respond to service: set a Z-Wave device parameter via ISY."""
         if self._node.protocol != Protocol.ZWAVE:
             raise HomeAssistantError(
                 "Invalid service call: cannot set Z-Wave Parameter for non-Z-Wave"

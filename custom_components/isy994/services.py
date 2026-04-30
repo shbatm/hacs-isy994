@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyisyox.constants import COMMAND_FRIENDLY_NAME
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_COMMAND,
@@ -16,9 +15,9 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import entity_platform
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import async_get_platforms
 from homeassistant.helpers.service import entity_service_call
+from pyisyox.constants import COMMAND_FRIENDLY_NAME
 
 from .const import _LOGGER, DOMAIN
 

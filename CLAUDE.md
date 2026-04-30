@@ -87,11 +87,9 @@ See `.devcontainer/README.md` for detailed usage instructions.
 # Run pre-commit hooks manually
 pre-commit run --all-files
 
-# Format code with black
-black custom_components/isy994
-
-# Run ruff linter
+# Format and lint (ruff handles both formatting and import sorting)
 ruff check custom_components/isy994 --fix
+ruff format custom_components/isy994
 ```
 
 ### Running Tests
@@ -211,28 +209,26 @@ Configured via config_flow.py with options to disable unused features:
 ## Code Style
 
 The project follows Home Assistant's code style:
-- **Black** for formatting (targets Python 3.9-3.10)
-- **Ruff** for linting with Home Assistant-specific rules
-- **isort** for import sorting (profile: black, known_first_party: homeassistant)
-- **Pylint** with Home Assistant configuration (jobs=2)
+- **ruff-format** for formatting (line length 88, target Python 3.10+)
+- **ruff** for linting and import sorting (replaces separate black, isort)
+- **Pylint** with Home Assistant configuration (configured via `.pylintrc`)
+- **mypy** for type checking
 
-Key style points from pyproject.toml:
-- Line length: Black default (88 chars)
+Key style points:
+- Line length: 88 chars (HA Core standard)
 - Target Python version: 3.10+
-- Docstring style: Google (D213 multi-line on second line)
 - Many complexity checks disabled for readability (too-many-branches, etc.)
 
 ## Pre-commit Hooks
 
 The repository uses pre-commit with:
-- ruff (auto-fix enabled)
-- black (quiet mode)
-- isort
-- codespell (ignores Home Assistant-specific terms)
-- yamllint
-- prettier
-- check-json
-- no-commit-to-branch (blocks commits to `dev` and `main`)
+- **ruff**: Formatting, import sorting, and linting (replaces black and isort)
+- **codespell**: Spell checking (HA-specific terms ignored via pyproject.toml `[tool.codespell]`)
+- **yamllint**: YAML validation
+- **prettier** with prettier-plugin-sort-json: JSON/YAML/markdown formatting
+- **mypy**: Type checking (local hook, skipped in CI — requires full venv)
+- **pylint**: Code quality (local hook, skipped in CI — requires full venv)
+- **no-commit-to-branch**: Blocks commits to `dev` and `main`
 
 **Important**: Direct commits to `dev` and `main` branches are blocked by pre-commit hooks.
 

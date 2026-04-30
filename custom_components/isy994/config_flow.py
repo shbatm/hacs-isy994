@@ -3,21 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-from aiohttp import CookieJar
-from pyisyox import ISYResponseParseError
-from pyisyox.connection import (
-    Connection,
-    ISYConnectionError,
-    ISYConnectionInfo,
-    ISYInvalidAuthError,
-)
 import voluptuous as vol
-
+from aiohttp import CookieJar
 from homeassistant import config_entries, core, exceptions
 from homeassistant.components import ssdp
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
@@ -26,6 +18,13 @@ from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.helpers import aiohttp_client
 from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.helpers.service_info.ssdp import SsdpServiceInfo
+from pyisyox import ISYResponseParseError
+from pyisyox.connection import (
+    Connection,
+    ISYConnectionError,
+    ISYConnectionInfo,
+    ISYInvalidAuthError,
+)
 
 from .const import (
     CONF_ENABLE_NETWORKING,
@@ -211,7 +210,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.ConfigFlowResult:
         """Handle a discovered ISY/IoX device via dhcp."""
         friendly_name = discovery_info.hostname
-        if friendly_name.startswith("polisy") or friendly_name.startswith("eisy"):
+        if friendly_name.startswith(("polisy", "eisy")):
             url = f"http://{discovery_info.ip}:8080"
         else:
             url = f"http://{discovery_info.ip}"

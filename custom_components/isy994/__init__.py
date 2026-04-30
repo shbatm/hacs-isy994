@@ -5,17 +5,9 @@ from __future__ import annotations
 import asyncio
 from urllib.parse import urlparse
 
-from aiohttp import CookieJar
-from pyisyox import ISY, ISYResponseParseError
-from pyisyox.connection import (
-    ISYConnectionError,
-    ISYConnectionInfo,
-    ISYInvalidAuthError,
-)
-from pyisyox.constants import CONFIG_NETWORKING
-from pyisyox.networking import NetworkCommand
+import homeassistant.helpers.device_registry as dr
 import voluptuous as vol
-
+from aiohttp import CookieJar
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -25,10 +17,18 @@ from homeassistant.const import (
 )
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import aiohttp_client, config_validation as cv
-import homeassistant.helpers.device_registry as dr
+from homeassistant.helpers import aiohttp_client
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
+from pyisyox import ISY, ISYResponseParseError
+from pyisyox.connection import (
+    ISYConnectionError,
+    ISYConnectionInfo,
+    ISYInvalidAuthError,
+)
+from pyisyox.constants import CONFIG_NETWORKING
+from pyisyox.networking import NetworkCommand
 
 from .const import (
     _LOGGER,

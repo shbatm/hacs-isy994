@@ -5,19 +5,6 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from pyisyox.constants import (
-    ATTR_ACTION,
-    CMD_BACKLIGHT,
-    PROP_ON_LEVEL,
-    TAG_ADDRESS,
-    UOM_PERCENTAGE,
-    NodeChangeAction,
-)
-from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
-from pyisyox.helpers.models import NodeProperty
-from pyisyox.nodes import Node
-from pyisyox.variables import Variable
-
 from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
@@ -40,6 +27,18 @@ from homeassistant.util.percentage import (
     percentage_to_ranged_value,
     ranged_value_to_percentage,
 )
+from pyisyox.constants import (
+    ATTR_ACTION,
+    CMD_BACKLIGHT,
+    PROP_ON_LEVEL,
+    TAG_ADDRESS,
+    UOM_PERCENTAGE,
+    NodeChangeAction,
+)
+from pyisyox.helpers.events import ATTR_EVENT_INFO, EventListener, NodeChangedEvent
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
+from pyisyox.variables import Variable
 
 from .const import BACKLIGHT_MEMORY_FILTER, UOM_8_BIT_RANGE
 from .entity import ISYNodeEntity
@@ -192,8 +191,8 @@ class ISYVariableNumberEntity(NumberEntity):
         self.entity_description = description
         self._change_handler: EventListener | None = None
 
-        # Two entities are created for each variable, one for current value and one for initial.
-        # Initial value entities are disabled by default
+        # Two entities are created for each variable: one for current value,
+        # one for initial. Initial value entities are disabled by default.
         self._init_entity = init_entity
         self._attr_unique_id = unique_id
         self._attr_device_info = device_info
@@ -254,11 +253,12 @@ class ISYBacklightNumberEntity(ISYNodeEntity, RestoreNumber):
     async def async_added_to_hass(self) -> None:
         """Load the last known state when added to hass."""
         await super().async_added_to_hass()
-        if (last_state := await self.async_get_last_state()) and (
-            last_number_data := await self.async_get_last_number_data()
+        if (
+            (last_state := await self.async_get_last_state())
+            and (last_number_data := await self.async_get_last_number_data())
+            and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE)
         ):
-            if last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-                self._attr_native_value = last_number_data.native_value
+            self._attr_native_value = last_number_data.native_value
 
         # Listen to memory writing events to update state if changed in ISY
         self._memory_change_handler = self._node.isy.nodes.platform_events.subscribe(

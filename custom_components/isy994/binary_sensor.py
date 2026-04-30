@@ -5,17 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from pyisyox.constants import (
-    CMD_OFF,
-    CMD_ON,
-    COMMAND_FRIENDLY_NAME,
-    ISY_VALUE_UNKNOWN,
-    PROP_STATUS,
-    Protocol,
-)
-from pyisyox.helpers.models import NodeProperty
-from pyisyox.nodes import Node
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -27,6 +16,16 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
+from pyisyox.constants import (
+    CMD_OFF,
+    CMD_ON,
+    COMMAND_FRIENDLY_NAME,
+    ISY_VALUE_UNKNOWN,
+    PROP_STATUS,
+    Protocol,
+)
+from pyisyox.helpers.models import NodeProperty
+from pyisyox.nodes import Node
 
 from .const import (
     _LOGGER,
@@ -471,10 +470,11 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity, RestoreEntity)
         # Start the timer on bootup, so we can change from UNKNOWN to OFF
         self._restart_timer()
 
-        if (last_state := await self.async_get_last_state()) is not None:
-            # Only restore the state if it was previously ON (Low Battery)
-            if last_state.state == STATE_ON:
-                self._computed_state = True
+        # Only restore the state if it was previously ON (Low Battery)
+        if (
+            last_state := await self.async_get_last_state()
+        ) is not None and last_state.state == STATE_ON:
+            self._computed_state = True
 
     def _heartbeat_node_control_handler(self, event: NodeProperty, key: str) -> None:
         """Update the heartbeat timestamp when any ON/OFF event is sent.

@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
+from homeassistant.helpers.entity import DeviceInfo
 from pyisyox import ISY
 from pyisyox.constants import Protocol
 from pyisyox.helpers.models import EntityStatus, NodeProperty
@@ -12,10 +15,6 @@ from pyisyox.networking import NetworkCommand
 from pyisyox.nodes import Group, Node
 from pyisyox.programs import Program
 from pyisyox.variables import Variable
-
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
-from homeassistant.helpers.entity import DeviceInfo
 
 from .const import (
     CONF_NETWORK,
