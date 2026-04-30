@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias, cast
 
-from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
@@ -81,7 +80,7 @@ class ISYGroupEntity(ISYEntity):
     @property
     def extra_state_attributes(self) -> dict:
         """Get the state attributes for the device."""
-        return {"group_all_on": STATE_ON if self._node.group_all_on else STATE_OFF}
+        return {"group_all_on": self._node.group_all_on}
 
 
 class ISYNodeEntity(ISYEntity):
@@ -222,7 +221,7 @@ class ISYProgramEntity(ISYEntity):
         attr = {}
         if self._actions:
             actions_detail = cast(ProgramDetail, self._actions.detail)
-            attr["actions_enabled"] = str(self._actions.enabled)
+            attr["actions_enabled"] = self._actions.enabled
             if actions_detail.last_finish_time is not None:
                 attr["actions_last_finished"] = str(
                     as_local(actions_detail.last_finish_time)
@@ -231,10 +230,10 @@ class ISYProgramEntity(ISYEntity):
                 attr["actions_last_run"] = str(as_local(actions_detail.last_run_time))
             if self._actions.last_update is not None:
                 attr["actions_last_update"] = str(as_local(self._actions.last_update))
-            attr["run_at_startup"] = str(actions_detail.run_at_startup)
-            attr["running"] = str(actions_detail.running)
+            attr["run_at_startup"] = actions_detail.run_at_startup
+            attr["running"] = actions_detail.running
 
-        attr["status_enabled"] = str(self._node.enabled)
+        attr["status_enabled"] = self._node.enabled
         detail = cast(ProgramDetail, self._node.detail)
         if detail.last_finish_time is not None:
             attr["status_last_finished"] = str(as_local(detail.last_finish_time))
