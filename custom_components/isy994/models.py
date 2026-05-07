@@ -26,7 +26,7 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from .events import IsyControllerEvents
+    from .controller_events import IsyControllerEvents
 
 
 @dataclass

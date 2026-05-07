@@ -45,7 +45,7 @@ from .const import (
     SCHEME_HTTP,
     SCHEME_HTTPS,
 )
-from .events import IsyControllerEvents
+from .controller_events import IsyControllerEvents
 from .helpers import _categorize_nodes, _categorize_programs, _categorize_variables
 from .models import IsyConfigEntry, IsyData
 from .services import async_setup_services
