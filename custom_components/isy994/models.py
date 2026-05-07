@@ -19,11 +19,13 @@ from pyisyox.variables import Variable
 from .const import (
     CONF_NETWORK,
     NODE_AUX_PROP_PLATFORMS,
+    NODE_PARALLEL_PLATFORMS,
     NODE_PLATFORMS,
     PROGRAM_PLATFORMS,
     ROOT_NODE_PLATFORMS,
     VARIABLE_PLATFORMS,
 )
+from .event import EVENT_BUTTON_UNIQUE_ID_SUFFIX
 
 if TYPE_CHECKING:
     from .controller_events import IsyControllerEvents
@@ -46,7 +48,7 @@ class IsyData:
 
     def __init__(self) -> None:
         """Initialize an empty ISY data class."""
-        self.nodes = {p: [] for p in NODE_PLATFORMS}
+        self.nodes = {p: [] for p in (*NODE_PLATFORMS, *NODE_PARALLEL_PLATFORMS)}
         self.groups = []
         self.root_nodes = {p: [] for p in ROOT_NODE_PLATFORMS}
         self.aux_properties = {p: [] for p in NODE_AUX_PROP_PLATFORMS}
@@ -117,6 +119,17 @@ class IsyData:
         for resource in self.net_resources:
             current_unique_ids.add((Platform.BUTTON, self.uid_base(resource)))
 
+        # EVENT-specific unique-id format. If more NODE_PARALLEL_PLATFORMS
+        # are added with their own suffixes, generalize this loop to dispatch
+        # by platform.
+        for node in self.nodes[Platform.EVENT]:
+            current_unique_ids.add(
+                (
+                    Platform.EVENT,
+                    f"{self.uid_base(node)}{EVENT_BUTTON_UNIQUE_ID_SUFFIX}",
+                )
+            )
+
         return current_unique_ids
 
     @property
@@ -128,6 +141,11 @@ class IsyData:
         for platform in NODE_PLATFORMS:
             for node in self.nodes[platform]:
                 current_unique_ids[self.uid_base(node)] = platform
+
+        for node in self.nodes[Platform.EVENT]:
+            current_unique_ids[
+                f"{self.uid_base(node)}{EVENT_BUTTON_UNIQUE_ID_SUFFIX}"
+            ] = Platform.EVENT
 
         for group in self.groups:
             current_unique_ids[self.uid_base(group)] = Platform.SWITCH

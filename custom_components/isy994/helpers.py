@@ -41,6 +41,7 @@ from .const import (
     KEY_STATUS,
     NODE_AUX_FILTERS,
     NODE_FILTERS,
+    NODE_PARALLEL_PLATFORMS,
     NODE_PLATFORMS,
     PROGRAM_PLATFORMS,
     SUBNODE_CLIMATE_COOL,
@@ -384,6 +385,19 @@ def _categorize_nodes(
                 continue
             isy_data.nodes[Platform.SENSOR].append(node)
             continue
+
+        # Parallel classification: nodes can match a NODE_PARALLEL_PLATFORMS
+        # entry in addition to their primary platform (e.g. a switch that also
+        # emits button-press events). Stop at the first matcher per parallel
+        # platform and fall through to primary classification below.
+        for parallel_platform in NODE_PARALLEL_PLATFORMS:
+            if _check_for_node_def(isy_data, node, single_platform=parallel_platform):
+                continue
+            if _check_for_insteon_type(
+                isy_data, node, single_platform=parallel_platform
+            ):
+                continue
+            _check_for_zwave_cat(isy_data, node, single_platform=parallel_platform)
 
         # We have a bunch of different methods for determining the device type,
         # each of which works with different ISY firmware versions or device
