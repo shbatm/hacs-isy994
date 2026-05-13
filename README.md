@@ -1,42 +1,37 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+# hacs-isy994 — archived
 
-<a href="https://www.buymeacoffee.com/shbatm" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" width="140px" height="30px" ></a>
+> **🛑 This repository is archived and no longer maintained.**
 
-> :warning: **This integration is for beta testing new features for the ISY/IoX integration**
+This integration was a beta-testing ground for changes to the Home Assistant Core `isy994` integration, targeting **Universal Devices ISY-994** controllers (and the early IoX 5.x firmware that ran on the same hardware).
 
-## Description
+Active development has moved to a new repository for **eisy / Polisy on IoX 6+** hardware:
 
-This Custom Component is to update the Home Assistant Core [ISY994 component](https://www.home-assistant.io/integrations/isy994/) with new functionality that is currently being tested before migrating to the main integration.
+### → **[shbatm/hacs-udi-iox](https://github.com/shbatm/hacs-udi-iox)**
 
-Version 4.x.x uses the beta version of PyISY, in which the communications with the ISY have been completely rewritten (again); ideally making the ISY controls much more responsive when controlling from Home Assistant.
+The new integration registers under the HA domain `udi_iox` (not `isy994`), uses the new [`pyisyox`](https://github.com/shbatm/pyisyox) v6 library (WebSocket-first, JSON API), and is built for IoX 6+ devices. It coexists with the legacy core `isy994` integration on the same HA instance — no domain collision.
 
-### Differences between this version and Home Assistant Core
+## If you're running this integration
 
-See the [CHANGELOG](CHANGELOG.md) for the specific differences and improvements in this version over the Home Assistant Core Integration.
+### You're on eisy / Polisy with IoX 6.x+
 
-### Looking to Help Make This Integration Better?
+Switch to [`hacs-udi-iox`](https://github.com/shbatm/hacs-udi-iox). The new integration is feature-equivalent and where every bug fix and new feature lands going forward.
 
-The long-term goal is that these will be integrated into Home Assistant. Testing and feedback is encouraged to flush out any bugs now before a merge.
+### You're on an ISY-994 (legacy hardware)
 
-Please report any [issues or feature requests](https://github.com/shbatm/hacs-isy994/issues).
+`hacs-udi-iox` does **not** support ISY-994 hardware (`pyisyox` 6.x dropped the legacy XML surfaces).
 
-#### Local Development
+Two paths:
 
-A [VSCode DevContainer](https://code.visualstudio.com/docs/remote/containers#_getting-started) is also available to provide a consistent development environment.
+1. **Keep this integration installed.** It will continue to work for as long as your HA version's API surface stays compatible with the code in this repo, but no fixes will be shipped. **If something breaks**, your options are to either uninstall and revert to Home Assistant Core's built-in [`isy994` integration](https://www.home-assistant.io/integrations/isy994/), or install `hacs-udi-iox` (which won't talk to ISY-994 hardware).
+2. **Switch to the HA Core integration now.** It tracks `pyisy` 3.x and is the supported long-term home for ISY-994 owners.
 
-Assuming you have the pre-requisites installed from the link above (VSCode, Docker, & Remote-Containers Extension), to get started:
+## Why archive?
 
-1. Fork the repository.
-2. Clone the repository to your computer.
-3. Open the repository using Visual Studio code.
-4. PyISY Co-Development:
-    - If you are simultaneously making changes to PyISY, this container will mount your local PyISY folder inside this devcontainer. Assuming you have `./hacs-isy994` and `./PyISY` at the same root folder on your computer, they will be mounted at `/workspaces/hacs-isy994` and `/workspaces/PyISY` in the container. Install your local `pyisy` instance with `pip3 install -e /workspaces/PyISY`.
-    - If you are not making changes to PyISY or do not have the structure above, remove the `"mounts"` section from `.devcontainer/devcontainer.json`.
-4. When you open this repository with Visual Studio code you are asked to "Reopen in Container", this will start the build of the container.
-   - If you don't see this notification, open the command palette and select Remote-Containers: Reopen Folder in Container.
+The IoX 6 rewrite (eisy / Polisy) changed the controller's API surface end-to-end — a clean break was easier to maintain than dragging the legacy paths along. Continuing to develop two integrations in one repo (one for the ISY-994 wire format, one for IoX 6) created merge conflicts, ambiguous bug reports, and forced every PR to think about both code paths. Splitting the repos lets each track its own library version and devices.
 
-## Installation
+## History
 
-This repo is meant to be installed with [HACS](https://custom-components.github.io/hacs/)
+- **v1.x–v3.x**: tracked `pyisy` 1.x–3.x; intended as an upstream feed for the HA Core `isy994` integration.
+- **v4.x**: tracked the `pyisyox` rewrite; the new wire surface eventually outgrew the upstream contribution path, motivating the split into a separate domain.
 
-Refer to the built-in component's [integration page](https://www.home-assistant.io/integrations/isy994/) for more details on configuration.
+For the long-form change history, see the [CHANGELOG](CHANGELOG.md).
