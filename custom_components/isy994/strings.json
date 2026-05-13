@@ -32,6 +32,25 @@
       "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
     }
   },
+  "entity": {
+    "event": {
+      "button": {
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "fade_down": "Fade down",
+              "fade_stop": "Fade stop",
+              "fade_up": "Fade up",
+              "fast_off": "Fast off",
+              "fast_on": "Fast on",
+              "off": "Off",
+              "on": "On"
+            }
+          }
+        }
+      }
+    }
+  },
   "options": {
     "step": {
       "init": {

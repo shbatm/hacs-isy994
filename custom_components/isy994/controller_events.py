@@ -11,7 +11,7 @@ from pyisyox import ISY
 from pyisyox.constants import NodeChangeAction, SystemStatus
 from pyisyox.helpers.models import EntityStatus, NodeChangedEvent, NodeProperty
 
-from .const import _LOGGER, DOMAIN
+from .const import _LOGGER, DOMAIN, EVENT_ISY994_CONTROL
 from .models import IsyData
 
 
@@ -46,7 +46,7 @@ class IsyControllerEvents:
                 unique_id,
             )
         control_event = {"entity_id": entity_id, **asdict(event)}
-        self.hass.bus.async_fire("isy994_control", control_event)
+        self.hass.bus.async_fire(EVENT_ISY994_CONTROL, control_event)
 
     @callback
     def node_change_handler(self, event: NodeChangedEvent) -> None:
